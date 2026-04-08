@@ -50,6 +50,36 @@ export function useCurrentSeason(sportId?: string) {
   });
 }
 
+export function useAllCurrentSeasons() {
+  return useQuery({
+    queryKey: ['all-current-seasons'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('seasons').select('*, competitions(*, sports(*))').eq('is_current', true);
+      if (error) throw error;
+      return data?.filter((s: any) => s.competitions !== null) ?? [];
+    },
+  });
+}
+
+export function useAllResults() {
+  return useQuery({
+    queryKey: ['all-results'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('results').select(`
+        *,
+        fixtures!inner(
+          *,
+          home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)),
+          away_team:teams!fixtures_away_team_id_fkey(*, clubs(*)),
+          seasons:seasons!fixtures_season_id_fkey(*, competitions:competitions!seasons_competition_id_fkey(*, sports:sports!competitions_sport_id_fkey(*)))
+        )
+      `).eq('status', 'approved').order('created_at', { ascending: false }).limit(20);
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 export function useTeams(seasonId?: string) {
   return useQuery({
     queryKey: ['teams', seasonId],
