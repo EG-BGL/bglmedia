@@ -35,7 +35,7 @@ export default function Clubs() {
           <div className="py-16 text-center text-sm text-muted-foreground">Loading...</div>
         ) : (
           <div className="space-y-2">
-            {(clubs ?? []).map((club: any) => {
+            {(clubs ?? []).filter((club: any) => club.is_active !== false).map((club: any) => {
               const stats = clubStats[club.id];
               return (
                 <Link key={club.id} to={`/clubs/${club.id}`}>

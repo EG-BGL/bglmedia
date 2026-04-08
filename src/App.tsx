@@ -15,6 +15,7 @@ import Login from "./pages/Login";
 import Portal from "./pages/Portal";
 import SubmitResult from "./pages/SubmitResult";
 import Admin from "./pages/Admin";
+import ManageTeams from "./pages/ManageTeams";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/portal" element={<Portal />} />
             <Route path="/portal/submit" element={<SubmitResult />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/teams" element={<ManageTeams />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

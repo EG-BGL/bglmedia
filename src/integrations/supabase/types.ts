@@ -50,11 +50,13 @@ export type Database = {
       clubs: {
         Row: {
           coach: string | null
+          contact_email: string | null
           created_at: string
           description: string | null
           founded_year: number | null
           home_ground: string | null
           id: string
+          is_active: boolean
           logo_url: string | null
           name: string
           primary_color: string | null
@@ -64,11 +66,13 @@ export type Database = {
         }
         Insert: {
           coach?: string | null
+          contact_email?: string | null
           created_at?: string
           description?: string | null
           founded_year?: number | null
           home_ground?: string | null
           id?: string
+          is_active?: boolean
           logo_url?: string | null
           name: string
           primary_color?: string | null
@@ -78,11 +82,13 @@ export type Database = {
         }
         Update: {
           coach?: string | null
+          contact_email?: string | null
           created_at?: string
           description?: string | null
           founded_year?: number | null
           home_ground?: string | null
           id?: string
+          is_active?: boolean
           logo_url?: string | null
           name?: string
           primary_color?: string | null
