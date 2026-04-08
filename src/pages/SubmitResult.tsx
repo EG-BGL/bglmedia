@@ -218,6 +218,22 @@ export default function SubmitResult() {
         if (fnData.goal_kickers_away?.length) setGoalKickersAway(fnData.goal_kickers_away.join(', '));
         if (fnData.best_players_home?.length) setBestHome(fnData.best_players_home.join(', '));
         if (fnData.best_players_away?.length) setBestAway(fnData.best_players_away.join(', '));
+        // Accumulate player stats from AI extraction
+        if (fnData.player_stats?.length) {
+          setExtractedPlayerStats(prev => {
+            const merged = [...prev];
+            for (const ps of fnData.player_stats) {
+              const existing = merged.findIndex(m => m.name === ps.name && m.team === ps.team);
+              if (existing >= 0) {
+                // Merge non-null values
+                Object.keys(ps).forEach(k => { if (ps[k] != null && k !== 'name' && k !== 'team') merged[existing][k] = ps[k]; });
+              } else {
+                merged.push({ ...ps });
+              }
+            }
+            return merged;
+          });
+        }
       }
 
       setSectionConfidence(p => ({ ...p, [section]: fnData.confidence ?? 'medium' }));
