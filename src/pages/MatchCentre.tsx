@@ -48,7 +48,7 @@ export default function MatchCentre() {
   const statusClass = isLive
     ? 'bg-destructive text-destructive-foreground'
     : isCompleted
-      ? 'bg-muted text-muted-foreground'
+      ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
       : 'bg-primary/15 text-primary';
 
   return (
