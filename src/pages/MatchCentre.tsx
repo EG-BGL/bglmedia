@@ -45,6 +45,28 @@ export default function MatchCentre() {
 
   return (
     <Layout>
+      {/* Sticky mini score header */}
+      {result && (
+        <div className={`fixed top-14 left-0 right-0 z-40 bg-card/95 backdrop-blur-xl border-b border-border/50 transition-all duration-200 ${showStickyScore ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
+          <div className="page-container flex items-center justify-between h-11">
+            <div className="flex items-center gap-2">
+              <ClubLogo club={homeClub ?? {}} size="sm" className="!h-6 !w-6" />
+              <span className="text-xs font-bold">{homeClub?.short_name}</span>
+            </div>
+            <div className="text-center">
+              <span className="text-base font-black tabular-nums tracking-tight">
+                {result.home_score}<span className="text-muted-foreground/30 mx-1">–</span>{result.away_score}
+              </span>
+              <Badge className={`ml-2 rounded-full text-[8px] font-black tracking-wider px-1.5 py-0 border-0 ${statusClass}`}>{statusLabel}</Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold">{awayClub?.short_name}</span>
+              <ClubLogo club={awayClub ?? {}} size="sm" className="!h-6 !w-6" />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="page-container py-4 space-y-3">
         {/* Back link */}
         <Link to="/fixtures" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
@@ -52,7 +74,7 @@ export default function MatchCentre() {
         </Link>
 
         {/* ─── TILE 1: Hero Score ─── */}
-        <div className="match-card overflow-hidden">
+        <div ref={heroRef} className="match-card overflow-hidden">
           {/* Status bar */}
           <div className="flex items-center justify-center py-2 border-b border-border/30">
             <Badge className={`rounded-full text-[10px] font-black tracking-widest px-3 py-0.5 border-0 ${statusClass}`}>
