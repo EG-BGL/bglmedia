@@ -15,6 +15,7 @@ export default function Fixtures() {
 
   // Set of fixture IDs that have approved results
   const fixtureIdsWithResults = new Set(results?.map((r: any) => r.fixture_id ?? r.fixtures?.id) ?? []);
+  const resultsByFixture = new Map((results ?? []).map((r: any) => [r.fixture_id ?? r.fixtures?.id, r]));
   const [selectedRound, setSelectedRound] = useState<string>('all');
   const [tab, setTab] = useState<string>('fixtures');
 
