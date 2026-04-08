@@ -90,11 +90,11 @@ export default function Fixtures() {
                             return (
                               <div>
                                 <div className="stat-number text-xl font-black">{r.home_score} – {r.away_score}</div>
-                                <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-0">FT</Badge>
+                                <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">FT</Badge>
                               </div>
                             );
                           })() : f.status === 'completed' ? (
-                            <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-0">FT</Badge>
+                            <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">FT</Badge>
                           ) : (
                             <div>
                               <div className="text-[10px] text-muted-foreground">
