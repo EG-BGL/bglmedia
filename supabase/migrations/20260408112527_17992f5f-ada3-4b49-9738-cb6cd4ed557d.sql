@@ -1,0 +1,1 @@
+ALTER TABLE public.match_player_stats ADD CONSTRAINT match_player_stats_fixture_player_unique UNIQUE (fixture_id, player_id);
