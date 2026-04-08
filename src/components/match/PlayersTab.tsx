@@ -71,8 +71,6 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
   const homeTeamId = (fixture as any)?.home_team?.id;
   const awayTeamId = (fixture as any)?.away_team?.id;
   const { data: allStats, isLoading: loadingStats } = useMatchPlayerStats(fixtureId);
-  const { data: homePlayers, isLoading: loadingHome } = usePlayers(homeTeamId);
-  const { data: awayPlayers, isLoading: loadingAway } = usePlayers(awayTeamId);
 
   const homeStats = allStats?.filter((s: any) => s.team_id === homeTeamId) ?? [];
   const awayStats = allStats?.filter((s: any) => s.team_id === awayTeamId) ?? [];
