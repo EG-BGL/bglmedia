@@ -41,15 +41,21 @@ export default function SubmitResult() {
   const [goalKickersAway, setGoalKickersAway] = useState('');
   const [matchNotes, setMatchNotes] = useState('');
   // Multi-section upload state
-  type SectionKey = 'final_score' | 'match_stats_1' | 'match_stats_2' | 'key_stats';
-  const [sectionPreviews, setSectionPreviews] = useState<Record<SectionKey, string | null>>({ final_score: null, match_stats_1: null, match_stats_2: null, key_stats: null });
-  const [sectionExtracting, setSectionExtracting] = useState<Record<SectionKey, boolean>>({ final_score: false, match_stats_1: false, match_stats_2: false, key_stats: false });
-  const [sectionConfidence, setSectionConfidence] = useState<Record<SectionKey, string | null>>({ final_score: null, match_stats_1: null, match_stats_2: null, key_stats: null });
+  type SectionKey = 'final_score' | 'match_stats_1' | 'match_stats_2' | 'goalkickers_1' | 'goalkickers_2' | 'disposals_1' | 'disposals_2' | 'afl_fantasy_1' | 'afl_fantasy_2';
+  const defaultSections: Record<SectionKey, null> = { final_score: null, match_stats_1: null, match_stats_2: null, goalkickers_1: null, goalkickers_2: null, disposals_1: null, disposals_2: null, afl_fantasy_1: null, afl_fantasy_2: null };
+  const [sectionPreviews, setSectionPreviews] = useState<Record<SectionKey, string | null>>({ ...defaultSections });
+  const [sectionExtracting, setSectionExtracting] = useState<Record<SectionKey, boolean>>({ final_score: false, match_stats_1: false, match_stats_2: false, goalkickers_1: false, goalkickers_2: false, disposals_1: false, disposals_2: false, afl_fantasy_1: false, afl_fantasy_2: false });
+  const [sectionConfidence, setSectionConfidence] = useState<Record<SectionKey, string | null>>({ ...defaultSections });
   const fileRefs = {
     final_score: useRef<HTMLInputElement>(null),
     match_stats_1: useRef<HTMLInputElement>(null),
     match_stats_2: useRef<HTMLInputElement>(null),
-    key_stats: useRef<HTMLInputElement>(null),
+    goalkickers_1: useRef<HTMLInputElement>(null),
+    goalkickers_2: useRef<HTMLInputElement>(null),
+    disposals_1: useRef<HTMLInputElement>(null),
+    disposals_2: useRef<HTMLInputElement>(null),
+    afl_fantasy_1: useRef<HTMLInputElement>(null),
+    afl_fantasy_2: useRef<HTMLInputElement>(null),
   };
 
   useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading, navigate]);
