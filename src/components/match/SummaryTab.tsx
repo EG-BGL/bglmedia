@@ -1,7 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import ClubLogo from '@/components/ClubLogo';
-import { Trophy, FileText, Info, ChevronDown, Zap, Target, Hand, Shield, ArrowUpCircle } from 'lucide-react';
-import { useState } from 'react';
+import { Trophy, Info, Zap, Target, Hand, Shield, ArrowUpCircle } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useMatchPlayerStats } from '@/hooks/useData';
 
@@ -31,7 +30,6 @@ function getClubForTeam(teamId: string, fixture: any, homeClub: any, awayClub: a
 }
 
 export default function SummaryTab({ fixture, result, homeClub, awayClub, matchDate, homeWon, awayWon, statusLabel }: SummaryTabProps) {
-  const [notesExpanded, setNotesExpanded] = useState(false);
   const { data: playerStats } = useMatchPlayerStats(fixture?.id);
 
   if (!result) {
@@ -48,19 +46,19 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
   const leaders: LeaderStat[] = [];
   if (playerStats && playerStats.length > 0) {
     const statDefs: { key: string; label: string; icon: React.ReactNode; suffix: string }[] = [
-      { key: 'afl_fantasy', label: 'Fantasy', icon: <Zap className="h-4 w-4" />, suffix: 'pts' },
-      { key: 'disposals', label: 'Disposals', icon: <Hand className="h-4 w-4" />, suffix: 'disp' },
-      { key: 'goals', label: 'Goals', icon: <Target className="h-4 w-4" />, suffix: 'goals' },
-      { key: 'marks', label: 'Marks', icon: <ArrowUpCircle className="h-4 w-4" />, suffix: 'marks' },
-      { key: 'tackles', label: 'Tackles', icon: <Shield className="h-4 w-4" />, suffix: 'tackles' },
-      { key: 'kicks', label: 'Kicks', icon: <Target className="h-4 w-4" />, suffix: 'kicks' },
+      { key: 'afl_fantasy', label: 'Fantasy', icon: <Zap className="h-3.5 w-3.5" />, suffix: 'pts' },
+      { key: 'disposals', label: 'Disposals', icon: <Hand className="h-3.5 w-3.5" />, suffix: 'disp' },
+      { key: 'goals', label: 'Goals', icon: <Target className="h-3.5 w-3.5" />, suffix: 'goals' },
+      { key: 'marks', label: 'Marks', icon: <ArrowUpCircle className="h-3.5 w-3.5" />, suffix: 'marks' },
+      { key: 'tackles', label: 'Tackles', icon: <Shield className="h-3.5 w-3.5" />, suffix: 'tackles' },
+      { key: 'kicks', label: 'Kicks', icon: <Target className="h-3.5 w-3.5" />, suffix: 'kicks' },
     ];
     for (const def of statDefs) {
       const sorted = [...playerStats].sort((a: any, b: any) => (b[def.key] ?? 0) - (a[def.key] ?? 0));
       const top = sorted[0];
       if (top && (top as any)[def.key] > 0) {
         const player = (top as any)?.players;
-        const name = player ? `${player.first_name} ${player.last_name}` : 'Unknown';
+        const name = player ? `${player.first_name?.[0]}. ${player.last_name}` : 'Unknown';
         leaders.push({
           label: def.label,
           icon: def.icon,
@@ -92,47 +90,47 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
     <div className="space-y-3">
       {/* Quarter Breakdown */}
       <div className="match-card overflow-hidden">
-        <div className="px-4 py-3 border-b border-border/30">
-          <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Quarter by Quarter</h3>
+        <div className="px-4 py-2.5 border-b border-border/30">
+          <h3 className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Quarter by Quarter</h3>
         </div>
-        <div className="px-4 py-3">
-          <table className="w-full text-xs">
+        <div className="px-4 py-2">
+          <table className="w-full text-[11px]">
             <thead>
-              <tr className="border-b border-border/40">
-                <th className="text-left py-2 font-bold text-muted-foreground w-24"></th>
-                <th className="text-center py-2 font-bold text-muted-foreground">Q1</th>
-                <th className="text-center py-2 font-bold text-muted-foreground">Q2</th>
-                <th className="text-center py-2 font-bold text-muted-foreground">Q3</th>
-                <th className="text-center py-2 font-bold text-muted-foreground">Q4</th>
-                <th className="text-center py-2 font-black text-foreground">Total</th>
+              <tr className="border-b border-border/20">
+                <th className="text-left py-1.5 font-bold text-muted-foreground w-20"></th>
+                <th className="text-center py-1.5 font-bold text-muted-foreground">Q1</th>
+                <th className="text-center py-1.5 font-bold text-muted-foreground">Q2</th>
+                <th className="text-center py-1.5 font-bold text-muted-foreground">Q3</th>
+                <th className="text-center py-1.5 font-bold text-muted-foreground">Q4</th>
+                <th className="text-center py-1.5 font-black text-foreground">Total</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-border/20">
-                <td className="py-2.5">
+              <tr className="border-b border-border/10">
+                <td className="py-2">
                   <div className="flex items-center gap-1.5">
-                    <ClubLogo club={homeClub ?? {}} size="sm" className="!h-5 !w-5" />
-                    <span className={`font-bold truncate ${homeWon ? 'text-foreground' : 'text-muted-foreground'}`}>{homeClub?.short_name}</span>
+                    <ClubLogo club={homeClub ?? {}} size="sm" className="!h-4 !w-4" />
+                    <span className={`font-bold text-[11px] truncate ${homeWon ? 'text-foreground' : 'text-muted-foreground'}`}>{homeClub?.short_name}</span>
                   </div>
                 </td>
-                <td className="text-center py-2.5 tabular-nums text-muted-foreground">{result.home_q1 || '-'}</td>
-                <td className="text-center py-2.5 tabular-nums text-muted-foreground">{result.home_q2 || '-'}</td>
-                <td className="text-center py-2.5 tabular-nums text-muted-foreground">{result.home_q3 || '-'}</td>
-                <td className="text-center py-2.5 tabular-nums text-muted-foreground">{result.home_q4 || `${result.home_goals}.${result.home_behinds}`}</td>
-                <td className={`text-center py-2.5 tabular-nums font-black text-sm ${homeWon ? 'text-primary' : ''}`}>{result.home_score}</td>
+                <td className="text-center py-2 tabular-nums text-muted-foreground">{result.home_q1 || '-'}</td>
+                <td className="text-center py-2 tabular-nums text-muted-foreground">{result.home_q2 || '-'}</td>
+                <td className="text-center py-2 tabular-nums text-muted-foreground">{result.home_q3 || '-'}</td>
+                <td className="text-center py-2 tabular-nums text-muted-foreground">{result.home_q4 || `${result.home_goals}.${result.home_behinds}`}</td>
+                <td className={`text-center py-2 tabular-nums font-black ${homeWon ? 'text-primary' : ''}`}>{result.home_score}</td>
               </tr>
               <tr>
-                <td className="py-2.5">
+                <td className="py-2">
                   <div className="flex items-center gap-1.5">
-                    <ClubLogo club={awayClub ?? {}} size="sm" className="!h-5 !w-5" />
-                    <span className={`font-bold truncate ${awayWon ? 'text-foreground' : 'text-muted-foreground'}`}>{awayClub?.short_name}</span>
+                    <ClubLogo club={awayClub ?? {}} size="sm" className="!h-4 !w-4" />
+                    <span className={`font-bold text-[11px] truncate ${awayWon ? 'text-foreground' : 'text-muted-foreground'}`}>{awayClub?.short_name}</span>
                   </div>
                 </td>
-                <td className="text-center py-2.5 tabular-nums text-muted-foreground">{result.away_q1 || '-'}</td>
-                <td className="text-center py-2.5 tabular-nums text-muted-foreground">{result.away_q2 || '-'}</td>
-                <td className="text-center py-2.5 tabular-nums text-muted-foreground">{result.away_q3 || '-'}</td>
-                <td className="text-center py-2.5 tabular-nums text-muted-foreground">{result.away_q4 || `${result.away_goals}.${result.away_behinds}`}</td>
-                <td className={`text-center py-2.5 tabular-nums font-black text-sm ${awayWon ? 'text-primary' : ''}`}>{result.away_score}</td>
+                <td className="text-center py-2 tabular-nums text-muted-foreground">{result.away_q1 || '-'}</td>
+                <td className="text-center py-2 tabular-nums text-muted-foreground">{result.away_q2 || '-'}</td>
+                <td className="text-center py-2 tabular-nums text-muted-foreground">{result.away_q3 || '-'}</td>
+                <td className="text-center py-2 tabular-nums text-muted-foreground">{result.away_q4 || `${result.away_goals}.${result.away_behinds}`}</td>
+                <td className={`text-center py-2 tabular-nums font-black ${awayWon ? 'text-primary' : ''}`}>{result.away_score}</td>
               </tr>
             </tbody>
           </table>
@@ -142,24 +140,24 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
       {/* Match Leaders */}
       {(leaders.length > 0 || fallbackGoalLeaders.length > 0) && (
         <div className="match-card overflow-hidden">
-          <div className="px-4 py-3 border-b border-border/30 flex items-center gap-1.5">
+          <div className="px-4 py-2.5 border-b border-border/30 flex items-center gap-1.5">
             <Trophy className="h-3.5 w-3.5 text-primary" />
-            <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Match Leaders</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Match Leaders</h3>
           </div>
 
           {leaders.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-border/20">
+            <div className="grid grid-cols-3 gap-px bg-border/20">
               {leaders.map((leader, i) => {
                 const initials = leader.playerName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
                 return (
-                  <div key={i} className="bg-card p-3 flex flex-col items-center text-center gap-2">
+                  <div key={i} className="bg-card px-2 py-3 flex flex-col items-center text-center gap-1.5">
                     <div className="flex items-center gap-1 text-muted-foreground">
                       {leader.icon}
-                      <span className="text-[10px] font-bold uppercase tracking-wider">{leader.label}</span>
+                      <span className="text-[9px] font-bold uppercase tracking-wider">{leader.label}</span>
                     </div>
-                    <Avatar className="h-11 w-11">
+                    <Avatar className="h-9 w-9">
                       <AvatarFallback
-                        className="text-xs font-black"
+                        className="text-[10px] font-black"
                         style={{
                           backgroundColor: leader.club?.primary_color ?? '#1a365d',
                           color: leader.club?.secondary_color ?? '#d69e2e',
@@ -169,28 +167,27 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-xs font-bold text-foreground truncate max-w-[100px]">{leader.playerName}</p>
-                      <div className="flex items-center justify-center gap-1 mt-0.5">
-                        <ClubLogo club={leader.club ?? {}} size="sm" className="!h-3.5 !w-3.5" />
-                        <span className="text-[10px] text-muted-foreground">{leader.club?.short_name}</span>
+                      <p className="text-[10px] font-bold text-foreground truncate max-w-[90px]">{leader.playerName}</p>
+                      <div className="flex items-center justify-center gap-1">
+                        <ClubLogo club={leader.club ?? {}} size="sm" className="!h-3 !w-3" />
+                        <span className="text-[9px] text-muted-foreground">{leader.club?.short_name}</span>
                       </div>
                     </div>
-                    <Badge className="bg-primary/15 text-primary border-0 text-sm font-black tabular-nums px-2.5 py-0.5 rounded-full">
-                      {leader.value}
-                    </Badge>
-                    <span className="text-[9px] uppercase tracking-widest text-muted-foreground/60 font-bold -mt-1">{leader.suffix}</span>
+                    <div className="flex items-baseline gap-0.5">
+                      <span className="text-sm font-black tabular-nums text-primary">{leader.value}</span>
+                      <span className="text-[8px] uppercase tracking-wider text-muted-foreground/60 font-bold">{leader.suffix}</span>
+                    </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            /* Fallback: goal kickers as leader tiles */
-            <div className="px-4 py-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-px bg-border/20">
               {fallbackGoalLeaders.slice(0, 6).map((gk, i) => {
                 const initials = gk.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
                 return (
-                  <div key={i} className="flex flex-col items-center text-center p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors gap-1.5">
-                    <Avatar className="h-10 w-10">
+                  <div key={i} className="bg-card px-2 py-3 flex flex-col items-center text-center gap-1.5">
+                    <Avatar className="h-9 w-9">
                       <AvatarFallback
                         className="text-[10px] font-black"
                         style={{
@@ -201,14 +198,15 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
                         {initials}
                       </AvatarFallback>
                     </Avatar>
-                    <p className="text-xs font-semibold text-foreground truncate max-w-[90px]">{gk.name}</p>
+                    <p className="text-[10px] font-bold text-foreground truncate max-w-[80px]">{gk.name}</p>
                     <div className="flex items-center gap-1">
-                      <ClubLogo club={gk.club ?? {}} size="sm" className="!h-3.5 !w-3.5" />
-                      <span className="text-[10px] text-muted-foreground">{gk.club?.short_name}</span>
+                      <ClubLogo club={gk.club ?? {}} size="sm" className="!h-3 !w-3" />
+                      <span className="text-[9px] text-muted-foreground">{gk.club?.short_name}</span>
                     </div>
-                    <Badge className="bg-primary/15 text-primary border-0 text-xs font-black tabular-nums px-2 py-0 rounded-full">
-                      {gk.goals} {gk.goals === 1 ? 'goal' : 'goals'}
-                    </Badge>
+                    <div className="flex items-baseline gap-0.5">
+                      <span className="text-sm font-black tabular-nums text-primary">{gk.goals}</span>
+                      <span className="text-[8px] uppercase tracking-wider text-muted-foreground/60 font-bold">{gk.goals === 1 ? 'goal' : 'goals'}</span>
+                    </div>
                   </div>
                 );
               })}
@@ -217,32 +215,14 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
         </div>
       )}
 
-      {/* Match Notes */}
-      {result.match_notes && (
-        <div className="match-card overflow-hidden">
-          <button onClick={() => setNotesExpanded(!notesExpanded)} className="w-full px-4 py-3 flex items-center justify-between text-left">
-            <div className="flex items-center gap-1.5">
-              <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-              <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Match Notes</h3>
-            </div>
-            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${notesExpanded ? 'rotate-180' : ''}`} />
-          </button>
-          {notesExpanded && (
-            <div className="px-4 pb-4 border-t border-border/30 pt-3">
-              <p className="text-xs text-muted-foreground leading-relaxed">{result.match_notes}</p>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Match Info */}
       <div className="match-card overflow-hidden">
-        <div className="px-4 py-3 border-b border-border/30 flex items-center gap-1.5">
+        <div className="px-4 py-2.5 border-b border-border/30 flex items-center gap-1.5">
           <Info className="h-3.5 w-3.5 text-muted-foreground" />
-          <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Match Info</h3>
+          <h3 className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Match Info</h3>
         </div>
-        <div className="px-4 py-2">
-          <dl className="divide-y divide-border/30">
+        <div className="px-4 py-1">
+          <dl className="divide-y divide-border/20">
             {[
               { label: 'Round', value: `Round ${fixture.round_number}` },
               matchDate && { label: 'Date', value: matchDate.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) },
@@ -250,9 +230,9 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
               fixture.venue && { label: 'Venue', value: fixture.venue },
               { label: 'Status', value: statusLabel },
             ].filter(Boolean).map((item: any) => (
-              <div key={item.label} className="flex justify-between py-2.5">
-                <dt className="text-xs text-muted-foreground">{item.label}</dt>
-                <dd className="text-xs font-semibold text-foreground">{item.value}</dd>
+              <div key={item.label} className="flex justify-between py-2">
+                <dt className="text-[11px] text-muted-foreground">{item.label}</dt>
+                <dd className="text-[11px] font-semibold text-foreground">{item.value}</dd>
               </div>
             ))}
           </dl>
