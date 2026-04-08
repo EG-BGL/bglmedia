@@ -43,6 +43,7 @@ export default function SubmitResult() {
   const [matchNotes, setMatchNotes] = useState('');
   const [extractedPlayerStats, setExtractedPlayerStats] = useState<any[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [extractedTeamStats, setExtractedTeamStats] = useState<{ home: Record<string, number | null>; away: Record<string, number | null> }>({ home: {}, away: {} });
   // Multi-section upload state
   type SectionKey = 'final_score' | 'match_stats_1' | 'match_stats_2' | 'goalkickers_1' | 'goalkickers_2' | 'disposals_1' | 'disposals_2' | 'afl_fantasy_1' | 'afl_fantasy_2' | 'afl_fantasy_3';
   const defaultSections: Record<SectionKey, null> = { final_score: null, match_stats_1: null, match_stats_2: null, goalkickers_1: null, goalkickers_2: null, disposals_1: null, disposals_2: null, afl_fantasy_1: null, afl_fantasy_2: null, afl_fantasy_3: null };
@@ -181,6 +182,25 @@ export default function SubmitResult() {
       if (statsError) console.error('Failed to save player stats:', statsError);
     }
 
+    // Save extracted team stats if any
+    const hasTeamStats = Object.values(extractedTeamStats.home).some(v => v != null) || Object.values(extractedTeamStats.away).some(v => v != null);
+    if (hasTeamStats && selectedMatch) {
+      const homeTeamId = selectedMatch.home_team?.id;
+      const awayTeamId = selectedMatch.away_team?.id;
+      if (homeTeamId) {
+        await supabase.from('match_team_stats').upsert(
+          { fixture_id: selectedFixture, team_id: homeTeamId, ...extractedTeamStats.home },
+          { onConflict: 'fixture_id,team_id' }
+        );
+      }
+      if (awayTeamId) {
+        await supabase.from('match_team_stats').upsert(
+          { fixture_id: selectedFixture, team_id: awayTeamId, ...extractedTeamStats.away },
+          { onConflict: 'fixture_id,team_id' }
+        );
+      }
+    }
+
     setShowSuccess(true);
   };
 
@@ -224,6 +244,16 @@ export default function SubmitResult() {
         if (fnData.away_q2) setAwayQ2(fnData.away_q2);
         if (fnData.away_q3) setAwayQ3(fnData.away_q3);
         if (fnData.away_q4) setAwayQ4(fnData.away_q4);
+      }
+
+      // Store extracted match team stats
+      if (section.startsWith('match_stats')) {
+        if (fnData.home_team_stats || fnData.away_team_stats) {
+          setExtractedTeamStats(prev => ({
+            home: { ...prev.home, ...Object.fromEntries(Object.entries(fnData.home_team_stats || {}).filter(([, v]) => v != null).map(([k, v]) => [k, v as number])) },
+            away: { ...prev.away, ...Object.fromEntries(Object.entries(fnData.away_team_stats || {}).filter(([, v]) => v != null).map(([k, v]) => [k, v as number])) },
+          }));
+        }
       }
 
       if (section.startsWith('goalkickers') || section.startsWith('disposals') || section.startsWith('afl_fantasy')) {
