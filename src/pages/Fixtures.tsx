@@ -110,7 +110,6 @@ export default function Fixtures() {
                 </div>
               </div>
             ))
-          )
         )}
       </div>
     </Layout>
