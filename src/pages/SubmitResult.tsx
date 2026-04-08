@@ -231,8 +231,8 @@ export default function SubmitResult() {
       if (section.startsWith('match_stats')) {
         if (fnData.home_team_stats || fnData.away_team_stats) {
           setExtractedTeamStats(prev => ({
-            home: { ...prev.home, ...Object.fromEntries(Object.entries(fnData.home_team_stats || {}).filter(([, v]) => v != null)) },
-            away: { ...prev.away, ...Object.fromEntries(Object.entries(fnData.away_team_stats || {}).filter(([, v]) => v != null)) },
+            home: { ...prev.home, ...Object.fromEntries(Object.entries(fnData.home_team_stats || {}).filter(([, v]) => v != null).map(([k, v]) => [k, v as number])) },
+            away: { ...prev.away, ...Object.fromEntries(Object.entries(fnData.away_team_stats || {}).filter(([, v]) => v != null).map(([k, v]) => [k, v as number])) },
           }));
         }
       }
