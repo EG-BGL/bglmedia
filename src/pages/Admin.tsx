@@ -779,8 +779,37 @@ export default function Admin() {
                 </div>
               </div>
             )}
-            <div className="space-y-2">
-              {clubs.map((c: any) => (
+            {/* Team list divided by sport */}
+            {(() => {
+              // Build a map of club_id -> sport slugs they're enrolled in
+              const clubSportMap: Record<string, Set<string>> = {};
+              teams.forEach((t: any) => {
+                const comp = competitions.find((c: any) => c.id === t.competition_id);
+                const sport = comp ? sports.find((s: any) => s.id === comp.sport_id) : null;
+                if (!clubSportMap[t.club_id]) clubSportMap[t.club_id] = new Set();
+                if (sport?.slug) clubSportMap[t.club_id].add(sport.slug);
+              });
+
+              const aflSport = sports.find((s: any) => s.slug === 'afl');
+              const crickSport = sports.find((s: any) => s.slug === 'cricket');
+
+              const handleAddToSport = async (clubId: string, sportSlug: string) => {
+                const sport = sports.find((s: any) => s.slug === sportSlug);
+                if (!sport) { toast.error('Sport not found'); return; }
+                const comp = competitions.find((c: any) => c.sport_id === sport.id);
+                if (!comp) { toast.error(`No ${sportSlug} competition found. Create one first.`); return; }
+                const season = allSeasons.find((s: any) => s.competition_id === comp.id && s.is_current);
+                if (!season) { toast.error(`No current season for ${sportSlug}. Create one first.`); return; }
+                const { error } = await supabase.from('teams').insert({ club_id: clubId, competition_id: comp.id, season_id: season.id });
+                if (error) { toast.error(error.message); return; }
+                toast.success(`Added to ${sportSlug.toUpperCase()}!`); loadData();
+              };
+
+              const aflClubs = clubs.filter((c: any) => clubSportMap[c.id]?.has('afl'));
+              const cricketClubs = clubs.filter((c: any) => clubSportMap[c.id]?.has('cricket'));
+              const unenrolledClubs = clubs.filter((c: any) => !clubSportMap[c.id] || clubSportMap[c.id].size === 0);
+
+              const renderClub = (c: any) => (
                 <div key={c.id} className="match-card p-3.5 flex items-center gap-3">
                   <ClubLogo club={c} size="md" className="!h-11 !w-11" />
                   <div className="flex-1 min-w-0">
@@ -792,6 +821,18 @@ export default function Admin() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
+                    {aflSport && !clubSportMap[c.id]?.has('afl') && (
+                      <Button variant="outline" size="sm" className="rounded-full text-[10px] font-bold h-7 px-2.5 gap-1" onClick={() => handleAddToSport(c.id, 'afl')}>
+                        <Plus className="h-3 w-3" /> AFL
+                      </Button>
+                    )}
+                    {crickSport && !clubSportMap[c.id]?.has('cricket') && (
+                      <Button variant="outline" size="sm" className="rounded-full text-[10px] font-bold h-7 px-2.5 gap-1" onClick={() => handleAddToSport(c.id, 'cricket')}>
+                        <Plus className="h-3 w-3" /> Cricket
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
                     <div className="h-5 w-5 rounded-full border border-border" style={{ backgroundColor: c.primary_color }} />
                     <div className="h-5 w-5 rounded-full border border-border" style={{ backgroundColor: c.secondary_color }} />
                   </div>
@@ -800,9 +841,41 @@ export default function Admin() {
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-destructive" onClick={() => handleDeleteClub(c.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
                 </div>
-              ))}
-              {clubs.length === 0 && <div className="py-12 text-center text-sm text-muted-foreground">No teams yet.</div>}
-            </div>
+              );
+
+              return (
+                <div className="space-y-4">
+                  {aflClubs.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Trophy className="h-4 w-4 text-primary" />
+                        <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">AFL Teams</h3>
+                        <Badge variant="outline" className="text-[9px] rounded-full">{aflClubs.length}</Badge>
+                      </div>
+                      {aflClubs.map(renderClub)}
+                    </div>
+                  )}
+                  {cricketClubs.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <CircleDot className="h-4 w-4 text-primary" />
+                        <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Cricket Teams</h3>
+                        <Badge variant="outline" className="text-[9px] rounded-full">{cricketClubs.length}</Badge>
+                      </div>
+                      {cricketClubs.map(renderClub)}
+                    </div>
+                  )}
+                  {unenrolledClubs.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Not Enrolled</h3>
+                      {unenrolledClubs.map(renderClub)}
+                    </div>
+                  )}
+                  {clubs.length === 0 && <div className="py-12 text-center text-sm text-muted-foreground">No teams yet.</div>}
+                </div>
+              );
+            })()}
+
           </TabsContent>
 
           {/* ── Pending Tab ── */}
