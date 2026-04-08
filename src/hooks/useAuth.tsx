@@ -34,9 +34,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const { data } = await supabase
               .from('user_roles')
               .select('role')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
-            setRole((data?.role as AppRole) ?? null);
+              .eq('user_id', session.user.id);
+            // Prioritize: league_admin > club_admin > coach > public
+            const roles = (data ?? []).map((d: any) => d.role);
+            const priority: AppRole[] = ['league_admin', 'club_admin', 'coach', 'public'];
+            const topRole = priority.find(r => roles.includes(r)) ?? null;
+            setRole(topRole);
             setLoading(false);
           }, 0);
         } else {
@@ -55,9 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .from('user_roles')
           .select('role')
           .eq('user_id', session.user.id)
-          .maybeSingle()
           .then(({ data }) => {
-            setRole((data?.role as AppRole) ?? null);
+            const roles = (data ?? []).map((d: any) => d.role);
+            const priority: AppRole[] = ['league_admin', 'club_admin', 'coach', 'public'];
+            const topRole = priority.find(r => roles.includes(r)) ?? null;
+            setRole(topRole);
             setLoading(false);
           });
       } else {
