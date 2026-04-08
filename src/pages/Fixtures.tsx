@@ -184,7 +184,7 @@ export default function Fixtures() {
                               <span className={`text-xs tabular-nums ml-auto shrink-0 ${homeWon ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>{homeScore}</span>
                             )}
                             {aflResult && (
-                              <span className={`text-xs tabular-nums ml-auto shrink-0 ${aflResult.homeWon ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>{aflResult.r.home_goals}.{aflResult.r.home_behinds}</span>
+                              <span className={`text-xs tabular-nums ml-auto shrink-0 ${aflResult.homeWon ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>{aflResult.r.home_goals}.{aflResult.r.home_behinds}.{aflResult.r.home_score}</span>
                             )}
                           </div>
                           <div className="text-center shrink-0 px-1">
@@ -212,7 +212,7 @@ export default function Fixtures() {
                           </div>
                           <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
                             {aflResult && (
-                              <span className={`text-xs tabular-nums mr-auto shrink-0 ${aflResult.awayWon ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>{aflResult.r.away_goals}.{aflResult.r.away_behinds}</span>
+                              <span className={`text-xs tabular-nums mr-auto shrink-0 ${aflResult.awayWon ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>{aflResult.r.away_goals}.{aflResult.r.away_behinds}.{aflResult.r.away_score}</span>
                             )}
                             {hasCricketResult && (
                               <span className={`text-xs tabular-nums mr-auto shrink-0 ${awayWon ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>{awayScore}</span>
