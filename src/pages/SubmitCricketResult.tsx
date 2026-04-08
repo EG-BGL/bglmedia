@@ -433,26 +433,34 @@ export default function SubmitCricketResult() {
           <h1 className="text-xl font-black tracking-tight">Submit Cricket Result</h1>
         </div>
 
-        {/* What You'll Need */}
-        <div className="match-card p-4 border-l-4 border-l-primary">
-          <h3 className="font-bold text-sm mb-2 flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 text-primary" />
-            What You'll Need
+        {/* What You'll Need Checklist */}
+        <div className="match-card p-4">
+          <h3 className="section-label mb-3 flex items-center gap-1.5">
+            <ClipboardList className="h-3.5 w-3.5 text-primary" /> What You'll Need
           </h3>
-          <ul className="space-y-1.5 text-xs text-muted-foreground">
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
-              <span>Match Summary (total runs, wickets, overs)</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
-              <span>Batting scorecard of both teams</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
-              <span>Bowling scorecard of both teams</span>
-            </li>
-          </ul>
+          <div className="space-y-2.5">
+            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-muted/50">
+              <Trophy className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <div>
+                <p className="text-xs font-bold">Match Summary</p>
+                <p className="text-[10px] text-muted-foreground">Total runs, wickets, overs and extras for each innings</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-muted/50">
+              <BarChart3 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <div>
+                <p className="text-xs font-bold">Batting Scorecard — Both Teams</p>
+                <p className="text-[10px] text-muted-foreground">Runs, balls faced, 4s, 6s and dismissal details for each batter</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-muted/50">
+              <Users className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <div>
+                <p className="text-xs font-bold">Bowling Scorecard — Both Teams</p>
+                <p className="text-[10px] text-muted-foreground">Overs, maidens, runs, wickets and extras for each bowler</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
