@@ -40,6 +40,11 @@ export default function SubmitResult() {
   const [goalKickersHome, setGoalKickersHome] = useState('');
   const [goalKickersAway, setGoalKickersAway] = useState('');
   const [matchNotes, setMatchNotes] = useState('');
+  const [scorecardFile, setScorecardFile] = useState<File | null>(null);
+  const [scorecardPreview, setScorecardPreview] = useState<string | null>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [aiConfidence, setAiConfidence] = useState<string | null>(null);
+  const scorecardRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading, navigate]);
 
