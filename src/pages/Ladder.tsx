@@ -84,6 +84,35 @@ export default function Ladder() {
           <div className="py-16 text-center text-sm text-muted-foreground">No ladder data yet.</div>
         ) : (
           <div className="space-y-2">
+            {isCricket && (
+              <div className="match-card p-2.5 hidden sm:flex items-center gap-3 text-[9px] text-muted-foreground uppercase font-bold">
+                <div className="w-7 shrink-0" />
+                <div className="w-8 shrink-0" />
+                <div className="flex-1 min-w-0">Team</div>
+                <div className="flex items-center gap-3 shrink-0 tabular-nums">
+                  <div className="w-10 text-center">P</div>
+                  <div className="w-14 text-center">W-L-D</div>
+                  <div className="w-10 text-center">RF</div>
+                  <div className="w-10 text-center">RA</div>
+                  <div className="w-10 text-center">%</div>
+                  <div className="w-10 text-center">Pts</div>
+                </div>
+              </div>
+            )}
+            {!isCricket && (
+              <div className="match-card p-2.5 hidden sm:flex items-center gap-3 text-[9px] text-muted-foreground uppercase font-bold">
+                <div className="w-7 shrink-0" />
+                <div className="w-8 shrink-0" />
+                <div className="flex-1 min-w-0">Team</div>
+                <div className="flex items-center gap-3 shrink-0 tabular-nums">
+                  <div className="w-14 text-center">W-L-D</div>
+                  <div className="w-10 text-center">PF</div>
+                  <div className="w-10 text-center">PA</div>
+                  <div className="w-10 text-center">%</div>
+                  <div className="w-10 text-center">Pts</div>
+                </div>
+              </div>
+            )}
             {(ladder ?? []).map((entry: any, i: number) => {
               const club = entry.teams?.clubs;
               const isTop4 = i < 4;
@@ -98,22 +127,53 @@ export default function Ladder() {
                     <ClubLogo club={club ?? {}} size="sm" className="!h-8 !w-8" />
                     <div className="flex-1 min-w-0">
                       <span className="font-bold text-sm block truncate">{club?.name}</span>
-                      <span className="text-[10px] text-muted-foreground">{entry.played ?? 0} played</span>
+                      <span className="text-[10px] text-muted-foreground sm:hidden">{entry.played ?? 0} played · {entry.wins ?? 0}W {entry.losses ?? 0}L</span>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0 text-xs tabular-nums">
-                      <div className="text-center">
-                        <div className="text-[9px] text-muted-foreground uppercase font-bold">W-L-D</div>
-                        <div className="font-bold">{entry.wins ?? 0}-{entry.losses ?? 0}-{entry.draws ?? 0}</div>
+                    {isCricket ? (
+                      <div className="flex items-center gap-3 shrink-0 text-xs tabular-nums">
+                        <div className="w-10 text-center hidden sm:block">
+                          <div className="sm:hidden text-[9px] text-muted-foreground uppercase font-bold">P</div>
+                          <div className="font-semibold">{entry.played ?? 0}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-[9px] text-muted-foreground uppercase font-bold sm:hidden">W-L-D</div>
+                          <div className="font-bold hidden sm:block w-14 text-center">{entry.wins ?? 0}-{entry.losses ?? 0}-{entry.draws ?? 0}</div>
+                        </div>
+                        <div className="w-10 text-center hidden sm:block">
+                          <div className="font-semibold">{entry.points_for ?? 0}</div>
+                        </div>
+                        <div className="w-10 text-center hidden sm:block">
+                          <div className="font-semibold">{entry.points_against ?? 0}</div>
+                        </div>
+                        <div className="w-10 text-center hidden sm:block">
+                          <div className="font-semibold">{Number(entry.percentage ?? 0).toFixed(1)}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-[9px] text-muted-foreground uppercase font-bold sm:hidden">Pts</div>
+                          <div className="font-black text-sm text-primary w-10 text-center">{entry.competition_points ?? 0}</div>
+                        </div>
                       </div>
-                      <div className="text-center hidden sm:block">
-                        <div className="text-[9px] text-muted-foreground uppercase font-bold">%</div>
-                        <div className="font-semibold">{Number(entry.percentage ?? 0).toFixed(1)}</div>
+                    ) : (
+                      <div className="flex items-center gap-3 shrink-0 text-xs tabular-nums">
+                        <div className="text-center">
+                          <div className="text-[9px] text-muted-foreground uppercase font-bold sm:hidden">W-L-D</div>
+                          <div className="font-bold w-14 text-center">{entry.wins ?? 0}-{entry.losses ?? 0}-{entry.draws ?? 0}</div>
+                        </div>
+                        <div className="w-10 text-center hidden sm:block">
+                          <div className="font-semibold">{entry.points_for ?? 0}</div>
+                        </div>
+                        <div className="w-10 text-center hidden sm:block">
+                          <div className="font-semibold">{entry.points_against ?? 0}</div>
+                        </div>
+                        <div className="text-center hidden sm:block">
+                          <div className="font-semibold w-10 text-center">{Number(entry.percentage ?? 0).toFixed(1)}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-[9px] text-muted-foreground uppercase font-bold sm:hidden">Pts</div>
+                          <div className="font-black text-sm text-primary w-10 text-center">{entry.competition_points ?? 0}</div>
+                        </div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-[9px] text-muted-foreground uppercase font-bold">Pts</div>
-                        <div className="font-black text-sm text-primary">{entry.competition_points ?? 0}</div>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </Link>
               );
