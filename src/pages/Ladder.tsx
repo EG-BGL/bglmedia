@@ -95,7 +95,7 @@ export default function Ladder() {
                   <div className="w-14 text-center">W-L-D</div>
                   <div className="w-10 text-center">RF</div>
                   <div className="w-10 text-center">RA</div>
-                  <div className="w-10 text-center">%</div>
+                  <div className="w-12 text-center">NRR</div>
                   <div className="w-10 text-center">Pts</div>
                 </div>
               </div>
