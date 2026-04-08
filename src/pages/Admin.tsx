@@ -287,6 +287,7 @@ export default function Admin() {
             <TabsList className="inline-flex h-9 bg-muted/60 rounded-full p-0.5 gap-0.5">
               <TabsTrigger value="fixtures" className="rounded-full text-[10px] font-bold px-3"><Calendar className="h-3 w-3 mr-1" />Fixtures</TabsTrigger>
               <TabsTrigger value="clubs" className="rounded-full text-[10px] font-bold px-3"><Users className="h-3 w-3 mr-1" />Teams</TabsTrigger>
+              <TabsTrigger value="players" className="rounded-full text-[10px] font-bold px-3"><Users className="h-3 w-3 mr-1" />Players</TabsTrigger>
               <TabsTrigger value="pending" className="rounded-full text-[10px] font-bold px-3"><Clock className="h-3 w-3 mr-1" />Pending</TabsTrigger>
               <TabsTrigger value="news" className="rounded-full text-[10px] font-bold px-3"><Newspaper className="h-3 w-3 mr-1" />News</TabsTrigger>
               <TabsTrigger value="audit" className="rounded-full text-[10px] font-bold px-3"><FileText className="h-3 w-3 mr-1" />Audit</TabsTrigger>
