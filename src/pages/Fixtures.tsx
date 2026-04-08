@@ -78,39 +78,38 @@ export default function Fixtures() {
                 <h2 className="section-label mb-2">Round {round}</h2>
                 <div className="space-y-2">
                   {matches.map((f: any) => (
-                    <Link key={f.id} to={`/match/${f.id}`} className="block match-card p-3.5">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <Link key={f.id} to={`/match/${f.id}`} className="block match-card px-3 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
                           <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" />
-                          <span className="font-bold text-sm truncate">{f.home_team?.clubs?.short_name}</span>
+                          <span className="font-bold text-xs truncate">{f.home_team?.clubs?.short_name}</span>
                         </div>
                         <div className="text-center shrink-0 px-1">
                           {f.status === 'completed' && resultsByFixture.has(f.id) ? (() => {
                             const r = resultsByFixture.get(f.id);
                             return (
                               <div>
-                                <div className="stat-number text-base">{r.home_score} – {r.away_score}</div>
-                                <Badge className="rounded-full text-[10px] px-2 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-0">Full Time</Badge>
+                                <div className="stat-number text-xl font-black">{r.home_score} – {r.away_score}</div>
+                                <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-0">FT</Badge>
                               </div>
                             );
                           })() : f.status === 'completed' ? (
-                            <Badge className="rounded-full text-[10px] px-2 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-0">Full Time</Badge>
+                            <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-0">FT</Badge>
                           ) : (
                             <div>
-                              <Badge className="rounded-full text-[10px] px-2 bg-accent text-accent-foreground border-0 mb-0.5">Upcoming</Badge>
                               <div className="text-[10px] text-muted-foreground">
                                 {f.scheduled_at ? new Date(f.scheduled_at).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBA'}
                               </div>
                             </div>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
-                          <span className="font-bold text-sm truncate">{f.away_team?.clubs?.short_name}</span>
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+                          <span className="font-bold text-xs truncate">{f.away_team?.clubs?.short_name}</span>
                           <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" />
                         </div>
                       </div>
                       {f.venue && (
-                        <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground justify-center">
+                        <div className="flex items-center gap-1 mt-1.5 text-[9px] text-muted-foreground justify-center">
                           <MapPin className="h-2.5 w-2.5" />{f.venue}
                         </div>
                       )}
