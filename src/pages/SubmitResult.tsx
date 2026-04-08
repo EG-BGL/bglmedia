@@ -251,6 +251,30 @@ export default function SubmitResult() {
             )}
           </div>
 
+          {/* Scorecard Photo Upload */}
+          <div className="match-card p-4">
+            <h3 className="section-label mb-2 flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-primary" /> AI Scorecard Reader
+            </h3>
+            <p className="text-[10px] text-muted-foreground mb-3">Upload a photo of the scorecard and AI will extract the scores automatically</p>
+            <input ref={scorecardRef} type="file" accept="image/*" capture="environment" onChange={handleScorecardUpload} className="hidden" />
+            <Button type="button" variant="outline" onClick={() => scorecardRef.current?.click()} disabled={extracting} className="w-full h-12 rounded-xl gap-2 font-bold">
+              {extracting ? <><Loader2 className="h-4 w-4 animate-spin" /> Reading scorecard...</> : <><Camera className="h-4 w-4" /> Upload Scorecard Photo</>}
+            </Button>
+            {scorecardPreview && (
+              <div className="mt-3 rounded-xl overflow-hidden border border-border/60">
+                <img src={scorecardPreview} alt="Scorecard" className="w-full max-h-48 object-contain bg-muted/30" />
+              </div>
+            )}
+            {aiConfidence && (
+              <div className={`mt-2 flex items-center gap-1.5 text-xs ${aiConfidence === 'high' ? 'text-green-600 dark:text-green-400' : aiConfidence === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-destructive'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                AI confidence: <span className="font-bold capitalize">{aiConfidence}</span>
+                {aiConfidence !== 'high' && <span className="text-muted-foreground">— please review the scores</span>}
+              </div>
+            )}
+          </div>
+
           {/* Submission Status Info */}
           {selectedMatch && submittingTeamId && (
             <div className="match-card p-4">
