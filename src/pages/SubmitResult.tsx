@@ -168,7 +168,18 @@ export default function SubmitResult() {
       match_notes: matchNotes||null, status: 'submitted', submitted_by: user.id, submitted_at: new Date().toISOString(),
     });
     setSubmitting(false);
-    if (error) toast.error('Failed: '+error.message); else { toast.success('Result submitted! If both teams agree, it will be auto-confirmed.'); navigate('/portal'); }
+    if (error) { toast.error('Failed: '+error.message); return; }
+
+    // Save extracted player stats if any
+    if (extractedPlayerStats.length > 0) {
+      const { error: statsError } = await supabase.functions.invoke('save-player-stats', {
+        body: { fixture_id: selectedFixture, player_stats: extractedPlayerStats },
+      });
+      if (statsError) console.error('Failed to save player stats:', statsError);
+    }
+
+    toast.success('Result submitted! If both teams agree, it will be auto-confirmed.');
+    navigate('/portal');
   };
 
   const handleSectionUpload = async (section: SectionKey, e: React.ChangeEvent<HTMLInputElement>) => {
