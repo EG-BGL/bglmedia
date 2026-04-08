@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ChevronLeft, Send, AlertCircle, CheckCircle2, Camera, Loader2, Sparkles, ClipboardList, BarChart3, Trophy, Users } from 'lucide-react';
+import { ChevronLeft, Send, AlertCircle, CheckCircle2, Camera, Loader2, Sparkles, ClipboardList, BarChart3, Trophy, Users, ImageIcon } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 interface FormErrors { fixture?: string; homeGoals?: string; homeBehinds?: string; awayGoals?: string; awayBehinds?: string; quarters?: string; }
@@ -40,11 +40,17 @@ export default function SubmitResult() {
   const [goalKickersHome, setGoalKickersHome] = useState('');
   const [goalKickersAway, setGoalKickersAway] = useState('');
   const [matchNotes, setMatchNotes] = useState('');
-  const [scorecardFile, setScorecardFile] = useState<File | null>(null);
-  const [scorecardPreview, setScorecardPreview] = useState<string | null>(null);
-  const [extracting, setExtracting] = useState(false);
-  const [aiConfidence, setAiConfidence] = useState<string | null>(null);
-  const scorecardRef = useRef<HTMLInputElement>(null);
+  // Multi-section upload state
+  type SectionKey = 'final_score' | 'match_stats_1' | 'match_stats_2' | 'key_stats';
+  const [sectionPreviews, setSectionPreviews] = useState<Record<SectionKey, string | null>>({ final_score: null, match_stats_1: null, match_stats_2: null, key_stats: null });
+  const [sectionExtracting, setSectionExtracting] = useState<Record<SectionKey, boolean>>({ final_score: false, match_stats_1: false, match_stats_2: false, key_stats: false });
+  const [sectionConfidence, setSectionConfidence] = useState<Record<SectionKey, string | null>>({ final_score: null, match_stats_1: null, match_stats_2: null, key_stats: null });
+  const fileRefs = {
+    final_score: useRef<HTMLInputElement>(null),
+    match_stats_1: useRef<HTMLInputElement>(null),
+    match_stats_2: useRef<HTMLInputElement>(null),
+    key_stats: useRef<HTMLInputElement>(null),
+  };
 
   useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading, navigate]);
 
@@ -158,56 +164,62 @@ export default function SubmitResult() {
     if (error) toast.error('Failed: '+error.message); else { toast.success('Result submitted! If both teams agree, it will be auto-confirmed.'); navigate('/portal'); }
   };
 
-  const handleScorecardUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSectionUpload = async (section: SectionKey, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) { toast.error('Please select an image'); return; }
     if (file.size > 5 * 1024 * 1024) { toast.error('Max 5MB'); return; }
 
-    setScorecardFile(file);
-    setScorecardPreview(URL.createObjectURL(file));
-    setExtracting(true);
-    setAiConfidence(null);
+    setSectionPreviews(p => ({ ...p, [section]: URL.createObjectURL(file) }));
+    setSectionExtracting(p => ({ ...p, [section]: true }));
+    setSectionConfidence(p => ({ ...p, [section]: null }));
 
     try {
-      // Upload to storage
       const path = `${user!.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${file.name.split('.').pop()}`;
       const { error: uploadError } = await supabase.storage.from('scorecard-images').upload(path, file);
-      if (uploadError) { toast.error('Upload failed: ' + uploadError.message); setExtracting(false); return; }
+      if (uploadError) { toast.error('Upload failed: ' + uploadError.message); setSectionExtracting(p => ({ ...p, [section]: false })); return; }
 
       const { data: urlData } = supabase.storage.from('scorecard-images').getPublicUrl(path);
 
-      // Call AI extraction
+      const extractionType = section === 'match_stats_1' || section === 'match_stats_2' ? 'match_stats' : section;
       const { data: fnData, error: fnError } = await supabase.functions.invoke('extract-scorecard', {
-        body: { imageUrl: urlData.publicUrl },
+        body: { imageUrl: urlData.publicUrl, extractionType },
       });
 
-      if (fnError) { toast.error('AI extraction failed'); setExtracting(false); return; }
-      if (fnData.error) { toast.error(fnData.error); setExtracting(false); return; }
+      if (fnError || fnData?.error) { toast.error(fnData?.error || 'AI extraction failed'); setSectionExtracting(p => ({ ...p, [section]: false })); return; }
 
-      // Auto-fill form fields
-      if (fnData.home_goals != null) setHomeGoals(String(fnData.home_goals));
-      if (fnData.home_behinds != null) setHomeBehinds(String(fnData.home_behinds));
-      if (fnData.away_goals != null) setAwayGoals(String(fnData.away_goals));
-      if (fnData.away_behinds != null) setAwayBehinds(String(fnData.away_behinds));
-      if (fnData.home_q1) setHomeQ1(fnData.home_q1);
-      if (fnData.home_q2) setHomeQ2(fnData.home_q2);
-      if (fnData.home_q3) setHomeQ3(fnData.home_q3);
-      if (fnData.home_q4) setHomeQ4(fnData.home_q4);
-      if (fnData.away_q1) setAwayQ1(fnData.away_q1);
-      if (fnData.away_q2) setAwayQ2(fnData.away_q2);
-      if (fnData.away_q3) setAwayQ3(fnData.away_q3);
-      if (fnData.away_q4) setAwayQ4(fnData.away_q4);
-      if (fnData.best_players_home?.length) setBestHome(fnData.best_players_home.join(', '));
-      if (fnData.best_players_away?.length) setBestAway(fnData.best_players_away.join(', '));
-      if (fnData.goal_kickers_home?.length) setGoalKickersHome(fnData.goal_kickers_home.join(', '));
-      if (fnData.goal_kickers_away?.length) setGoalKickersAway(fnData.goal_kickers_away.join(', '));
-      setAiConfidence(fnData.confidence ?? 'medium');
-      toast.success('Scores extracted from scorecard!');
-    } catch (err) {
-      toast.error('Failed to process scorecard');
+      // Apply extracted data based on section
+      if (section === 'final_score') {
+        if (fnData.home_goals != null) setHomeGoals(String(fnData.home_goals));
+        if (fnData.home_behinds != null) setHomeBehinds(String(fnData.home_behinds));
+        if (fnData.away_goals != null) setAwayGoals(String(fnData.away_goals));
+        if (fnData.away_behinds != null) setAwayBehinds(String(fnData.away_behinds));
+        if (fnData.home_q1) setHomeQ1(fnData.home_q1);
+        if (fnData.home_q2) setHomeQ2(fnData.home_q2);
+        if (fnData.home_q3) setHomeQ3(fnData.home_q3);
+        if (fnData.home_q4) setHomeQ4(fnData.home_q4);
+        if (fnData.away_q1) setAwayQ1(fnData.away_q1);
+        if (fnData.away_q2) setAwayQ2(fnData.away_q2);
+        if (fnData.away_q3) setAwayQ3(fnData.away_q3);
+        if (fnData.away_q4) setAwayQ4(fnData.away_q4);
+      }
+
+      if (section === 'key_stats') {
+        if (fnData.goal_kickers_home?.length) setGoalKickersHome(fnData.goal_kickers_home.join(', '));
+        if (fnData.goal_kickers_away?.length) setGoalKickersAway(fnData.goal_kickers_away.join(', '));
+        if (fnData.best_players_home?.length) setBestHome(fnData.best_players_home.join(', '));
+        if (fnData.best_players_away?.length) setBestAway(fnData.best_players_away.join(', '));
+      }
+
+      // TODO: match_stats_1 and match_stats_2 data can be stored for team stats submission
+
+      setSectionConfidence(p => ({ ...p, [section]: fnData.confidence ?? 'medium' }));
+      const labels: Record<SectionKey, string> = { final_score: 'Final scores', match_stats_1: 'Match stats (1)', match_stats_2: 'Match stats (2)', key_stats: 'Key stats' };
+      toast.success(`${labels[section]} extracted!`);
+    } catch {
+      toast.error('Failed to process image');
     } finally {
-      setExtracting(false);
+      setSectionExtracting(p => ({ ...p, [section]: false }));
     }
   };
 
@@ -283,27 +295,51 @@ export default function SubmitResult() {
             </div>
           )}
 
+          {/* AI Scorecard Reader - Multi Section */}
           <div className="match-card p-4">
             <h3 className="section-label mb-2 flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5 text-primary" /> AI Scorecard Reader
             </h3>
-            <p className="text-[10px] text-muted-foreground mb-3">Upload a photo of the scorecard and AI will extract the scores automatically</p>
-            <input ref={scorecardRef} type="file" accept="image/*" onChange={handleScorecardUpload} className="hidden" />
-            <Button type="button" variant="outline" onClick={() => scorecardRef.current?.click()} disabled={extracting} className="w-full h-12 rounded-xl gap-2 font-bold">
-              {extracting ? <><Loader2 className="h-4 w-4 animate-spin" /> Reading scorecard...</> : <><Camera className="h-4 w-4" /> Upload Scorecard Photo</>}
-            </Button>
-            {scorecardPreview && (
-              <div className="mt-3 rounded-xl overflow-hidden border border-border/60">
-                <img src={scorecardPreview} alt="Scorecard" className="w-full max-h-48 object-contain bg-muted/30" />
-              </div>
-            )}
-            {aiConfidence && (
-              <div className={`mt-2 flex items-center gap-1.5 text-xs ${aiConfidence === 'high' ? 'text-green-600 dark:text-green-400' : aiConfidence === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-destructive'}`}>
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                AI confidence: <span className="font-bold capitalize">{aiConfidence}</span>
-                {aiConfidence !== 'high' && <span className="text-muted-foreground">— please review the scores</span>}
-              </div>
-            )}
+            <p className="text-[10px] text-muted-foreground mb-3">Upload photos for each section and AI will extract the data automatically</p>
+
+            <div className="space-y-3">
+              {([
+                { key: 'final_score' as SectionKey, label: 'Final Score + Worm', icon: Trophy, desc: 'Score totals & quarter-by-quarter' },
+                { key: 'match_stats_1' as SectionKey, label: 'Match Stats 1 (Top)', icon: BarChart3, desc: 'Top half of team stats' },
+                { key: 'match_stats_2' as SectionKey, label: 'Match Stats 2 (Bottom)', icon: BarChart3, desc: 'Bottom half of team stats' },
+                { key: 'key_stats' as SectionKey, label: 'Key Stats', icon: Users, desc: 'Goalkickers, Disposals & AFL Fantasy' },
+              ]).map(({ key, label, icon: Icon, desc }) => (
+                <div key={key} className="rounded-xl border border-border/60 p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon className="h-4 w-4 text-primary shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold">{label}</p>
+                      <p className="text-[10px] text-muted-foreground">{desc}</p>
+                    </div>
+                    {sectionConfidence[key] && (
+                      <CheckCircle2 className={`h-4 w-4 shrink-0 ${sectionConfidence[key] === 'high' ? 'text-green-600 dark:text-green-400' : sectionConfidence[key] === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-destructive'}`} />
+                    )}
+                  </div>
+                  <input ref={fileRefs[key]} type="file" accept="image/*" onChange={(e) => handleSectionUpload(key, e)} className="hidden" />
+                  <Button type="button" variant="outline" size="sm" onClick={() => fileRefs[key].current?.click()} disabled={sectionExtracting[key]} className="w-full h-9 rounded-lg gap-2 text-xs font-bold">
+                    {sectionExtracting[key] ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Reading...</> :
+                      sectionPreviews[key] ? <><ImageIcon className="h-3.5 w-3.5" /> Replace Photo</> :
+                      <><Camera className="h-3.5 w-3.5" /> Upload Photo</>}
+                  </Button>
+                  {sectionPreviews[key] && (
+                    <div className="mt-2 rounded-lg overflow-hidden border border-border/40">
+                      <img src={sectionPreviews[key]!} alt={label} className="w-full max-h-32 object-contain bg-muted/30" />
+                    </div>
+                  )}
+                  {sectionConfidence[key] && (
+                    <p className={`mt-1.5 text-[10px] flex items-center gap-1 ${sectionConfidence[key] === 'high' ? 'text-green-600 dark:text-green-400' : sectionConfidence[key] === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-destructive'}`}>
+                      AI confidence: <span className="font-bold capitalize">{sectionConfidence[key]}</span>
+                      {sectionConfidence[key] !== 'high' && <span className="text-muted-foreground">— please review</span>}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Submission Status Info */}

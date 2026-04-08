@@ -6,15 +6,200 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const PROMPTS: Record<string, { system: string; tool: any }> = {
+  final_score: {
+    system: `You are an AFL scorecard reader. Extract the final scores, quarter-by-quarter scores from this image.
+Return ONLY valid JSON with this exact structure (no markdown, no code fences):
+{
+  "home_goals": <number>,
+  "home_behinds": <number>,
+  "away_goals": <number>,
+  "away_behinds": <number>,
+  "home_q1": "<goals.behinds.total>",
+  "home_q2": "<goals.behinds.total>",
+  "home_q3": "<goals.behinds.total>",
+  "home_q4": "<goals.behinds.total>",
+  "away_q1": "<goals.behinds.total>",
+  "away_q2": "<goals.behinds.total>",
+  "away_q3": "<goals.behinds.total>",
+  "away_q4": "<goals.behinds.total>",
+  "confidence": "high" | "medium" | "low"
+}
+If a field is unreadable, use null. Quarter scores should be in format "goals.behinds.total" (e.g. "3.2.20"). The home team is typically listed first/on top.`,
+    tool: {
+      name: "extract_final_score",
+      description: "Extract AFL final scores and quarter scores from an image",
+      parameters: {
+        type: "object",
+        properties: {
+          home_goals: { type: "number" },
+          home_behinds: { type: "number" },
+          away_goals: { type: "number" },
+          away_behinds: { type: "number" },
+          home_q1: { type: "string", nullable: true },
+          home_q2: { type: "string", nullable: true },
+          home_q3: { type: "string", nullable: true },
+          home_q4: { type: "string", nullable: true },
+          away_q1: { type: "string", nullable: true },
+          away_q2: { type: "string", nullable: true },
+          away_q3: { type: "string", nullable: true },
+          away_q4: { type: "string", nullable: true },
+          confidence: { type: "string", enum: ["high", "medium", "low"] },
+        },
+        required: ["home_goals", "home_behinds", "away_goals", "away_behinds", "confidence"],
+      },
+    },
+  },
+  match_stats: {
+    system: `You are an AFL match stats reader. Extract team statistics from this image. This may be the top half or bottom half of the stats sheet.
+Return ONLY valid JSON (no markdown). Extract as many of these stats as visible:
+{
+  "home_team_stats": {
+    "disposals": <number|null>, "kicks": <number|null>, "handballs": <number|null>,
+    "tackles": <number|null>, "marks": <number|null>, "contested_marks": <number|null>,
+    "intercept_marks": <number|null>, "spoils": <number|null>, "inside_50s": <number|null>,
+    "rebound_50s": <number|null>, "hitouts": <number|null>, "clearances": <number|null>,
+    "contested_possessions": <number|null>, "uncontested_possessions": <number|null>,
+    "frees_for": <number|null>, "frees_against": <number|null>, "fifty_m_penalties": <number|null>
+  },
+  "away_team_stats": { ... same fields ... },
+  "confidence": "high" | "medium" | "low"
+}
+Only include stats you can clearly read. Use null for unreadable values. The home team is typically on the left or listed first.`,
+    tool: {
+      name: "extract_match_stats",
+      description: "Extract AFL team match statistics from an image",
+      parameters: {
+        type: "object",
+        properties: {
+          home_team_stats: {
+            type: "object",
+            properties: {
+              disposals: { type: "number", nullable: true },
+              kicks: { type: "number", nullable: true },
+              handballs: { type: "number", nullable: true },
+              tackles: { type: "number", nullable: true },
+              marks: { type: "number", nullable: true },
+              contested_marks: { type: "number", nullable: true },
+              intercept_marks: { type: "number", nullable: true },
+              spoils: { type: "number", nullable: true },
+              inside_50s: { type: "number", nullable: true },
+              rebound_50s: { type: "number", nullable: true },
+              hitouts: { type: "number", nullable: true },
+              clearances: { type: "number", nullable: true },
+              contested_possessions: { type: "number", nullable: true },
+              uncontested_possessions: { type: "number", nullable: true },
+              frees_for: { type: "number", nullable: true },
+              frees_against: { type: "number", nullable: true },
+              fifty_m_penalties: { type: "number", nullable: true },
+            },
+          },
+          away_team_stats: {
+            type: "object",
+            properties: {
+              disposals: { type: "number", nullable: true },
+              kicks: { type: "number", nullable: true },
+              handballs: { type: "number", nullable: true },
+              tackles: { type: "number", nullable: true },
+              marks: { type: "number", nullable: true },
+              contested_marks: { type: "number", nullable: true },
+              intercept_marks: { type: "number", nullable: true },
+              spoils: { type: "number", nullable: true },
+              inside_50s: { type: "number", nullable: true },
+              rebound_50s: { type: "number", nullable: true },
+              hitouts: { type: "number", nullable: true },
+              clearances: { type: "number", nullable: true },
+              contested_possessions: { type: "number", nullable: true },
+              uncontested_possessions: { type: "number", nullable: true },
+              frees_for: { type: "number", nullable: true },
+              frees_against: { type: "number", nullable: true },
+              fifty_m_penalties: { type: "number", nullable: true },
+            },
+          },
+          confidence: { type: "string", enum: ["high", "medium", "low"] },
+        },
+        required: ["home_team_stats", "away_team_stats", "confidence"],
+      },
+    },
+  },
+  key_stats: {
+    system: `You are an AFL key stats reader. Extract individual player statistics from this image, specifically goalkickers, disposals leaders, and AFL Fantasy scores.
+Return ONLY valid JSON (no markdown):
+{
+  "goal_kickers_home": ["Player Name goals", ...],
+  "goal_kickers_away": ["Player Name goals", ...],
+  "player_stats": [
+    {
+      "name": "Player Name",
+      "team": "home" | "away",
+      "goals": <number|null>,
+      "behinds": <number|null>,
+      "disposals": <number|null>,
+      "kicks": <number|null>,
+      "handballs": <number|null>,
+      "marks": <number|null>,
+      "tackles": <number|null>,
+      "hitouts": <number|null>,
+      "afl_fantasy": <number|null>
+    }
+  ],
+  "confidence": "high" | "medium" | "low"
+}
+Extract all players visible. Use null for stats not shown.`,
+    tool: {
+      name: "extract_key_stats",
+      description: "Extract AFL player key statistics from an image",
+      parameters: {
+        type: "object",
+        properties: {
+          goal_kickers_home: { type: "array", items: { type: "string" } },
+          goal_kickers_away: { type: "array", items: { type: "string" } },
+          player_stats: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                team: { type: "string", enum: ["home", "away"] },
+                goals: { type: "number", nullable: true },
+                behinds: { type: "number", nullable: true },
+                disposals: { type: "number", nullable: true },
+                kicks: { type: "number", nullable: true },
+                handballs: { type: "number", nullable: true },
+                marks: { type: "number", nullable: true },
+                tackles: { type: "number", nullable: true },
+                hitouts: { type: "number", nullable: true },
+                afl_fantasy: { type: "number", nullable: true },
+              },
+              required: ["name", "team"],
+            },
+          },
+          confidence: { type: "string", enum: ["high", "medium", "low"] },
+        },
+        required: ["confidence"],
+      },
+    },
+  },
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { imageUrl } = await req.json();
+    const { imageUrl, extractionType } = await req.json();
     if (!imageUrl) {
       return new Response(JSON.stringify({ error: "imageUrl is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const type = extractionType || "final_score";
+    const prompt = PROMPTS[type];
+    if (!prompt) {
+      return new Response(JSON.stringify({ error: "Invalid extraction type" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -37,126 +222,59 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          {
-            role: "system",
-            content: `You are an AFL scorecard reader. Extract scores from the scorecard image.
-Return ONLY valid JSON with this exact structure (no markdown, no code fences):
-{
-  "home_goals": <number>,
-  "home_behinds": <number>,
-  "away_goals": <number>,
-  "away_behinds": <number>,
-  "home_q1": "<goals.behinds.total>",
-  "home_q2": "<goals.behinds.total>",
-  "home_q3": "<goals.behinds.total>",
-  "home_q4": "<goals.behinds.total>",
-  "away_q1": "<goals.behinds.total>",
-  "away_q2": "<goals.behinds.total>",
-  "away_q3": "<goals.behinds.total>",
-  "away_q4": "<goals.behinds.total>",
-  "best_players_home": ["name1", "name2"],
-  "best_players_away": ["name1", "name2"],
-  "goal_kickers_home": ["name goals", "name goals"],
-  "goal_kickers_away": ["name goals", "name goals"],
-  "confidence": "high" | "medium" | "low"
-}
-If a field is unreadable, use null. Quarter scores should be in format "goals.behinds.total" (e.g. "3.2.20"). The home team is typically listed first/on top. If you can't read the scorecard at all, return {"error": "Could not read scorecard"}.`,
-          },
+          { role: "system", content: prompt.system },
           {
             role: "user",
             content: [
-              {
-                type: "text",
-                text: "Please extract all scores and player information from this AFL scorecard image.",
-              },
-              {
-                type: "image_url",
-                image_url: { url: imageUrl },
-              },
+              { type: "text", text: "Please extract all relevant data from this AFL stats image." },
+              { type: "image_url", image_url: { url: imageUrl } },
             ],
           },
         ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "extract_scorecard",
-              description: "Extract AFL scorecard data from an image",
-              parameters: {
-                type: "object",
-                properties: {
-                  home_goals: { type: "number", description: "Home team total goals" },
-                  home_behinds: { type: "number", description: "Home team total behinds" },
-                  away_goals: { type: "number", description: "Away team total goals" },
-                  away_behinds: { type: "number", description: "Away team total behinds" },
-                  home_q1: { type: "string", nullable: true },
-                  home_q2: { type: "string", nullable: true },
-                  home_q3: { type: "string", nullable: true },
-                  home_q4: { type: "string", nullable: true },
-                  away_q1: { type: "string", nullable: true },
-                  away_q2: { type: "string", nullable: true },
-                  away_q3: { type: "string", nullable: true },
-                  away_q4: { type: "string", nullable: true },
-                  best_players_home: { type: "array", items: { type: "string" } },
-                  best_players_away: { type: "array", items: { type: "string" } },
-                  goal_kickers_home: { type: "array", items: { type: "string" } },
-                  goal_kickers_away: { type: "array", items: { type: "string" } },
-                  confidence: { type: "string", enum: ["high", "medium", "low"] },
-                },
-                required: ["home_goals", "home_behinds", "away_goals", "away_behinds", "confidence"],
-              },
-            },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "extract_scorecard" } },
+        tools: [{ type: "function", function: prompt.tool }],
+        tool_choice: { type: "function", function: { name: prompt.tool.name } },
       }),
     });
 
     if (!response.ok) {
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limited, please try again shortly" }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
         return new Response(JSON.stringify({ error: "AI credits exhausted" }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const text = await response.text();
       console.error("AI error:", response.status, text);
       return new Response(JSON.stringify({ error: "AI processing failed" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const aiResult = await response.json();
-    
-    // Extract from tool call response
+
     const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
     if (toolCall?.function?.arguments) {
       const extracted = JSON.parse(toolCall.function.arguments);
-      return new Response(JSON.stringify(extracted), {
+      return new Response(JSON.stringify({ ...extracted, extractionType: type }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Fallback: try parsing content directly
     const content = aiResult.choices?.[0]?.message?.content ?? "";
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const extracted = JSON.parse(jsonMatch[0]);
-      return new Response(JSON.stringify(extracted), {
+      return new Response(JSON.stringify({ ...extracted, extractionType: type }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     return new Response(JSON.stringify({ error: "Could not parse AI response" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("extract-scorecard error:", e);
