@@ -95,7 +95,7 @@ export default function Ladder() {
                   <div className="w-14 text-center">W-L-D</div>
                   <div className="w-10 text-center">RF</div>
                   <div className="w-10 text-center">RA</div>
-                  <div className="w-10 text-center">%</div>
+                  <div className="w-12 text-center">NRR</div>
                   <div className="w-10 text-center">Pts</div>
                 </div>
               </div>
@@ -117,6 +117,10 @@ export default function Ladder() {
             {(ladder ?? []).map((entry: any, i: number) => {
               const club = entry.teams?.clubs;
               const isTop4 = i < 4;
+              const pf = entry.points_for ?? 0;
+              const pa = entry.points_against ?? 0;
+              const played = entry.played ?? 0;
+              const nrr = played > 0 && pa > 0 ? (pf / played) - (pa / played) : pf > 0 ? 99.999 : 0;
               return (
                 <Link key={entry.id} to={`/clubs/${club?.id}`}>
                   <div className={`match-card p-3.5 flex items-center gap-3 ${isTop4 ? 'border-l-2 border-l-primary' : ''}`}>
@@ -128,26 +132,25 @@ export default function Ladder() {
                     <ClubLogo club={club ?? {}} size="sm" className="!h-8 !w-8" />
                     <div className="flex-1 min-w-0">
                       <span className="font-bold text-sm block truncate">{club?.name}</span>
-                      <span className="text-[10px] text-muted-foreground sm:hidden">{entry.played ?? 0} played · {entry.wins ?? 0}W {entry.losses ?? 0}L</span>
+                      <span className="text-[10px] text-muted-foreground sm:hidden">{played} played · {entry.wins ?? 0}W {entry.losses ?? 0}L{isCricket ? ` · NRR ${nrr > 0 ? '+' : ''}${nrr.toFixed(3)}` : ''}</span>
                     </div>
                     {isCricket ? (
                       <div className="flex items-center gap-3 shrink-0 text-xs tabular-nums">
                         <div className="w-10 text-center hidden sm:block">
-                          <div className="sm:hidden text-[9px] text-muted-foreground uppercase font-bold">P</div>
-                          <div className="font-semibold">{entry.played ?? 0}</div>
+                          <div className="font-semibold">{played}</div>
                         </div>
                         <div className="text-center">
                           <div className="text-[9px] text-muted-foreground uppercase font-bold sm:hidden">W-L-D</div>
                           <div className="font-bold hidden sm:block w-14 text-center">{entry.wins ?? 0}-{entry.losses ?? 0}-{entry.draws ?? 0}</div>
                         </div>
                         <div className="w-10 text-center hidden sm:block">
-                          <div className="font-semibold">{entry.points_for ?? 0}</div>
+                          <div className="font-semibold">{pf}</div>
                         </div>
                         <div className="w-10 text-center hidden sm:block">
-                          <div className="font-semibold">{entry.points_against ?? 0}</div>
+                          <div className="font-semibold">{pa}</div>
                         </div>
-                        <div className="w-10 text-center hidden sm:block">
-                          <div className="font-semibold">{Number(entry.percentage ?? 0).toFixed(1)}</div>
+                        <div className="w-12 text-center hidden sm:block">
+                          <div className={`font-semibold ${nrr > 0 ? 'text-green-600' : nrr < 0 ? 'text-red-500' : ''}`}>{nrr > 0 ? '+' : ''}{nrr.toFixed(3)}</div>
                         </div>
                         <div className="text-center">
                           <div className="text-[9px] text-muted-foreground uppercase font-bold sm:hidden">Pts</div>
