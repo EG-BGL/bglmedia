@@ -1,7 +1,6 @@
 import Layout from '@/components/layout/Layout';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -21,55 +20,45 @@ export default function Login() {
     setLoading(true);
     try {
       const { error } = isSignUp ? await signUp(email, password) : await signIn(email, password);
-      if (error) {
-        toast.error(error.message);
-      } else {
-        if (isSignUp) {
-          toast.success('Check your email for a confirmation link.');
-        } else {
-          toast.success('Signed in successfully!');
-          navigate('/portal');
-        }
-      }
-    } finally {
-      setLoading(false);
-    }
+      if (error) { toast.error(error.message); }
+      else { if (isSignUp) toast.success('Check your email to confirm.'); else { toast.success('Signed in!'); navigate('/portal'); } }
+    } finally { setLoading(false); }
   };
 
   return (
     <Layout>
-      <div className="flex min-h-[60vh] items-center justify-center px-4 py-12">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary font-black text-primary-foreground text-xl">
-              FL
+      <div className="flex min-h-[70vh] items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm space-y-6">
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-black text-sm">SD</span>
             </div>
-            <CardTitle className="text-2xl">{isSignUp ? 'Create Account' : 'Sign In'}</CardTitle>
-            <CardDescription>
+            <h1 className="text-xl font-black tracking-tight">{isSignUp ? 'Create Account' : 'Sign In'}</h1>
+            <p className="text-xs text-muted-foreground mt-1">
               {isSignUp ? 'Create your coach or admin account' : 'Access the coach or admin portal'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="coach@example.com" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" minLength={6} />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Please wait...' : isSignUp ? 'Create Account' : 'Sign In'}
-              </Button>
-            </form>
-            <div className="mt-4 text-center text-sm">
-              <button onClick={() => setIsSignUp(!isSignUp)} className="text-accent hover:underline">
-                {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-              </button>
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="email" className="text-xs font-bold">Email</Label>
+              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="coach@example.com" className="mt-1 h-12 rounded-xl" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <Label htmlFor="password" className="text-xs font-bold">Password</Label>
+              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" minLength={6} className="mt-1 h-12 rounded-xl" />
+            </div>
+            <Button type="submit" className="w-full h-12 rounded-xl font-bold" disabled={loading}>
+              {loading ? 'Please wait...' : isSignUp ? 'Create Account' : 'Sign In'}
+            </Button>
+          </form>
+
+          <div className="text-center">
+            <button onClick={() => setIsSignUp(!isSignUp)} className="text-xs text-primary hover:underline font-semibold">
+              {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+            </button>
+          </div>
+        </div>
       </div>
     </Layout>
   );
