@@ -29,6 +29,7 @@ export default function Ladder() {
     }
   }, [seasons]);
 
+  const isCricket = currentSport?.slug === 'cricket';
   const selectedSeason = seasons.find((s: any) => s.id === selectedSeasonId);
   const { data: ladder, isLoading } = useLadder(selectedSeasonId || undefined);
 
