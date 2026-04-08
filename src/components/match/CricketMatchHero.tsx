@@ -65,20 +65,36 @@ export default function CricketMatchHero({
             {isCompleted && homeWon && <Badge variant="secondary" className="text-[9px] rounded-full px-2 py-0 font-black bg-primary/10 text-primary border-0">WIN</Badge>}
           </div>
 
-          <div className="text-center px-2 shrink-0">
+          <div className="text-center px-2 shrink-0 min-w-[80px]">
             {hasInnings ? (
-              <div>
-                <div className="text-3xl md:text-4xl font-black tabular-nums tracking-tighter leading-none text-foreground">
-                  {homeTotalRuns}<span className="text-muted-foreground/20 mx-1.5">–</span>{awayTotalRuns}
-                </div>
-                <div className="mt-2 space-y-0.5">
-                  <div className="text-[10px] text-muted-foreground tabular-nums">{formatInnings(homeInnings)}</div>
-                  <div className="text-[10px] text-muted-foreground tabular-nums">{formatInnings(awayInnings)}</div>
-                </div>
+              <div className="space-y-1">
+                {homeInnings.map((inn: any, i: number) => (
+                  <div key={`h-${i}`} className="flex items-center justify-between gap-3 text-xs tabular-nums">
+                    <span className="font-bold text-foreground">{homeClub?.short_name}</span>
+                    <span className={`font-black text-sm ${isCompleted && homeWon ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      {inn.total_runs}/{inn.total_wickets}{inn.declared ? 'd' : ''}{inn.total_overs ? ` (${inn.total_overs})` : ''}
+                    </span>
+                  </div>
+                ))}
+                {awayInnings.map((inn: any, i: number) => (
+                  <div key={`a-${i}`} className="flex items-center justify-between gap-3 text-xs tabular-nums">
+                    <span className="font-bold text-foreground">{awayClub?.short_name}</span>
+                    <span className={`font-black text-sm ${isCompleted && awayWon ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      {inn.total_runs}/{inn.total_wickets}{inn.declared ? 'd' : ''}{inn.total_overs ? ` (${inn.total_overs})` : ''}
+                    </span>
+                  </div>
+                ))}
               </div>
             ) : result ? (
-              <div className="text-3xl md:text-4xl font-black tabular-nums tracking-tighter leading-none text-foreground">
-                {result.home_score}<span className="text-muted-foreground/20 mx-1.5">–</span>{result.away_score}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between gap-3 text-xs tabular-nums">
+                  <span className="font-bold text-foreground">{homeClub?.short_name}</span>
+                  <span className="font-black text-sm text-foreground">{result.home_score}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 text-xs tabular-nums">
+                  <span className="font-bold text-foreground">{awayClub?.short_name}</span>
+                  <span className="font-black text-sm text-foreground">{result.away_score}</span>
+                </div>
               </div>
             ) : (
               <div className="text-3xl font-black text-muted-foreground/25 tracking-tight">VS</div>
