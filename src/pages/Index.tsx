@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Trophy, Users, ArrowRight, MapPin } from 'lucide-react';
-import { useClubs, useFixtures, useResults, useLadder, useCurrentSeason } from '@/hooks/useData';
+import { Calendar, Trophy, Users, ArrowRight, MapPin, Newspaper } from 'lucide-react';
+import { useClubs, useFixtures, useResults, useLadder, useCurrentSeason, useNews } from '@/hooks/useData';
 
 export default function Index() {
   const { data: season } = useCurrentSeason();
@@ -12,6 +12,7 @@ export default function Index() {
   const { data: fixtures } = useFixtures(season?.id);
   const { data: results } = useResults(season?.id);
   const { data: ladder } = useLadder(season?.id);
+  const { data: news } = useNews(3);
 
   const upcomingFixtures = fixtures?.filter(f => f.status === 'scheduled').slice(0, 4) ?? [];
   const latestResults = results?.slice(0, 4) ?? [];
@@ -158,6 +159,30 @@ export default function Index() {
               </div>
             </CardContent>
           </Card>
+        </section>
+
+        {/* News */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold flex items-center gap-2"><Newspaper className="h-5 w-5" />Latest News</h2>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {(news ?? []).length === 0 ? (
+              <p className="text-muted-foreground col-span-3">No news yet.</p>
+            ) : (news ?? []).map((article: any) => (
+              <Card key={article.id} className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base leading-tight">{article.title}</CardTitle>
+                  <span className="text-xs text-muted-foreground">
+                    {article.published_at ? new Date(article.published_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
+                  </span>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <p className="text-sm text-muted-foreground line-clamp-3">{article.excerpt || article.content}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </section>
 
         {/* Clubs */}
