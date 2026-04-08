@@ -1,7 +1,7 @@
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin, Clock } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { useFixtures, useResults, useCurrentSeason } from '@/hooks/useData';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -9,12 +9,11 @@ import ClubLogo from '@/components/ClubLogo';
 import { useSport } from '@/hooks/useSport';
 
 export default function Fixtures() {
-  const { currentSport } = useSport();
+  const { sports, currentSport, setSport } = useSport();
   const { data: season } = useCurrentSeason(currentSport?.id);
   const { data: fixtures, isLoading } = useFixtures(season?.id);
   const { data: results } = useResults(season?.id);
 
-  // Set of fixture IDs that have approved results
   const fixtureIdsWithResults = new Set(results?.map((r: any) => r.fixture_id ?? r.fixtures?.id) ?? []);
   const resultsByFixture = new Map((results ?? []).map((r: any) => [r.fixture_id ?? r.fixtures?.id, r]));
   const [selectedRound, setSelectedRound] = useState<string>('all');
@@ -28,25 +27,36 @@ export default function Fixtures() {
     groupedFixtures[f.round_number].push(f);
   });
 
-  const groupedResults: Record<number, any[]> = {};
-  const filteredResults = selectedRound === 'all' ? results : results?.filter((r: any) => r.fixtures?.round_number === Number(selectedRound));
-  (filteredResults ?? []).forEach((r: any) => {
-    const round = r.fixtures?.round_number ?? 0;
-    if (!groupedResults[round]) groupedResults[round] = [];
-    groupedResults[round].push(r);
-  });
-
   return (
     <Layout>
       <div className="page-container py-5 space-y-4">
-        {/* Page header */}
         <div>
-          <h1 className="text-xl font-black tracking-tight">Fixtures</h1>
+          <h1 className="text-xl font-black tracking-tight">Fixtures & Results</h1>
           <p className="text-xs text-muted-foreground mt-0.5">{season?.name ?? '2026'} Season</p>
         </div>
 
-        {/* Controls */}
+        {/* Sport filter + Round filter */}
         <div className="flex items-center gap-3">
+          {sports.length > 1 && (
+            <div className="flex items-center bg-muted/60 rounded-full p-0.5 gap-0.5">
+              {sports.map((sport) => {
+                const active = currentSport?.slug === sport.slug;
+                return (
+                  <button
+                    key={sport.id}
+                    onClick={() => setSport(sport.slug)}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                      active
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {sport.slug === 'afl' ? 'AFL' : 'Cricket'}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           <Select value={selectedRound} onValueChange={setSelectedRound}>
             <SelectTrigger className="w-[130px] h-9 rounded-full text-xs font-semibold">
               <SelectValue placeholder="Round" />
