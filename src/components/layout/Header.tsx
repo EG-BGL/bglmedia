@@ -78,7 +78,7 @@ export default function Header() {
 
         {/* Mobile actions */}
         <div className="flex md:hidden items-center gap-1">
-          {user && (role === 'coach' || role === 'league_admin') && (
+          <SportSwitcher />
             <Button asChild size="sm" className="rounded-full font-bold gap-1 h-8 px-3 text-xs">
               <Link to="/portal/submit"><ClipboardList className="h-3.5 w-3.5" />Submit</Link>
             </Button>
