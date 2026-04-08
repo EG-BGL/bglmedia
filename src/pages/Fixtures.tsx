@@ -187,7 +187,7 @@ export default function Fixtures() {
                               const aflDraw = (r.home_score ?? 0) === (r.away_score ?? 0);
                               const margin = Math.abs((r.home_score ?? 0) - (r.away_score ?? 0));
                               const winnerName = aflHomeWon ? homeShort : awayShort;
-                              const aflResultText = aflDraw ? 'Draw' : `${winnerName} by ${margin} pts`;
+                              const aflResultText = aflDraw ? 'Draw' : `${winnerName} won by ${margin} pts`;
                               return (
                                 <div>
                                   <div className="stat-number text-xl font-black">{r.home_score} – {r.away_score}</div>
