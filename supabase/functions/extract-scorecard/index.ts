@@ -180,8 +180,83 @@ Extract all players visible. Use null for stats not shown.`,
       },
     },
   },
-};
+  cricket_scorecard: {
+    system: `You are a cricket scorecard reader. Extract ALL data from this cricket scorecard image. This could be a full scorecard, batting card, bowling figures, or a summary.
 
+Extract as much as possible from the image:
+- Innings totals (runs, wickets, overs, extras)
+- Batting details for each batter (name, runs, balls, 4s, 6s, how out, bowler)
+- Bowling figures for each bowler (name, overs, maidens, runs, wickets, wides, no-balls)
+
+IMPORTANT:
+- Extract ALL batters and bowlers visible, not just highlights
+- "not out" means the batter was not dismissed
+- Common dismissals: bowled, caught, lbw, run out, stumped, hit wicket, retired
+- If there are multiple innings visible, extract all of them
+- The batting team and bowling team are different teams`,
+    tool: {
+      name: "extract_cricket_scorecard",
+      description: "Extract cricket scorecard data from an image",
+      parameters: {
+        type: "object",
+        properties: {
+          innings: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                team_name: { type: "string" },
+                innings_number: { type: "number" },
+                total_runs: { type: "number", nullable: true },
+                total_wickets: { type: "number", nullable: true },
+                total_overs: { type: "number", nullable: true },
+                extras: { type: "number", nullable: true },
+                all_out: { type: "boolean" },
+                declared: { type: "boolean" },
+                batting: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      name: { type: "string" },
+                      runs: { type: "number", nullable: true },
+                      balls: { type: "number", nullable: true },
+                      fours: { type: "number", nullable: true },
+                      sixes: { type: "number", nullable: true },
+                      how_out: { type: "string", nullable: true },
+                      bowler: { type: "string", nullable: true },
+                      not_out: { type: "boolean" },
+                    },
+                    required: ["name"],
+                  },
+                },
+                bowling: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      name: { type: "string" },
+                      overs: { type: "number", nullable: true },
+                      maidens: { type: "number", nullable: true },
+                      runs: { type: "number", nullable: true },
+                      wickets: { type: "number", nullable: true },
+                      wides: { type: "number", nullable: true },
+                      no_balls: { type: "number", nullable: true },
+                    },
+                    required: ["name"],
+                  },
+                },
+              },
+              required: ["team_name", "innings_number"],
+            },
+          },
+          confidence: { type: "string", enum: ["high", "medium", "low"] },
+        },
+        required: ["innings", "confidence"],
+      },
+    },
+  },
+};
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });

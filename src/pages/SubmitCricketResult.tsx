@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ChevronLeft, Send, AlertCircle, CheckCircle2, Plus, Trash2, CircleDot } from 'lucide-react';
+import { ChevronLeft, Send, AlertCircle, CheckCircle2, Plus, Trash2, CircleDot, Camera, Loader2, Sparkles } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 interface BattingEntry {
@@ -68,7 +68,112 @@ export default function SubmitCricketResult() {
   }[]>([]);
 
   const [activeInnings, setActiveInnings] = useState('0');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiImages, setAiImages] = useState<File[]>([]);
+  const [aiFilled, setAiFilled] = useState(false);
 
+  const handleAiScorecardUpload = async (files: FileList | null) => {
+    if (!files?.length || !selectedMatch) return;
+    setAiLoading(true);
+    setAiFilled(false);
+    const newFiles = Array.from(files);
+    setAiImages(prev => [...prev, ...newFiles]);
+
+    try {
+      // Process all images and merge results
+      const allInningsData: any[] = [];
+
+      for (const file of newFiles) {
+        // Upload to storage
+        const fileName = `cricket-${Date.now()}-${Math.random().toString(36).slice(2)}.${file.name.split('.').pop()}`;
+        const { error: uploadError } = await supabase.storage.from('scorecard-images').upload(fileName, file);
+        if (uploadError) { toast.error('Upload failed: ' + uploadError.message); continue; }
+
+        const { data: urlData } = supabase.storage.from('scorecard-images').getPublicUrl(fileName);
+
+        // Call AI extraction
+        const { data: result, error: fnError } = await supabase.functions.invoke('extract-scorecard', {
+          body: { imageUrl: urlData.publicUrl, extractionType: 'cricket_scorecard' },
+        });
+
+        if (fnError) { toast.error('AI extraction failed'); continue; }
+        if (result?.innings?.length) {
+          allInningsData.push(...result.innings);
+        }
+      }
+
+      if (allInningsData.length === 0) {
+        toast.error('Could not extract scorecard data from images');
+        setAiLoading(false);
+        return;
+      }
+
+      // Map extracted innings to our form state
+      const homeId = selectedMatch.home_team_id;
+      const awayId = selectedMatch.away_team_id;
+      const homeName = (selectedMatch.home_team?.clubs?.short_name ?? '').toLowerCase();
+      const awayName = (selectedMatch.away_team?.clubs?.short_name ?? '').toLowerCase();
+
+      const mappedInnings = allInningsData.map((inn: any, idx: number) => {
+        // Try to match team name
+        const tName = (inn.team_name ?? '').toLowerCase();
+        let teamId = idx % 2 === 0 ? homeId : awayId;
+        if (tName.includes(homeName) && homeName) teamId = homeId;
+        else if (tName.includes(awayName) && awayName) teamId = awayId;
+
+        const batting = (inn.batting ?? []).map((b: any) => ({
+          playerName: b.name ?? '',
+          runs: String(b.runs ?? ''),
+          balls: String(b.balls ?? ''),
+          fours: String(b.fours ?? ''),
+          sixes: String(b.sixes ?? ''),
+          howOut: b.how_out ?? '',
+          bowlerName: b.bowler ?? '',
+          notOut: b.not_out ?? false,
+        }));
+
+        const bowling = (inn.bowling ?? []).map((b: any) => ({
+          playerName: b.name ?? '',
+          overs: String(b.overs ?? ''),
+          maidens: String(b.maidens ?? ''),
+          runs: String(b.runs ?? ''),
+          wickets: String(b.wickets ?? ''),
+          wides: String(b.wides ?? ''),
+          noBalls: String(b.no_balls ?? ''),
+        }));
+
+        return {
+          teamId,
+          totalRuns: String(inn.total_runs ?? ''),
+          totalWickets: String(inn.total_wickets ?? ''),
+          totalOvers: String(inn.total_overs ?? ''),
+          extras: String(inn.extras ?? ''),
+          allOut: inn.all_out ?? false,
+          declared: inn.declared ?? false,
+          batting: batting.length > 0 ? batting : [emptyBatting()],
+          bowling: bowling.length > 0 ? bowling : [emptyBowling()],
+        };
+      });
+
+      if (mappedInnings.length >= 2) {
+        setInnings(mappedInnings);
+      } else if (mappedInnings.length === 1) {
+        // Only got one innings, keep the other as empty
+        setInnings(prev => {
+          const updated = [...prev];
+          updated[0] = mappedInnings[0];
+          return updated;
+        });
+      }
+
+      setAiFilled(true);
+      toast.success('Scorecard extracted! Review the data below.');
+    } catch (err: any) {
+      toast.error('AI reading failed: ' + (err?.message ?? 'Unknown error'));
+    } finally {
+      setAiLoading(false);
+    }
+  };
   useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading, navigate]);
 
   useEffect(() => {
@@ -357,6 +462,46 @@ export default function SubmitCricketResult() {
               </div>
             )}
           </div>
+
+          {/* AI Scorecard Reader */}
+          {selectedMatch && (
+            <div className="match-card p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <h3 className="section-label">AI Scorecard Reader</h3>
+                {aiFilled && <Badge className="bg-primary/10 text-primary text-[9px] rounded-full border-0">AI filled</Badge>}
+              </div>
+              <p className="text-[10px] text-muted-foreground mb-3">
+                Upload photos of the scorecard and AI will extract all batting, bowling, and innings data automatically.
+              </p>
+              <div className="flex gap-2">
+                <label className="flex-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={e => handleAiScorecardUpload(e.target.files)}
+                    disabled={aiLoading}
+                  />
+                  <div className={`flex items-center justify-center gap-2 h-12 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${aiLoading ? 'border-primary/50 bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/50'}`}>
+                    {aiLoading ? (
+                      <><Loader2 className="h-4 w-4 animate-spin text-primary" /><span className="text-xs font-bold text-primary">Reading scorecard...</span></>
+                    ) : (
+                      <><Camera className="h-4 w-4 text-muted-foreground" /><span className="text-xs font-bold text-muted-foreground">Upload Scorecard Photos</span></>
+                    )}
+                  </div>
+                </label>
+              </div>
+              {aiImages.length > 0 && (
+                <div className="flex gap-2 mt-2 overflow-x-auto">
+                  {aiImages.map((file, i) => (
+                    <img key={i} src={URL.createObjectURL(file)} alt={`Scorecard ${i + 1}`} className="h-16 w-16 rounded-lg object-cover border border-border/50" />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Innings */}
           {selectedMatch && innings.length > 0 && (
