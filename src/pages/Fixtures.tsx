@@ -12,6 +12,9 @@ export default function Fixtures() {
   const { data: season } = useCurrentSeason();
   const { data: fixtures, isLoading } = useFixtures(season?.id);
   const { data: results } = useResults(season?.id);
+
+  // Set of fixture IDs that have approved results
+  const fixtureIdsWithResults = new Set(results?.map((r: any) => r.fixture_id ?? r.fixtures?.id) ?? []);
   const [selectedRound, setSelectedRound] = useState<string>('all');
   const [tab, setTab] = useState<string>('fixtures');
 
