@@ -49,6 +49,7 @@ export type Database = {
       }
       clubs: {
         Row: {
+          coach: string | null
           created_at: string
           description: string | null
           founded_year: number | null
@@ -62,6 +63,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          coach?: string | null
           created_at?: string
           description?: string | null
           founded_year?: number | null
@@ -75,6 +77,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          coach?: string | null
           created_at?: string
           description?: string | null
           founded_year?: number | null
