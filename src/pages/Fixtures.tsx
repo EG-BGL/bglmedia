@@ -163,14 +163,28 @@ export default function Fixtures() {
                     const homeWon = hasCricketResult && homeInnings.reduce((s: number, i: any) => s + (i.total_runs ?? 0), 0) > awayInnings.reduce((s: number, i: any) => s + (i.total_runs ?? 0), 0);
                     const awayWon = hasCricketResult && awayInnings.reduce((s: number, i: any) => s + (i.total_runs ?? 0), 0) > homeInnings.reduce((s: number, i: any) => s + (i.total_runs ?? 0), 0);
 
+                    const aflResult = !isCricket && f.status === 'completed' && resultsByFixture.has(f.id) ? (() => {
+                      const r = resultsByFixture.get(f.id);
+                      const hWon = (r.home_score ?? 0) > (r.away_score ?? 0);
+                      const aWon = (r.away_score ?? 0) > (r.home_score ?? 0);
+                      const draw = (r.home_score ?? 0) === (r.away_score ?? 0);
+                      const margin = Math.abs((r.home_score ?? 0) - (r.away_score ?? 0));
+                      const winner = hWon ? homeShort : awayShort;
+                      const text = draw ? 'Draw' : `${winner} won by ${margin} pts`;
+                      return { r, homeWon: hWon, awayWon: aWon, draw, text };
+                    })() : null;
+
                     return (
                       <Link key={f.id} to={`/match/${f.id}`} className="block match-card px-3 py-2.5">
                         <div className="flex items-center gap-2">
                           <div className="flex items-center gap-1.5 flex-1 min-w-0">
                             <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" />
-                            <span className={`font-bold text-xs truncate ${hasCricketResult && !homeWon ? 'text-muted-foreground' : ''}`}>{homeShort}</span>
+                            <span className={`font-bold text-xs truncate ${(hasCricketResult && !homeWon) || (aflResult && !aflResult.homeWon && !aflResult.draw) ? 'text-muted-foreground' : ''}`}>{homeShort}</span>
                             {hasCricketResult && (
                               <span className={`text-xs tabular-nums ml-auto shrink-0 ${homeWon ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>{homeScore}</span>
+                            )}
+                            {aflResult && (
+                              <span className={`text-xs tabular-nums ml-auto shrink-0 ${aflResult.homeWon ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>{aflResult.r.home_goals}.{aflResult.r.home_behinds}</span>
                             )}
                           </div>
                           <div className="text-center shrink-0 px-1">
@@ -181,21 +195,12 @@ export default function Fixtures() {
                                   <div className="text-[9px] text-muted-foreground font-semibold mt-0.5 whitespace-nowrap">{resultText}</div>
                                 )}
                               </div>
-                            ) : f.status === 'completed' && resultsByFixture.has(f.id) ? (() => {
-                              const r = resultsByFixture.get(f.id);
-                              const aflHomeWon = (r.home_score ?? 0) > (r.away_score ?? 0);
-                              const aflDraw = (r.home_score ?? 0) === (r.away_score ?? 0);
-                              const margin = Math.abs((r.home_score ?? 0) - (r.away_score ?? 0));
-                              const winnerName = aflHomeWon ? homeShort : awayShort;
-                              const aflResultText = aflDraw ? 'Draw' : `${winnerName} won by ${margin} pts`;
-                              return (
-                                <div>
-                                  <div className="stat-number text-xl font-black">{r.home_score} – {r.away_score}</div>
-                                  <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">FULL TIME</Badge>
-                                  <div className="text-[9px] text-muted-foreground font-semibold mt-0.5 whitespace-nowrap">{aflResultText}</div>
-                                </div>
-                              );
-                            })() : f.status === 'completed' ? (
+                            ) : aflResult ? (
+                              <div>
+                                <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">FULL TIME</Badge>
+                                <div className="text-[9px] text-muted-foreground font-semibold mt-0.5 whitespace-nowrap">{aflResult.text}</div>
+                              </div>
+                            ) : f.status === 'completed' ? (
                               <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">FT</Badge>
                             ) : (
                               <div>
@@ -206,10 +211,13 @@ export default function Fixtures() {
                             )}
                           </div>
                           <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+                            {aflResult && (
+                              <span className={`text-xs tabular-nums mr-auto shrink-0 ${aflResult.awayWon ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>{aflResult.r.away_goals}.{aflResult.r.away_behinds}</span>
+                            )}
                             {hasCricketResult && (
                               <span className={`text-xs tabular-nums mr-auto shrink-0 ${awayWon ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>{awayScore}</span>
                             )}
-                            <span className={`font-bold text-xs truncate ${hasCricketResult && !awayWon ? 'text-muted-foreground' : ''}`}>{awayShort}</span>
+                            <span className={`font-bold text-xs truncate ${(hasCricketResult && !awayWon) || (aflResult && !aflResult.awayWon && !aflResult.draw) ? 'text-muted-foreground' : ''}`}>{awayShort}</span>
                             <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" />
                           </div>
                         </div>
