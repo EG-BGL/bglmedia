@@ -6,8 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 const navItems = [
   { label: 'Home', path: '/' },
-  { label: 'Fixtures', path: '/fixtures' },
-  { label: 'Results', path: '/results' },
+  { label: 'Fixtures & Results', path: '/fixtures' },
   { label: 'Ladder', path: '/ladder' },
   { label: 'Clubs', path: '/clubs' },
 ];
