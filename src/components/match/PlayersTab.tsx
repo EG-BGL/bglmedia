@@ -1,7 +1,7 @@
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
 import { useMatchPlayerStats } from '@/hooks/useData';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 interface PlayersTabProps {
   fixture: any;
@@ -27,11 +27,31 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
   const awayTeamId = (fixture as any)?.away_team?.id;
   const { data: allStats, isLoading: loadingStats } = useMatchPlayerStats(fixtureId);
 
-  // Combine and sort by AFL Fantasy descending
+  const [sortKey, setSortKey] = useState<string>('afl_fantasy');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir(d => d === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
+  };
+
+  const getStatValue = (s: any, key: string) => {
+    if (key === 'goals_behinds') return (s.goals ?? 0) * 10 + (s.behinds ?? 0);
+    return s[key] ?? 0;
+  };
+
   const combinedStats = useMemo(() => {
     if (!allStats?.length) return [];
-    return [...allStats].sort((a: any, b: any) => (b.afl_fantasy ?? 0) - (a.afl_fantasy ?? 0));
-  }, [allStats]);
+    return [...allStats].sort((a: any, b: any) => {
+      const av = getStatValue(a, sortKey);
+      const bv = getStatValue(b, sortKey);
+      return sortDir === 'desc' ? bv - av : av - bv;
+    });
+  }, [allStats, sortKey, sortDir]);
 
   const hasStats = combinedStats.length > 0;
 
@@ -49,9 +69,22 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
               <thead>
                 <tr className="border-b border-border/30">
                   <th className="text-left py-2 px-2 font-black uppercase tracking-wider text-muted-foreground sticky left-0 bg-card z-10 min-w-[130px]">Player</th>
-                  {STAT_COLS.map(col => (
-                    <th key={col.label} className="text-center py-2 px-1.5 font-black uppercase tracking-wider text-muted-foreground min-w-[32px]">{col.label}</th>
-                  ))}
+                  {STAT_COLS.map(col => {
+                    const active = sortKey === col.key;
+                    return (
+                      <th
+                        key={col.label}
+                        className="text-center py-2 px-1.5 font-black uppercase tracking-wider min-w-[32px] cursor-pointer select-none hover:text-foreground transition-colors"
+                        style={{ color: active ? 'hsl(var(--primary))' : undefined }}
+                        onClick={() => handleSort(col.key)}
+                      >
+                        <span className="inline-flex items-center gap-0.5">
+                          {col.label}
+                          {active && (sortDir === 'desc' ? <ChevronDown className="h-2.5 w-2.5" /> : <ChevronUp className="h-2.5 w-2.5" />)}
+                        </span>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
