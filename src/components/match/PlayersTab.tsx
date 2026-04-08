@@ -1,8 +1,7 @@
-import { Badge } from '@/components/ui/badge';
-import ClubLogo from '@/components/ClubLogo';
 import { BarChart3 } from 'lucide-react';
 import { useMatchPlayerStats } from '@/hooks/useData';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { useMemo } from 'react';
 
 interface PlayersTabProps {
   fixture: any;
@@ -22,83 +21,78 @@ const STAT_COLS = [
   { key: 'hitouts', label: 'HO' },
 ] as const;
 
-function StatsTable({ stats, club }: { stats: any[]; club: any }) {
-  if (!stats || stats.length === 0) {
-    return <p className="text-xs text-muted-foreground/50 italic px-4 py-3">No player stats available</p>;
-  }
-
-  return (
-    <ScrollArea className="w-full">
-      <table className="w-full text-[10px]">
-        <thead>
-          <tr className="border-b border-border/30">
-            <th className="text-left py-2 px-2 font-black uppercase tracking-wider text-muted-foreground sticky left-0 bg-card z-10 min-w-[100px]">Player</th>
-            {STAT_COLS.map(col => (
-              <th key={col.label} className="text-center py-2 px-1.5 font-black uppercase tracking-wider text-muted-foreground min-w-[32px]">{col.label}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {stats.map((s: any, i: number) => (
-            <tr key={s.id} className={i % 2 === 0 ? 'bg-muted/20' : ''}>
-              <td className="py-1.5 px-2 sticky left-0 z-10 font-medium" style={{ backgroundColor: 'inherit' }}>
-                <div className="flex items-center gap-1.5" style={{ backgroundColor: i % 2 === 0 ? 'hsl(var(--muted) / 0.2)' : 'hsl(var(--card))' }}>
-                  {s.players?.jersey_number != null && (
-                    <span className="w-4 h-4 rounded bg-muted text-muted-foreground text-[8px] font-bold flex items-center justify-center shrink-0">{s.players.jersey_number}</span>
-                  )}
-                  <span className="truncate">{s.players?.first_name?.[0]}. {s.players?.last_name}</span>
-                </div>
-              </td>
-              <td className="text-center py-1.5 px-1.5 font-bold text-primary">{s.afl_fantasy ?? 0}</td>
-              <td className="text-center py-1.5 px-1.5">{s.goals ?? 0}.{s.behinds ?? 0}</td>
-              <td className="text-center py-1.5 px-1.5">{s.disposals ?? 0}</td>
-              <td className="text-center py-1.5 px-1.5">{s.kicks ?? 0}</td>
-              <td className="text-center py-1.5 px-1.5">{s.handballs ?? 0}</td>
-              <td className="text-center py-1.5 px-1.5">{s.marks ?? 0}</td>
-              <td className="text-center py-1.5 px-1.5">{s.tackles ?? 0}</td>
-              <td className="text-center py-1.5 px-1.5">{s.hitouts ?? 0}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <ScrollBar orientation="horizontal" />
-    </ScrollArea>
-  );
-}
-
 export default function PlayersTab({ fixture, result, homeClub, awayClub }: PlayersTabProps) {
   const fixtureId = fixture?.id;
   const homeTeamId = (fixture as any)?.home_team?.id;
   const awayTeamId = (fixture as any)?.away_team?.id;
   const { data: allStats, isLoading: loadingStats } = useMatchPlayerStats(fixtureId);
 
-  const homeStats = allStats?.filter((s: any) => s.team_id === homeTeamId) ?? [];
-  const awayStats = allStats?.filter((s: any) => s.team_id === awayTeamId) ?? [];
-  const hasStats = homeStats.length > 0 || awayStats.length > 0;
+  // Combine and sort by AFL Fantasy descending
+  const combinedStats = useMemo(() => {
+    if (!allStats?.length) return [];
+    return [...allStats].sort((a: any, b: any) => (b.afl_fantasy ?? 0) - (a.afl_fantasy ?? 0));
+  }, [allStats]);
+
+  const hasStats = combinedStats.length > 0;
+
+  const getClub = (teamId: string) => teamId === homeTeamId ? homeClub : awayClub;
 
   return (
     <div className="space-y-3">
-      {/* Player Stats */}
       {hasStats && (
-        <>
-          {/* Home team stats */}
-          <div className="match-card overflow-hidden">
-            <div className="px-4 py-3 border-b border-border/30 flex items-center gap-1.5">
-              <ClubLogo club={homeClub ?? {}} size="sm" className="!h-5 !w-5" />
-              <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">{homeClub?.short_name} Stats</h3>
-            </div>
-            <StatsTable stats={homeStats} club={homeClub} />
+        <div className="match-card overflow-hidden">
+          <div className="px-4 py-3 border-b border-border/30">
+            <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Player Stats</h3>
           </div>
-
-          {/* Away team stats */}
-          <div className="match-card overflow-hidden">
-            <div className="px-4 py-3 border-b border-border/30 flex items-center gap-1.5">
-              <ClubLogo club={awayClub ?? {}} size="sm" className="!h-5 !w-5" />
-              <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">{awayClub?.short_name} Stats</h3>
-            </div>
-            <StatsTable stats={awayStats} club={awayClub} />
-          </div>
-        </>
+          <ScrollArea className="w-full">
+            <table className="w-full text-[10px]">
+              <thead>
+                <tr className="border-b border-border/30">
+                  <th className="text-left py-2 px-2 font-black uppercase tracking-wider text-muted-foreground sticky left-0 bg-card z-10 min-w-[130px]">Player</th>
+                  {STAT_COLS.map(col => (
+                    <th key={col.label} className="text-center py-2 px-1.5 font-black uppercase tracking-wider text-muted-foreground min-w-[32px]">{col.label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {combinedStats.map((s: any, i: number) => {
+                  const club = getClub(s.team_id);
+                  const isHome = s.team_id === homeTeamId;
+                  const primaryColor = club?.primary_color || (isHome ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))');
+                  return (
+                    <tr key={s.id} className={i % 2 === 0 ? 'bg-muted/20' : ''}>
+                      <td className="py-1.5 px-2 sticky left-0 z-10" style={{ backgroundColor: i % 2 === 0 ? 'hsl(var(--muted) / 0.2)' : 'hsl(var(--card))' }}>
+                        <div className="flex items-center gap-1.5">
+                          {s.players?.jersey_number != null && (
+                            <span
+                              className="w-5 h-5 rounded text-[8px] font-black flex items-center justify-center shrink-0 text-white"
+                              style={{ backgroundColor: primaryColor }}
+                            >
+                              {s.players.jersey_number}
+                            </span>
+                          )}
+                          <div className="min-w-0">
+                            <span className="font-bold text-[10px] truncate block">{s.players?.first_name?.[0]}. {s.players?.last_name}</span>
+                            <span className="text-[8px] text-muted-foreground truncate block">{club?.short_name}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="text-center py-1.5 px-1.5 font-bold text-primary">{s.afl_fantasy ?? 0}</td>
+                      <td className="text-center py-1.5 px-1.5">{s.goals ?? 0}.{s.behinds ?? 0}</td>
+                      <td className="text-center py-1.5 px-1.5">{s.disposals ?? 0}</td>
+                      <td className="text-center py-1.5 px-1.5">{s.kicks ?? 0}</td>
+                      <td className="text-center py-1.5 px-1.5">{s.handballs ?? 0}</td>
+                      <td className="text-center py-1.5 px-1.5">{s.marks ?? 0}</td>
+                      <td className="text-center py-1.5 px-1.5">{s.tackles ?? 0}</td>
+                      <td className="text-center py-1.5 px-1.5">{s.hitouts ?? 0}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </div>
       )}
 
       {loadingStats && !hasStats && (
@@ -113,7 +107,6 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
           <p className="text-xs text-muted-foreground/50">No player stats recorded for this match</p>
         </div>
       )}
-
     </div>
   );
 }
