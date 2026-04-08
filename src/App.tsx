@@ -19,6 +19,8 @@ import SubmitCricketResult from "./pages/SubmitCricketResult";
 import Admin from "./pages/Admin";
 import ManageTeams from "./pages/ManageTeams";
 import ManagePlayers from "./pages/ManagePlayers";
+import Profile from "./pages/Profile";
+import CoachHub from "./pages/CoachHub";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +45,8 @@ const App = () => (
             <Route path="/portal" element={<Portal />} />
             <Route path="/portal/submit" element={<SubmitResult />} />
             <Route path="/portal/submit-cricket" element={<SubmitCricketResult />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/coach-hub" element={<CoachHub />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/teams" element={<ManageTeams />} />
             <Route path="/admin/players" element={<ManagePlayers />} />
