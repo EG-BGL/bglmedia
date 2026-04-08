@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ChevronLeft, Send, AlertCircle, CheckCircle2, Plus, Trash2, CircleDot, Camera, Loader2, Sparkles, ClipboardList, BarChart3, Trophy, Users } from 'lucide-react';
+import { ChevronLeft, Send, AlertCircle, CheckCircle2, Plus, Trash2, CircleDot, Camera, Loader2, Sparkles, ClipboardList, BarChart3, Trophy, Users, ImageIcon } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 interface BattingEntry {
@@ -68,110 +68,150 @@ export default function SubmitCricketResult() {
   }[]>([]);
 
   const [activeInnings, setActiveInnings] = useState('0');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiImages, setAiImages] = useState<File[]>([]);
-  const [aiFilled, setAiFilled] = useState(false);
 
-  const handleAiScorecardUpload = async (files: FileList | null) => {
-    if (!files?.length || !selectedMatch) return;
-    setAiLoading(true);
-    setAiFilled(false);
-    const newFiles = Array.from(files);
-    setAiImages(prev => [...prev, ...newFiles]);
+  // AI section-based upload state
+  type CricketSectionKey = 'match_summary' | 'innings1_batting' | 'innings1_bowling' | 'innings2_batting' | 'innings2_bowling';
+  const cricketSections: { key: CricketSectionKey; label: string; icon: any }[] = [
+    { key: 'match_summary', label: 'Match Summary', icon: Trophy },
+    { key: 'innings1_batting', label: '1st Innings Batting', icon: BarChart3 },
+    { key: 'innings1_bowling', label: '1st Innings Bowling', icon: Users },
+    { key: 'innings2_batting', label: '2nd Innings Batting', icon: BarChart3 },
+    { key: 'innings2_bowling', label: '2nd Innings Bowling', icon: Users },
+  ];
+  const [sectionPreviews, setSectionPreviews] = useState<Record<CricketSectionKey, string | null>>({ match_summary: null, innings1_batting: null, innings1_bowling: null, innings2_batting: null, innings2_bowling: null });
+  const [sectionExtracting, setSectionExtracting] = useState<Record<CricketSectionKey, boolean>>({ match_summary: false, innings1_batting: false, innings1_bowling: false, innings2_batting: false, innings2_bowling: false });
+  const [sectionConfidence, setSectionConfidence] = useState<Record<CricketSectionKey, string | null>>({ match_summary: null, innings1_batting: null, innings1_bowling: null, innings2_batting: null, innings2_bowling: null });
+
+  const mapExtractedInnings = (allInningsData: any[]) => {
+    if (!selectedMatch || allInningsData.length === 0) return;
+    const homeId = selectedMatch.home_team_id;
+    const awayId = selectedMatch.away_team_id;
+    const homeName = (selectedMatch.home_team?.clubs?.short_name ?? '').toLowerCase();
+    const awayName = (selectedMatch.away_team?.clubs?.short_name ?? '').toLowerCase();
+
+    const mappedInnings = allInningsData.map((inn: any, idx: number) => {
+      const tName = (inn.team_name ?? '').toLowerCase();
+      let teamId = idx % 2 === 0 ? homeId : awayId;
+      if (tName.includes(homeName) && homeName) teamId = homeId;
+      else if (tName.includes(awayName) && awayName) teamId = awayId;
+
+      const batting = (inn.batting ?? []).map((b: any) => ({
+        playerName: b.name ?? '', runs: String(b.runs ?? ''), balls: String(b.balls ?? ''),
+        fours: String(b.fours ?? ''), sixes: String(b.sixes ?? ''),
+        howOut: b.how_out ?? '', bowlerName: b.bowler ?? '', notOut: b.not_out ?? false,
+      }));
+
+      const bowling = (inn.bowling ?? []).map((b: any) => ({
+        playerName: b.name ?? '', overs: String(b.overs ?? ''), maidens: String(b.maidens ?? ''),
+        runs: String(b.runs ?? ''), wickets: String(b.wickets ?? ''),
+        wides: String(b.wides ?? ''), noBalls: String(b.no_balls ?? ''),
+      }));
+
+      return {
+        teamId,
+        totalRuns: String(inn.total_runs ?? ''), totalWickets: String(inn.total_wickets ?? ''),
+        totalOvers: String(inn.total_overs ?? ''), extras: String(inn.extras ?? ''),
+        allOut: inn.all_out ?? false, declared: inn.declared ?? false,
+        batting: batting.length > 0 ? batting : [emptyBatting()],
+        bowling: bowling.length > 0 ? bowling : [emptyBowling()],
+      };
+    });
+
+    if (mappedInnings.length >= 2) {
+      setInnings(mappedInnings);
+    } else if (mappedInnings.length === 1) {
+      setInnings(prev => { const updated = [...prev]; updated[0] = mappedInnings[0]; return updated; });
+    }
+  };
+
+  const handleSectionUpload = async (sectionKey: CricketSectionKey, file: File) => {
+    if (!selectedMatch) return;
+    setSectionExtracting(prev => ({ ...prev, [sectionKey]: true }));
+    setSectionConfidence(prev => ({ ...prev, [sectionKey]: null }));
+
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = (e) => setSectionPreviews(prev => ({ ...prev, [sectionKey]: e.target?.result as string }));
+    reader.readAsDataURL(file);
 
     try {
-      // Process all images and merge results
-      const allInningsData: any[] = [];
+      const fileName = `cricket-${Date.now()}-${Math.random().toString(36).slice(2)}.${file.name.split('.').pop()}`;
+      const { error: uploadError } = await supabase.storage.from('scorecard-images').upload(fileName, file);
+      if (uploadError) { toast.error('Upload failed: ' + uploadError.message); return; }
 
-      for (const file of newFiles) {
-        // Upload to storage
-        const fileName = `cricket-${Date.now()}-${Math.random().toString(36).slice(2)}.${file.name.split('.').pop()}`;
-        const { error: uploadError } = await supabase.storage.from('scorecard-images').upload(fileName, file);
-        if (uploadError) { toast.error('Upload failed: ' + uploadError.message); continue; }
+      const { data: urlData } = supabase.storage.from('scorecard-images').getPublicUrl(fileName);
 
-        const { data: urlData } = supabase.storage.from('scorecard-images').getPublicUrl(fileName);
+      const { data: result, error: fnError } = await supabase.functions.invoke('extract-scorecard', {
+        body: { imageUrl: urlData.publicUrl, extractionType: 'cricket_scorecard' },
+      });
 
-        // Call AI extraction
-        const { data: result, error: fnError } = await supabase.functions.invoke('extract-scorecard', {
-          body: { imageUrl: urlData.publicUrl, extractionType: 'cricket_scorecard' },
-        });
-
-        if (fnError) { toast.error('AI extraction failed'); continue; }
-        if (result?.innings?.length) {
-          allInningsData.push(...result.innings);
-        }
-      }
-
-      if (allInningsData.length === 0) {
-        toast.error('Could not extract scorecard data from images');
-        setAiLoading(false);
+      if (fnError || !result?.innings?.length) {
+        toast.error('Could not extract data from this image');
+        setSectionConfidence(prev => ({ ...prev, [sectionKey]: 'failed' }));
         return;
       }
 
-      // Map extracted innings to our form state
-      const homeId = selectedMatch.home_team_id;
-      const awayId = selectedMatch.away_team_id;
-      const homeName = (selectedMatch.home_team?.clubs?.short_name ?? '').toLowerCase();
-      const awayName = (selectedMatch.away_team?.clubs?.short_name ?? '').toLowerCase();
+      setSectionConfidence(prev => ({ ...prev, [sectionKey]: result.confidence ?? 'medium' }));
 
-      const mappedInnings = allInningsData.map((inn: any, idx: number) => {
-        // Try to match team name
-        const tName = (inn.team_name ?? '').toLowerCase();
-        let teamId = idx % 2 === 0 ? homeId : awayId;
-        if (tName.includes(homeName) && homeName) teamId = homeId;
-        else if (tName.includes(awayName) && awayName) teamId = awayId;
-
-        const batting = (inn.batting ?? []).map((b: any) => ({
-          playerName: b.name ?? '',
-          runs: String(b.runs ?? ''),
-          balls: String(b.balls ?? ''),
-          fours: String(b.fours ?? ''),
-          sixes: String(b.sixes ?? ''),
-          howOut: b.how_out ?? '',
-          bowlerName: b.bowler ?? '',
-          notOut: b.not_out ?? false,
+      // Apply extracted data based on section
+      const extractedInnings = result.innings;
+      
+      if (sectionKey === 'match_summary') {
+        // Update innings totals from all extracted innings
+        mapExtractedInnings(extractedInnings);
+        toast.success('Match summary extracted!');
+      } else if (sectionKey === 'innings1_batting' && extractedInnings[0]) {
+        const batting = (extractedInnings[0].batting ?? []).map((b: any) => ({
+          playerName: b.name ?? '', runs: String(b.runs ?? ''), balls: String(b.balls ?? ''),
+          fours: String(b.fours ?? ''), sixes: String(b.sixes ?? ''),
+          howOut: b.how_out ?? '', bowlerName: b.bowler ?? '', notOut: b.not_out ?? false,
         }));
-
-        const bowling = (inn.bowling ?? []).map((b: any) => ({
-          playerName: b.name ?? '',
-          overs: String(b.overs ?? ''),
-          maidens: String(b.maidens ?? ''),
-          runs: String(b.runs ?? ''),
-          wickets: String(b.wickets ?? ''),
-          wides: String(b.wides ?? ''),
-          noBalls: String(b.no_balls ?? ''),
+        if (batting.length > 0) {
+          setInnings(prev => prev.map((inn, i) => i === 0 ? { ...inn, batting, totalRuns: String(extractedInnings[0].total_runs ?? inn.totalRuns), totalWickets: String(extractedInnings[0].total_wickets ?? inn.totalWickets), totalOvers: String(extractedInnings[0].total_overs ?? inn.totalOvers), extras: String(extractedInnings[0].extras ?? inn.extras) } : inn));
+        }
+        toast.success('1st innings batting extracted!');
+      } else if (sectionKey === 'innings1_bowling' && extractedInnings[0]) {
+        const bowling = (extractedInnings[0].bowling ?? []).map((b: any) => ({
+          playerName: b.name ?? '', overs: String(b.overs ?? ''), maidens: String(b.maidens ?? ''),
+          runs: String(b.runs ?? ''), wickets: String(b.wickets ?? ''),
+          wides: String(b.wides ?? ''), noBalls: String(b.no_balls ?? ''),
         }));
-
-        return {
-          teamId,
-          totalRuns: String(inn.total_runs ?? ''),
-          totalWickets: String(inn.total_wickets ?? ''),
-          totalOvers: String(inn.total_overs ?? ''),
-          extras: String(inn.extras ?? ''),
-          allOut: inn.all_out ?? false,
-          declared: inn.declared ?? false,
-          batting: batting.length > 0 ? batting : [emptyBatting()],
-          bowling: bowling.length > 0 ? bowling : [emptyBowling()],
-        };
-      });
-
-      if (mappedInnings.length >= 2) {
-        setInnings(mappedInnings);
-      } else if (mappedInnings.length === 1) {
-        // Only got one innings, keep the other as empty
-        setInnings(prev => {
-          const updated = [...prev];
-          updated[0] = mappedInnings[0];
-          return updated;
-        });
+        if (bowling.length > 0) {
+          setInnings(prev => prev.map((inn, i) => i === 0 ? { ...inn, bowling } : inn));
+        }
+        toast.success('1st innings bowling extracted!');
+      } else if (sectionKey === 'innings2_batting') {
+        const src = extractedInnings.length > 1 ? extractedInnings[1] : extractedInnings[0];
+        if (src) {
+          const batting = (src.batting ?? []).map((b: any) => ({
+            playerName: b.name ?? '', runs: String(b.runs ?? ''), balls: String(b.balls ?? ''),
+            fours: String(b.fours ?? ''), sixes: String(b.sixes ?? ''),
+            howOut: b.how_out ?? '', bowlerName: b.bowler ?? '', notOut: b.not_out ?? false,
+          }));
+          if (batting.length > 0) {
+            setInnings(prev => prev.map((inn, i) => i === 1 ? { ...inn, batting, totalRuns: String(src.total_runs ?? inn.totalRuns), totalWickets: String(src.total_wickets ?? inn.totalWickets), totalOvers: String(src.total_overs ?? inn.totalOvers), extras: String(src.extras ?? inn.extras) } : inn));
+          }
+          toast.success('2nd innings batting extracted!');
+        }
+      } else if (sectionKey === 'innings2_bowling') {
+        const src = extractedInnings.length > 1 ? extractedInnings[1] : extractedInnings[0];
+        if (src) {
+          const bowling = (src.bowling ?? []).map((b: any) => ({
+            playerName: b.name ?? '', overs: String(b.overs ?? ''), maidens: String(b.maidens ?? ''),
+            runs: String(b.runs ?? ''), wickets: String(b.wickets ?? ''),
+            wides: String(b.wides ?? ''), noBalls: String(b.no_balls ?? ''),
+          }));
+          if (bowling.length > 0) {
+            setInnings(prev => prev.map((inn, i) => i === 1 ? { ...inn, bowling } : inn));
+          }
+          toast.success('2nd innings bowling extracted!');
+        }
       }
-
-      setAiFilled(true);
-      toast.success('Scorecard extracted! Review the data below.');
     } catch (err: any) {
       toast.error('AI reading failed: ' + (err?.message ?? 'Unknown error'));
+      setSectionConfidence(prev => ({ ...prev, [sectionKey]: 'failed' }));
     } finally {
-      setAiLoading(false);
+      setSectionExtracting(prev => ({ ...prev, [sectionKey]: false }));
     }
   };
   useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading, navigate]);
@@ -496,40 +536,60 @@ export default function SubmitCricketResult() {
           {/* AI Scorecard Reader */}
           {selectedMatch && (
             <div className="match-card p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <h3 className="section-label">AI Scorecard Reader</h3>
-                {aiFilled && <Badge className="bg-primary/10 text-primary text-[9px] rounded-full border-0">AI filled</Badge>}
+              <h3 className="section-label mb-2 flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-primary" /> AI Scorecard Reader
+              </h3>
+              <p className="text-[10px] text-muted-foreground mb-3">Upload photos for each section and AI will extract the data automatically</p>
+
+              <div className="grid grid-cols-3 gap-2">
+                {cricketSections.map(({ key, label, icon: Icon }) => (
+                  <label key={key} className="cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) handleSectionUpload(key, file);
+                        e.target.value = '';
+                      }}
+                      disabled={sectionExtracting[key]}
+                    />
+                    <div className={`relative flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed transition-all overflow-hidden ${
+                      sectionPreviews[key] ? 'border-primary/30 bg-primary/5' : 'border-border hover:border-primary/40 hover:bg-muted/50'
+                    } ${sectionExtracting[key] ? 'border-primary/50 bg-primary/5 animate-pulse' : ''}`}
+                    style={{ aspectRatio: '1' }}>
+                      {sectionPreviews[key] ? (
+                        <>
+                          <img src={sectionPreviews[key]!} alt={label} className="absolute inset-0 w-full h-full object-cover opacity-30" />
+                          <div className="relative z-10 flex flex-col items-center gap-1">
+                            {sectionExtracting[key] ? (
+                              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                            ) : sectionConfidence[key] === 'failed' ? (
+                              <AlertCircle className="h-5 w-5 text-destructive" />
+                            ) : (
+                              <CheckCircle2 className="h-5 w-5 text-primary" />
+                            )}
+                            <span className="text-[9px] font-bold text-center px-1 leading-tight">{label}</span>
+                            {sectionConfidence[key] && sectionConfidence[key] !== 'failed' && (
+                              <Badge variant="outline" className="text-[8px] rounded-full">{sectionConfidence[key]}</Badge>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {sectionExtracting[key] ? (
+                            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                          ) : (
+                            <Icon className="h-5 w-5 text-muted-foreground" />
+                          )}
+                          <span className="text-[9px] font-bold text-muted-foreground text-center px-1 leading-tight">{label}</span>
+                        </>
+                      )}
+                    </div>
+                  </label>
+                ))}
               </div>
-              <p className="text-[10px] text-muted-foreground mb-3">
-                Upload photos of the scorecard and AI will extract all batting, bowling, and innings data automatically.
-              </p>
-              <div className="flex gap-2">
-                <label className="flex-1">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={e => handleAiScorecardUpload(e.target.files)}
-                    disabled={aiLoading}
-                  />
-                  <div className={`flex items-center justify-center gap-2 h-12 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${aiLoading ? 'border-primary/50 bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/50'}`}>
-                    {aiLoading ? (
-                      <><Loader2 className="h-4 w-4 animate-spin text-primary" /><span className="text-xs font-bold text-primary">Reading scorecard...</span></>
-                    ) : (
-                      <><Camera className="h-4 w-4 text-muted-foreground" /><span className="text-xs font-bold text-muted-foreground">Upload Scorecard Photos</span></>
-                    )}
-                  </div>
-                </label>
-              </div>
-              {aiImages.length > 0 && (
-                <div className="flex gap-2 mt-2 overflow-x-auto">
-                  {aiImages.map((file, i) => (
-                    <img key={i} src={URL.createObjectURL(file)} alt={`Scorecard ${i + 1}`} className="h-16 w-16 rounded-lg object-cover border border-border/50" />
-                  ))}
-                </div>
-              )}
             </div>
           )}
 
