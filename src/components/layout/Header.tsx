@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, LogOut, ClipboardList, Shield, ChevronRight } from 'lucide-react';
+import { Menu, X, User, LogOut, ClipboardList, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import bglLogo from '@/assets/bgl-logo.jpeg';
@@ -17,6 +17,9 @@ export default function Header() {
   const location = useLocation();
   const { user, role, signOut } = useAuth();
 
+  // Close menu on route change
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -27,7 +30,7 @@ export default function Header() {
           <img src={bglLogo} alt="BGLMedia" className="h-8 w-auto" />
         </Link>
 
-        {/* Desktop nav - horizontal pill tabs (hidden on mobile, bottom nav handles it) */}
+        {/* Desktop nav */}
         <nav className="hidden md:flex items-center bg-muted/60 rounded-full p-1 gap-0.5">
           {navItems.map((item) => (
             <Link
@@ -69,7 +72,7 @@ export default function Header() {
           )}
         </div>
 
-        {/* Mobile actions - submit button + menu */}
+        {/* Mobile actions */}
         <div className="flex md:hidden items-center gap-1">
           {user && (role === 'coach' || role === 'league_admin') && (
             <Button asChild size="sm" className="rounded-full font-bold gap-1 h-8 px-3 text-xs">
@@ -79,65 +82,39 @@ export default function Header() {
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="p-2 -mr-2 text-foreground"
+            aria-label="Menu"
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile menu - full overlay */}
+      {/* Mobile menu - account actions only (bottom nav handles page navigation) */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 top-14 bg-background z-40 animate-in slide-in-from-top-2 duration-200">
-          <nav className="flex flex-col p-4 gap-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center justify-between px-4 py-3.5 rounded-xl text-base font-semibold transition-colors ${
-                  isActive(item.path)
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-foreground hover:bg-muted'
-                }`}
-              >
-                {item.label}
-                <ChevronRight className="h-4 w-4 opacity-40" />
-              </Link>
-            ))}
-
-            <div className="border-t border-border my-3" />
-
+        <div className="md:hidden border-t border-border/50 bg-card animate-in slide-in-from-top-1 duration-150">
+          <nav className="page-container flex flex-col py-2 gap-0.5">
             {user ? (
               <>
                 {(role === 'coach' || role === 'league_admin') && (
-                  <Link
-                    to="/portal/submit"
-                    onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-base"
-                  >
-                    <ClipboardList className="h-5 w-5" /> Submit Result
-                  </Link>
-                )}
-                {(role === 'coach' || role === 'league_admin') && (
-                  <Link to="/portal" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-foreground hover:bg-muted font-medium">
+                  <Link to="/portal" className="flex items-center gap-3 px-4 py-3 rounded-xl text-foreground hover:bg-muted font-medium text-sm">
                     <User className="h-4 w-4 opacity-60" /> Dashboard
                   </Link>
                 )}
                 {role === 'league_admin' && (
-                  <Link to="/admin" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-foreground hover:bg-muted font-medium">
+                  <Link to="/admin" className="flex items-center gap-3 px-4 py-3 rounded-xl text-foreground hover:bg-muted font-medium text-sm">
                     <Shield className="h-4 w-4 opacity-60" /> Admin Panel
                   </Link>
                 )}
                 <button
                   onClick={() => { signOut(); setMobileOpen(false); }}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-destructive hover:bg-destructive/10 font-medium w-full text-left"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-destructive hover:bg-destructive/10 font-medium text-sm w-full text-left"
                 >
                   <LogOut className="h-4 w-4" /> Sign Out
                 </button>
               </>
             ) : (
-              <Link to="/login" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-base">
-                <User className="h-5 w-5" /> Sign In
+              <Link to="/login" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm">
+                <User className="h-4 w-4" /> Sign In
               </Link>
             )}
           </nav>
