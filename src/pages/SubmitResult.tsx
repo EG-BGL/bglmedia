@@ -158,6 +158,59 @@ export default function SubmitResult() {
     if (error) toast.error('Failed: '+error.message); else { toast.success('Result submitted! If both teams agree, it will be auto-confirmed.'); navigate('/portal'); }
   };
 
+  const handleScorecardUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Please select an image'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error('Max 5MB'); return; }
+
+    setScorecardFile(file);
+    setScorecardPreview(URL.createObjectURL(file));
+    setExtracting(true);
+    setAiConfidence(null);
+
+    try {
+      // Upload to storage
+      const path = `${user!.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${file.name.split('.').pop()}`;
+      const { error: uploadError } = await supabase.storage.from('scorecard-images').upload(path, file);
+      if (uploadError) { toast.error('Upload failed: ' + uploadError.message); setExtracting(false); return; }
+
+      const { data: urlData } = supabase.storage.from('scorecard-images').getPublicUrl(path);
+
+      // Call AI extraction
+      const { data: fnData, error: fnError } = await supabase.functions.invoke('extract-scorecard', {
+        body: { imageUrl: urlData.publicUrl },
+      });
+
+      if (fnError) { toast.error('AI extraction failed'); setExtracting(false); return; }
+      if (fnData.error) { toast.error(fnData.error); setExtracting(false); return; }
+
+      // Auto-fill form fields
+      if (fnData.home_goals != null) setHomeGoals(String(fnData.home_goals));
+      if (fnData.home_behinds != null) setHomeBehinds(String(fnData.home_behinds));
+      if (fnData.away_goals != null) setAwayGoals(String(fnData.away_goals));
+      if (fnData.away_behinds != null) setAwayBehinds(String(fnData.away_behinds));
+      if (fnData.home_q1) setHomeQ1(fnData.home_q1);
+      if (fnData.home_q2) setHomeQ2(fnData.home_q2);
+      if (fnData.home_q3) setHomeQ3(fnData.home_q3);
+      if (fnData.home_q4) setHomeQ4(fnData.home_q4);
+      if (fnData.away_q1) setAwayQ1(fnData.away_q1);
+      if (fnData.away_q2) setAwayQ2(fnData.away_q2);
+      if (fnData.away_q3) setAwayQ3(fnData.away_q3);
+      if (fnData.away_q4) setAwayQ4(fnData.away_q4);
+      if (fnData.best_players_home?.length) setBestHome(fnData.best_players_home.join(', '));
+      if (fnData.best_players_away?.length) setBestAway(fnData.best_players_away.join(', '));
+      if (fnData.goal_kickers_home?.length) setGoalKickersHome(fnData.goal_kickers_home.join(', '));
+      if (fnData.goal_kickers_away?.length) setGoalKickersAway(fnData.goal_kickers_away.join(', '));
+      setAiConfidence(fnData.confidence ?? 'medium');
+      toast.success('Scores extracted from scorecard!');
+    } catch (err) {
+      toast.error('Failed to process scorecard');
+    } finally {
+      setExtracting(false);
+    }
+  };
+
   const ScoreInput = ({ label, value, onChange, error }: { label: string; value: string; onChange: (v: string) => void; error?: string }) => (
     <div>
       <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</Label>
