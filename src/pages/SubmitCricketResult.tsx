@@ -475,6 +475,10 @@ export default function SubmitCricketResult() {
       });
 
       await supabase.from('fixtures').update({ status: 'completed' }).eq('id', selectedFixture);
+
+      // Update ladder standings
+      await supabase.rpc('update_ladder_from_cricket_result', { p_fixture_id: selectedFixture });
+
       setShowSuccess(true);
     } catch (err: any) {
       toast.error('Failed to submit: ' + (err?.message ?? 'Unknown error'));
