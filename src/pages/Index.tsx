@@ -61,16 +61,26 @@ export default function Index() {
       <div className="page-container space-y-6 py-5">
 
         {/* Featured Match */}
-        {featuredMatch && (
+        {featuredMatch && (() => {
+          const sportSlug = featuredMatch.fixtures?.seasons?.competitions?.sports?.slug;
+          const isCricketMatch = sportSlug === 'cricket';
+          const seasonName = featuredMatch.fixtures?.seasons?.name ?? '';
+          const compName = featuredMatch.fixtures?.seasons?.competitions?.short_name || featuredMatch.fixtures?.seasons?.competitions?.name || '';
+          return (
           <Link to={`/match/${featuredMatch.fixture_id}`} className="block">
             <div className="sport-gradient rounded-2xl p-5 md:p-6 relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/20" />
               <div className="relative">
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-2 mb-1">
                   <Badge className="bg-accent/20 text-accent border-0 rounded-full text-[10px] font-bold uppercase tracking-wider">
                     Latest Result
                   </Badge>
-                  <span className="text-[11px] text-white/50">Round {featuredMatch.fixtures?.round_number}</span>
+                  <Badge className="bg-white/10 text-white/70 border-0 rounded-full text-[10px] font-medium">
+                    {isCricketMatch ? 'Cricket' : 'AFL'}
+                  </Badge>
+                </div>
+                <div className="text-[10px] text-white/40 mb-4">
+                  {compName}{compName && seasonName ? ' · ' : ''}{seasonName} · Round {featuredMatch.fixtures?.round_number}
                 </div>
 
                 <div className="flex items-center justify-between gap-4">
@@ -82,14 +92,26 @@ export default function Index() {
 
                   {/* Score */}
                   <div className="text-center shrink-0">
-                    <div className="text-4xl md:text-5xl font-black text-white tabular-nums tracking-tighter">
-                      {featuredMatch.home_score}
-                      <span className="text-white/20 mx-1.5">–</span>
-                      {featuredMatch.away_score}
-                    </div>
-                    <div className="text-white/40 text-[10px] mt-1 tabular-nums">
-                      {featuredMatch.home_goals}.{featuredMatch.home_behinds} – {featuredMatch.away_goals}.{featuredMatch.away_behinds}
-                    </div>
+                    {isCricketMatch ? (
+                      <>
+                        <div className="text-3xl md:text-4xl font-black text-white tabular-nums tracking-tighter">
+                          {featuredMatch.home_score}/{featuredMatch.fixtures?.home_team ? '' : '0'}
+                          <span className="text-white/20 mx-2">v</span>
+                          {featuredMatch.away_score}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-4xl md:text-5xl font-black text-white tabular-nums tracking-tighter">
+                          {featuredMatch.home_score}
+                          <span className="text-white/20 mx-1.5">–</span>
+                          {featuredMatch.away_score}
+                        </div>
+                        <div className="text-white/40 text-[10px] mt-1 tabular-nums">
+                          {featuredMatch.home_goals}.{featuredMatch.home_behinds} – {featuredMatch.away_goals}.{featuredMatch.away_behinds}
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Away */}
@@ -110,7 +132,8 @@ export default function Index() {
               </div>
             </div>
           </Link>
-        )}
+          );
+        })()}
 
         {/* Player of the Round */}
         {playerOfRound && (
