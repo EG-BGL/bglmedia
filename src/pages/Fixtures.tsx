@@ -12,6 +12,9 @@ export default function Fixtures() {
   const { data: season } = useCurrentSeason();
   const { data: fixtures, isLoading } = useFixtures(season?.id);
   const { data: results } = useResults(season?.id);
+
+  // Set of fixture IDs that have approved results
+  const fixtureIdsWithResults = new Set(results?.map((r: any) => r.fixture_id ?? r.fixtures?.id) ?? []);
   const [selectedRound, setSelectedRound] = useState<string>('all');
   const [tab, setTab] = useState<string>('fixtures');
 
@@ -83,6 +86,13 @@ export default function Fixtures() {
                         <div className="text-center shrink-0 px-1">
                           {f.status === 'completed' ? (
                             <Badge variant="secondary" className="rounded-full text-[10px] px-2">FT</Badge>
+                          ) : !fixtureIdsWithResults.has(f.id) ? (
+                            <div>
+                              <Badge className="rounded-full text-[10px] px-2 bg-accent text-accent-foreground border-0 mb-0.5">Upcoming</Badge>
+                              <div className="text-[10px] text-muted-foreground">
+                                {f.scheduled_at ? new Date(f.scheduled_at).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBA'}
+                              </div>
+                            </div>
                           ) : (
                             <div>
                               <div className="text-[10px] text-muted-foreground">
