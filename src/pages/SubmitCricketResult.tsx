@@ -433,6 +433,28 @@ export default function SubmitCricketResult() {
           <h1 className="text-xl font-black tracking-tight">Submit Cricket Result</h1>
         </div>
 
+        {/* What You'll Need */}
+        <div className="match-card p-4 border-l-4 border-l-primary">
+          <h3 className="font-bold text-sm mb-2 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-primary" />
+            What You'll Need
+          </h3>
+          <ul className="space-y-1.5 text-xs text-muted-foreground">
+            <li className="flex items-center gap-2">
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+              <span>Match Summary (total runs, wickets, overs)</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+              <span>Batting scorecard of both teams</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+              <span>Bowling scorecard of both teams</span>
+            </li>
+          </ul>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Match Selection */}
           <div className="match-card p-4">
