@@ -235,6 +235,7 @@ export default function SubmitResult() {
             away: { ...prev.away, ...Object.fromEntries(Object.entries(fnData.away_team_stats || {}).filter(([, v]) => v != null)) },
           }));
         }
+      }
 
       if (section.startsWith('goalkickers') || section.startsWith('disposals') || section.startsWith('afl_fantasy')) {
         if (fnData.goal_kickers_home?.length) setGoalKickersHome(fnData.goal_kickers_home.join(', '));
