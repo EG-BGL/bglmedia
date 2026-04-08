@@ -118,24 +118,26 @@ export default function Index() {
             </div>
             <div className="space-y-2">
               {upcomingFixtures.map((f: any) => (
-                <div key={f.id} className="match-card p-3.5 flex items-center gap-3">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" />
-                    <span className="font-bold text-sm truncate">{f.home_team?.clubs?.short_name}</span>
-                  </div>
-                  <div className="text-center shrink-0 px-2">
-                    <div className="text-[10px] text-muted-foreground font-medium">
-                      {f.scheduled_at ? new Date(f.scheduled_at).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBA'}
+                <Link key={f.id} to={`/match/${f.id}`} className="block match-card p-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" />
+                      <span className="font-bold text-sm truncate">{f.home_team?.clubs?.short_name}</span>
                     </div>
-                    <div className="text-xs font-bold text-muted-foreground">
-                      {f.scheduled_at ? new Date(f.scheduled_at).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) : ''}
+                    <div className="text-center shrink-0 px-2">
+                      <div className="text-[10px] text-muted-foreground font-medium">
+                        {f.scheduled_at ? new Date(f.scheduled_at).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBA'}
+                      </div>
+                      <div className="text-xs font-bold text-muted-foreground">
+                        {f.scheduled_at ? new Date(f.scheduled_at).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) : ''}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                      <span className="font-bold text-sm truncate">{f.away_team?.clubs?.short_name}</span>
+                      <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
-                    <span className="font-bold text-sm truncate">{f.away_team?.clubs?.short_name}</span>
-                    <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" />
-                  </div>
-                </div>
+                </Link>
               ))}
             </div>
           </section>
