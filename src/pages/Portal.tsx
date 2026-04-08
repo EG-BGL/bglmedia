@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { ClipboardList, Shield, ChevronRight } from 'lucide-react';
+import { ClipboardList, Shield, ChevronRight, CircleDot } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 export default function Portal() {
@@ -36,13 +36,21 @@ export default function Portal() {
         </div>
 
         {/* Quick actions */}
-        <div className="grid gap-3 grid-cols-2">
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
           {(role === 'coach' || role === 'league_admin') && (
             <Link to="/portal/submit" className="match-card p-4 flex flex-col items-center gap-2 text-center">
               <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <ClipboardList className="h-6 w-6 text-primary" />
               </div>
-              <span className="font-bold text-sm">Submit Result</span>
+              <span className="font-bold text-sm">Submit AFL</span>
+            </Link>
+          )}
+          {(role === 'coach' || role === 'league_admin') && (
+            <Link to="/portal/submit-cricket" className="match-card p-4 flex flex-col items-center gap-2 text-center">
+              <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <CircleDot className="h-6 w-6 text-primary" />
+              </div>
+              <span className="font-bold text-sm">Submit Cricket</span>
             </Link>
           )}
           {role === 'league_admin' && (
