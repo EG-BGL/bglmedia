@@ -11,7 +11,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Check, X, Shield, Plus, Pencil, Trash2, Upload, Image, Calendar, Newspaper, FileText, Users, Clock, AlertTriangle } from 'lucide-react';
+import { Check, X, Shield, Plus, Pencil, Trash2, Upload, Image, Calendar, Newspaper, FileText, Users, Clock, AlertTriangle, CircleDot, Trophy } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 interface ClubForm {
@@ -25,9 +25,19 @@ const emptyClub: ClubForm = {
 
 interface FixtureForm {
   home_team_id: string; away_team_id: string; round_number: string;
-  venue: string; scheduled_at: string;
+  venue: string; scheduled_at: string; match_format: string;
 }
-const emptyFixture: FixtureForm = { home_team_id: '', away_team_id: '', round_number: '', venue: '', scheduled_at: '' };
+const emptyFixture: FixtureForm = { home_team_id: '', away_team_id: '', round_number: '', venue: '', scheduled_at: '', match_format: '' };
+
+interface CompetitionForm {
+  id?: string; name: string; short_name: string; description: string; competition_type: string; sport_id: string;
+}
+const emptyCompetition: CompetitionForm = { name: '', short_name: '', description: '', competition_type: 'senior', sport_id: '' };
+
+interface SeasonForm {
+  id?: string; name: string; year: string; competition_id: string; start_date: string; end_date: string; is_current: boolean;
+}
+const emptySeason: SeasonForm = { name: '', year: new Date().getFullYear().toString(), competition_id: '', start_date: '', end_date: '', is_current: false };
 
 export default function Admin() {
   const { user, role, loading } = useAuth();
@@ -38,6 +48,9 @@ export default function Admin() {
   const [teams, setTeams] = useState<any[]>([]);
   const [fixtures, setFixtures] = useState<any[]>([]);
   const [currentSeason, setCurrentSeason] = useState<any>(null);
+  const [allSeasons, setAllSeasons] = useState<any[]>([]);
+  const [competitions, setCompetitions] = useState<any[]>([]);
+  const [sports, setSports] = useState<any[]>([]);
   const [newsList, setNewsList] = useState<any[]>([]);
   const [showNewsForm, setShowNewsForm] = useState(false);
   const [newsTitle, setNewsTitle] = useState('');
@@ -47,6 +60,10 @@ export default function Admin() {
   const [editingClub, setEditingClub] = useState(false);
   const [fixtureForm, setFixtureForm] = useState<FixtureForm>(emptyFixture);
   const [showFixtureForm, setShowFixtureForm] = useState(false);
+  const [compForm, setCompForm] = useState<CompetitionForm>(emptyCompetition);
+  const [showCompForm, setShowCompForm] = useState(false);
+  const [seasonForm, setSeasonForm] = useState<SeasonForm>(emptySeason);
+  const [showSeasonForm, setShowSeasonForm] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadingCsv, setUploadingCsv] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -62,7 +79,7 @@ export default function Admin() {
   }, [role]);
 
   const loadData = async () => {
-    const [{ data: pendingResults }, { data: logs }, { data: clubData }, { data: newsData }, { data: seasonData }, { data: teamData }, { data: fixtureData }] = await Promise.all([
+    const [{ data: pendingResults }, { data: logs }, { data: clubData }, { data: newsData }, { data: seasonData }, { data: teamData }, { data: fixtureData }, { data: compData }, { data: sportData }, { data: allSeasonData }] = await Promise.all([
       supabase.from('results').select(`*, fixtures(*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*)))`).in('status', ['submitted', 'draft']).order('created_at', { ascending: false }),
       supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(50),
       supabase.from('clubs').select('*').order('name'),
@@ -70,6 +87,9 @@ export default function Admin() {
       supabase.from('seasons').select('*').eq('is_current', true).maybeSingle(),
       supabase.from('teams').select('*, clubs(*)').order('clubs(name)'),
       supabase.from('fixtures').select(`*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))`).order('round_number').order('scheduled_at'),
+      supabase.from('competitions').select('*, sports(*)').order('name'),
+      supabase.from('sports').select('*').order('name'),
+      supabase.from('seasons').select('*, competitions(*, sports(*))').order('year', { ascending: false }),
     ]);
     setPending(pendingResults ?? []);
     setAuditLogs(logs ?? []);
@@ -78,6 +98,9 @@ export default function Admin() {
     setCurrentSeason(seasonData);
     setTeams(teamData ?? []);
     setFixtures(fixtureData ?? []);
+    setCompetitions(compData ?? []);
+    setSports(sportData ?? []);
+    setAllSeasons(allSeasonData ?? []);
   };
 
   // ── Result actions ──
@@ -133,7 +156,6 @@ export default function Admin() {
       const { data, error } = await supabase.from('clubs').insert(payload).select().single();
       if (error) { toast.error(error.message); return; }
       await supabase.from('audit_logs').insert({ table_name: 'clubs', record_id: data.id, action: 'created', performed_by: user!.id, new_data: payload });
-      // Auto-create a team entry for the current season
       if (currentSeason) {
         const { data: compData } = await supabase.from('competitions').select('id').limit(1).single();
         if (compData) {
@@ -173,6 +195,7 @@ export default function Admin() {
       season_id: currentSeason.id,
       venue: fixtureForm.venue.trim() || null,
       scheduled_at: fixtureForm.scheduled_at || null,
+      match_format: fixtureForm.match_format || null,
       status: 'scheduled',
     };
 
@@ -185,8 +208,10 @@ export default function Admin() {
 
   const handleDeleteFixture = async (id: string) => {
     if (!confirm('Delete this fixture?')) return;
-    // Delete associated results first
     await supabase.from('results').delete().eq('fixture_id', id);
+    await supabase.from('cricket_match_results').delete().eq('fixture_id', id);
+    await supabase.from('cricket_player_stats').delete().eq('fixture_id', id);
+    await supabase.from('cricket_team_stats').delete().eq('fixture_id', id);
     const { error } = await supabase.from('fixtures').delete().eq('id', id);
     if (error) { toast.error(error.message); return; }
     await supabase.from('audit_logs').insert({ table_name: 'fixtures', record_id: id, action: 'deleted', performed_by: user!.id });
@@ -203,13 +228,11 @@ export default function Admin() {
     const lines = text.split('\n').filter(l => l.trim());
     const header = lines[0].toLowerCase();
 
-    // Expect: round,home,away,venue,date
     if (!header.includes('round') || !header.includes('home') || !header.includes('away')) {
-      toast.error('CSV must have columns: round, home, away, venue (optional), date (optional)');
+      toast.error('CSV must have columns: round, home, away, venue (optional), date (optional), format (optional)');
       setUploadingCsv(false); return;
     }
 
-    // Build team lookup by short_name
     const teamLookup: Record<string, string> = {};
     teams.forEach((t: any) => {
       if (t.clubs?.short_name) teamLookup[t.clubs.short_name.toLowerCase()] = t.id;
@@ -228,6 +251,7 @@ export default function Admin() {
       const awayId = teamLookup[cols[2].toLowerCase()];
       const venue = cols[3] || null;
       const date = cols[4] || null;
+      const format = cols[5] || null;
 
       if (!round || isNaN(round)) { errors.push(`Row ${i + 1}: invalid round`); continue; }
       if (!homeId) { errors.push(`Row ${i + 1}: unknown home team "${cols[1]}"`); continue; }
@@ -239,6 +263,7 @@ export default function Admin() {
         away_team_id: awayId,
         venue,
         scheduled_at: date || null,
+        match_format: format,
         season_id: currentSeason.id,
         status: 'scheduled',
       });
@@ -262,6 +287,65 @@ export default function Admin() {
     loadData();
   };
 
+  // ── Competition CRUD ──
+  const handleSaveCompetition = async () => {
+    if (!compForm.name.trim() || !compForm.sport_id) { toast.error('Name and sport are required'); return; }
+    const payload: any = {
+      name: compForm.name.trim(),
+      short_name: compForm.short_name.trim() || null,
+      description: compForm.description.trim() || null,
+      competition_type: compForm.competition_type || 'senior',
+      sport_id: compForm.sport_id,
+    };
+    if (compForm.id) {
+      const { error } = await supabase.from('competitions').update(payload).eq('id', compForm.id);
+      if (error) { toast.error(error.message); return; }
+      toast.success('Competition updated!');
+    } else {
+      const { error } = await supabase.from('competitions').insert(payload);
+      if (error) { toast.error(error.message); return; }
+      toast.success('Competition created!');
+    }
+    setCompForm(emptyCompetition); setShowCompForm(false); loadData();
+  };
+
+  const handleDeleteCompetition = async (id: string) => {
+    if (!confirm('Delete this competition? This will affect all linked seasons.')) return;
+    const { error } = await supabase.from('competitions').delete().eq('id', id);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Competition deleted.'); loadData();
+  };
+
+  // ── Season CRUD ──
+  const handleSaveSeason = async () => {
+    if (!seasonForm.name.trim() || !seasonForm.competition_id || !seasonForm.year) { toast.error('Name, competition, and year are required'); return; }
+    const payload: any = {
+      name: seasonForm.name.trim(),
+      year: parseInt(seasonForm.year),
+      competition_id: seasonForm.competition_id,
+      start_date: seasonForm.start_date || null,
+      end_date: seasonForm.end_date || null,
+      is_current: seasonForm.is_current,
+    };
+    if (seasonForm.id) {
+      const { error } = await supabase.from('seasons').update(payload).eq('id', seasonForm.id);
+      if (error) { toast.error(error.message); return; }
+      toast.success('Season updated!');
+    } else {
+      const { error } = await supabase.from('seasons').insert(payload);
+      if (error) { toast.error(error.message); return; }
+      toast.success('Season created!');
+    }
+    setSeasonForm(emptySeason); setShowSeasonForm(false); loadData();
+  };
+
+  const handleDeleteSeason = async (id: string) => {
+    if (!confirm('Delete this season?')) return;
+    const { error } = await supabase.from('seasons').delete().eq('id', id);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Season deleted.'); loadData();
+  };
+
   if (loading) return <Layout><div className="page-container py-8 text-muted-foreground">Loading...</div></Layout>;
 
   // Group fixtures by round
@@ -273,6 +357,10 @@ export default function Admin() {
 
   // Filter teams for current season
   const seasonTeams = currentSeason ? teams.filter((t: any) => t.season_id === currentSeason.id) : teams;
+
+  // Helper to get sport name
+  const getSportName = (sportId: string) => sports.find(s => s.id === sportId)?.slug?.toUpperCase() ?? 'Unknown';
+  const cricketSport = sports.find(s => s.slug === 'cricket');
 
   return (
     <Layout>
@@ -286,6 +374,7 @@ export default function Admin() {
           <div className="overflow-x-auto -mx-4 px-4">
             <TabsList className="inline-flex h-9 bg-muted/60 rounded-full p-0.5 gap-0.5">
               <TabsTrigger value="fixtures" className="rounded-full text-[10px] font-bold px-3"><Calendar className="h-3 w-3 mr-1" />Fixtures</TabsTrigger>
+              <TabsTrigger value="competitions" className="rounded-full text-[10px] font-bold px-3"><Trophy className="h-3 w-3 mr-1" />Competitions</TabsTrigger>
               <TabsTrigger value="clubs" className="rounded-full text-[10px] font-bold px-3"><Users className="h-3 w-3 mr-1" />Teams</TabsTrigger>
               <TabsTrigger value="players" className="rounded-full text-[10px] font-bold px-3"><Users className="h-3 w-3 mr-1" />Players</TabsTrigger>
               <TabsTrigger value="pending" className="rounded-full text-[10px] font-bold px-3"><Clock className="h-3 w-3 mr-1" />Pending</TabsTrigger>
@@ -293,6 +382,175 @@ export default function Admin() {
               <TabsTrigger value="audit" className="rounded-full text-[10px] font-bold px-3"><FileText className="h-3 w-3 mr-1" />Audit</TabsTrigger>
             </TabsList>
           </div>
+
+          {/* ── Competitions & Seasons Tab ── */}
+          <TabsContent value="competitions" className="space-y-6 mt-4">
+            {/* Competitions Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-black text-sm">Competitions</h3>
+                {!showCompForm && (
+                  <Button onClick={() => { setCompForm(emptyCompetition); setShowCompForm(true); }} size="sm" className="rounded-full gap-1.5 font-bold text-xs">
+                    <Plus className="h-3.5 w-3.5" /> Add Competition
+                  </Button>
+                )}
+              </div>
+
+              {showCompForm && (
+                <div className="match-card p-4 space-y-3">
+                  <h3 className="font-black text-sm">{compForm.id ? 'Edit Competition' : 'New Competition'}</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2 sm:col-span-1">
+                      <Label className="text-xs font-bold">Sport *</Label>
+                      <Select value={compForm.sport_id} onValueChange={v => setCompForm(f => ({ ...f, sport_id: v }))}>
+                        <SelectTrigger className="mt-1"><SelectValue placeholder="Select sport" /></SelectTrigger>
+                        <SelectContent>
+                          {sports.map((s: any) => (
+                            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="col-span-2 sm:col-span-1">
+                      <Label className="text-xs font-bold">Type</Label>
+                      <Select value={compForm.competition_type} onValueChange={v => setCompForm(f => ({ ...f, competition_type: v }))}>
+                        <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="senior">Senior</SelectItem>
+                          <SelectItem value="junior">Junior</SelectItem>
+                          <SelectItem value="womens">Women's</SelectItem>
+                          <SelectItem value="masters">Masters</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="col-span-2 sm:col-span-1">
+                      <Label className="text-xs font-bold">Name *</Label>
+                      <Input value={compForm.name} onChange={e => setCompForm(f => ({ ...f, name: e.target.value }))} placeholder="Senior Cricket" className="mt-1" />
+                    </div>
+                    <div className="col-span-2 sm:col-span-1">
+                      <Label className="text-xs font-bold">Short Name</Label>
+                      <Input value={compForm.short_name} onChange={e => setCompForm(f => ({ ...f, short_name: e.target.value }))} placeholder="SRC" className="mt-1" />
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="text-xs font-bold">Description</Label>
+                      <Textarea value={compForm.description} onChange={e => setCompForm(f => ({ ...f, description: e.target.value }))} placeholder="About this competition..." rows={2} className="mt-1" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleSaveCompetition} className="rounded-full font-bold gap-1.5 text-xs"><Check className="h-3.5 w-3.5" />{compForm.id ? 'Update' : 'Create'}</Button>
+                    <Button variant="outline" className="rounded-full text-xs" onClick={() => { setShowCompForm(false); setCompForm(emptyCompetition); }}>Cancel</Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                {competitions.map((c: any) => (
+                  <div key={c.id} className="match-card p-3.5 flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                      {c.sports?.slug === 'cricket' ? <CircleDot className="h-4 w-4 text-primary" /> : <Trophy className="h-4 w-4 text-primary" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-sm truncate">{c.name}</div>
+                      <div className="text-[10px] text-muted-foreground flex items-center gap-2">
+                        <Badge variant="outline" className="text-[9px] rounded-full">{c.sports?.name ?? 'Unknown'}</Badge>
+                        {c.short_name && <span>{c.short_name}</span>}
+                        <span className="capitalize">{c.competition_type}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" onClick={() => {
+                        setCompForm({ id: c.id, name: c.name, short_name: c.short_name ?? '', description: c.description ?? '', competition_type: c.competition_type ?? 'senior', sport_id: c.sport_id ?? '' });
+                        setShowCompForm(true);
+                      }}><Pencil className="h-3.5 w-3.5" /></Button>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-destructive" onClick={() => handleDeleteCompetition(c.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    </div>
+                  </div>
+                ))}
+                {competitions.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No competitions yet.</div>}
+              </div>
+            </div>
+
+            {/* Seasons Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-black text-sm">Seasons</h3>
+                {!showSeasonForm && (
+                  <Button onClick={() => { setSeasonForm(emptySeason); setShowSeasonForm(true); }} size="sm" className="rounded-full gap-1.5 font-bold text-xs">
+                    <Plus className="h-3.5 w-3.5" /> Add Season
+                  </Button>
+                )}
+              </div>
+
+              {showSeasonForm && (
+                <div className="match-card p-4 space-y-3">
+                  <h3 className="font-black text-sm">{seasonForm.id ? 'Edit Season' : 'New Season'}</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2">
+                      <Label className="text-xs font-bold">Competition *</Label>
+                      <Select value={seasonForm.competition_id} onValueChange={v => setSeasonForm(f => ({ ...f, competition_id: v }))}>
+                        <SelectTrigger className="mt-1"><SelectValue placeholder="Select competition" /></SelectTrigger>
+                        <SelectContent>
+                          {competitions.map((c: any) => (
+                            <SelectItem key={c.id} value={c.id}>{c.name} ({c.sports?.name})</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs font-bold">Name *</Label>
+                      <Input value={seasonForm.name} onChange={e => setSeasonForm(f => ({ ...f, name: e.target.value }))} placeholder="2026 Season" className="mt-1" />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-bold">Year *</Label>
+                      <Input type="number" value={seasonForm.year} onChange={e => setSeasonForm(f => ({ ...f, year: e.target.value }))} className="mt-1" />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-bold">Start Date</Label>
+                      <Input type="date" value={seasonForm.start_date} onChange={e => setSeasonForm(f => ({ ...f, start_date: e.target.value }))} className="mt-1" />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-bold">End Date</Label>
+                      <Input type="date" value={seasonForm.end_date} onChange={e => setSeasonForm(f => ({ ...f, end_date: e.target.value }))} className="mt-1" />
+                    </div>
+                    <div className="col-span-2 flex items-center gap-2">
+                      <input type="checkbox" id="is_current" checked={seasonForm.is_current} onChange={e => setSeasonForm(f => ({ ...f, is_current: e.target.checked }))} className="h-4 w-4 rounded border-border" />
+                      <Label htmlFor="is_current" className="text-xs font-bold cursor-pointer">Set as current season</Label>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleSaveSeason} className="rounded-full font-bold gap-1.5 text-xs"><Check className="h-3.5 w-3.5" />{seasonForm.id ? 'Update' : 'Create'}</Button>
+                    <Button variant="outline" className="rounded-full text-xs" onClick={() => { setShowSeasonForm(false); setSeasonForm(emptySeason); }}>Cancel</Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                {allSeasons.map((s: any) => (
+                  <div key={s.id} className="match-card p-3.5 flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm truncate">{s.name}</span>
+                        {s.is_current && <Badge className="text-[9px] rounded-full bg-primary text-primary-foreground border-0">Current</Badge>}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground flex items-center gap-2">
+                        <span>{s.competitions?.name}</span>
+                        <Badge variant="outline" className="text-[9px] rounded-full">{s.competitions?.sports?.name ?? 'Unknown'}</Badge>
+                        <span>{s.year}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" onClick={() => {
+                        setSeasonForm({ id: s.id, name: s.name, year: s.year.toString(), competition_id: s.competition_id, start_date: s.start_date ?? '', end_date: s.end_date ?? '', is_current: s.is_current ?? false });
+                        setShowSeasonForm(true);
+                      }}><Pencil className="h-3.5 w-3.5" /></Button>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-destructive" onClick={() => handleDeleteSeason(s.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    </div>
+                  </div>
+                ))}
+                {allSeasons.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No seasons yet.</div>}
+              </div>
+            </div>
+          </TabsContent>
 
           {/* ── Players Tab ── */}
           <TabsContent value="players" className="mt-4">
@@ -323,8 +581,9 @@ export default function Admin() {
 
             {/* CSV help */}
             <div className="text-[10px] text-muted-foreground bg-muted/40 rounded-lg p-3">
-              <strong>CSV format:</strong> round, home, away, venue, date<br />
-              Use team short names. Example: <code className="bg-muted px-1 rounded">1,Bears,Hawks,Bayside Oval,2026-04-18T14:00</code>
+              <strong>CSV format:</strong> round, home, away, venue, date, format<br />
+              Use team short names. Format: T20, One-Day, Multi-Day (optional, for cricket).<br />
+              Example: <code className="bg-muted px-1 rounded">1,Bears,Hawks,Bayside Oval,2026-04-18T14:00,T20</code>
             </div>
 
             {showFixtureForm && (
@@ -361,7 +620,19 @@ export default function Admin() {
                     <Label className="text-xs font-bold">Venue</Label>
                     <Input value={fixtureForm.venue} onChange={e => setFixtureForm(f => ({ ...f, venue: e.target.value }))} placeholder="Bayside Oval" className="mt-1" />
                   </div>
-                  <div className="col-span-2">
+                  <div>
+                    <Label className="text-xs font-bold">Match Format</Label>
+                    <Select value={fixtureForm.match_format} onValueChange={v => setFixtureForm(f => ({ ...f, match_format: v }))}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="None (AFL)" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None (AFL)</SelectItem>
+                        <SelectItem value="T20">T20</SelectItem>
+                        <SelectItem value="One-Day">One-Day</SelectItem>
+                        <SelectItem value="Multi-Day">Multi-Day</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
                     <Label className="text-xs font-bold">Date & Time</Label>
                     <Input type="datetime-local" value={fixtureForm.scheduled_at} onChange={e => setFixtureForm(f => ({ ...f, scheduled_at: e.target.value }))} className="mt-1" />
                   </div>
@@ -387,8 +658,11 @@ export default function Admin() {
                           <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" className="!h-6 !w-6" />
                           <span className="text-xs font-bold truncate">{f.home_team?.clubs?.short_name}</span>
                         </div>
-                        <div className="text-center shrink-0 px-1">
+                        <div className="text-center shrink-0 px-1 flex items-center gap-1.5">
                           <Badge variant="outline" className="text-[9px] rounded-full capitalize">{f.status}</Badge>
+                          {f.match_format && (
+                            <Badge className="text-[9px] rounded-full bg-accent/20 text-accent border-0">{f.match_format}</Badge>
+                          )}
                         </div>
                         <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
                           <span className="text-xs font-bold truncate">{f.away_team?.clubs?.short_name}</span>
@@ -507,7 +781,6 @@ export default function Admin() {
           {/* ── Pending Tab ── */}
           <TabsContent value="pending" className="space-y-4 mt-4">
             {(() => {
-              // Group submissions by fixture_id
               const byFixture: Record<string, any[]> = {};
               pending.forEach((r: any) => {
                 const fid = r.fixture_id;
@@ -528,7 +801,6 @@ export default function Admin() {
 
                 return (
                   <div key={fixtureId} className="match-card p-4 space-y-3">
-                    {/* Match header */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-sm">{fixture?.home_team?.clubs?.short_name} vs {fixture?.away_team?.clubs?.short_name}</span>
                       <Badge variant="outline" className="text-[10px] rounded-full">Rd {fixture?.round_number}</Badge>
@@ -542,7 +814,6 @@ export default function Admin() {
                       )}
                     </div>
 
-                    {/* Submissions */}
                     <div className="space-y-2">
                       {submissions.map((r: any) => {
                         const teamName = r.team_id === fixture?.home_team_id
