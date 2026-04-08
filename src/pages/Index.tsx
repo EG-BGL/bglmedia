@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Calendar, Trophy, Users, ArrowRight, MapPin, Newspaper, ChevronRight, Clock, Star, TrendingUp } from 'lucide-react';
 import { useClubs, useFixtures, useResults, useLadder, useCurrentSeason, useNews } from '@/hooks/useData';
+import ClubLogo from '@/components/ClubLogo';
 
 export default function Index() {
   const { data: season } = useCurrentSeason();
@@ -107,15 +108,7 @@ export default function Index() {
                     {/* Home */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div
-                          className="h-10 w-10 rounded-full flex items-center justify-center text-xs font-black shrink-0"
-                          style={{
-                            backgroundColor: featuredMatch.fixtures?.home_team?.clubs?.primary_color,
-                            color: featuredMatch.fixtures?.home_team?.clubs?.secondary_color
-                          }}
-                        >
-                          {featuredMatch.fixtures?.home_team?.clubs?.short_name?.slice(0, 2)}
-                        </div>
+                        <ClubLogo club={featuredMatch.fixtures?.home_team?.clubs ?? {}} />
                         <span className="font-bold text-sm">{featuredMatch.fixtures?.home_team?.clubs?.name}</span>
                       </div>
                       <div className={`stat-number text-2xl ${featuredMatch.home_score! > featuredMatch.away_score! ? 'text-foreground' : 'text-muted-foreground'}`}>
@@ -125,15 +118,7 @@ export default function Index() {
                     {/* Away */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div
-                          className="h-10 w-10 rounded-full flex items-center justify-center text-xs font-black shrink-0"
-                          style={{
-                            backgroundColor: featuredMatch.fixtures?.away_team?.clubs?.primary_color,
-                            color: featuredMatch.fixtures?.away_team?.clubs?.secondary_color
-                          }}
-                        >
-                          {featuredMatch.fixtures?.away_team?.clubs?.short_name?.slice(0, 2)}
-                        </div>
+                        <ClubLogo club={featuredMatch.fixtures?.away_team?.clubs ?? {}} />
                         <span className="font-bold text-sm">{featuredMatch.fixtures?.away_team?.clubs?.name}</span>
                       </div>
                       <div className={`stat-number text-2xl ${featuredMatch.away_score! > featuredMatch.home_score! ? 'text-foreground' : 'text-muted-foreground'}`}>
@@ -177,22 +162,12 @@ export default function Index() {
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <div
-                        className="h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
-                        style={{ backgroundColor: f.home_team?.clubs?.primary_color, color: f.home_team?.clubs?.secondary_color }}
-                      >
-                        {f.home_team?.clubs?.short_name?.slice(0, 2)}
-                      </div>
+                      <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" />
                       <span className="font-semibold text-sm truncate">{f.home_team?.clubs?.short_name}</span>
                     </div>
                     <span className="text-xs text-muted-foreground font-bold px-2">vs</span>
                     <div className="flex items-center gap-2 min-w-0 flex-row-reverse">
-                      <div
-                        className="h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
-                        style={{ backgroundColor: f.away_team?.clubs?.primary_color, color: f.away_team?.clubs?.secondary_color }}
-                      >
-                        {f.away_team?.clubs?.short_name?.slice(0, 2)}
-                      </div>
+                      <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" />
                       <span className="font-semibold text-sm truncate">{f.away_team?.clubs?.short_name}</span>
                     </div>
                   </div>
@@ -244,12 +219,7 @@ export default function Index() {
                           </td>
                           <td className="py-2.5 px-3">
                             <div className="flex items-center gap-2">
-                              <div
-                                className="h-6 w-6 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
-                                style={{ backgroundColor: entry.teams?.clubs?.primary_color, color: entry.teams?.clubs?.secondary_color }}
-                              >
-                                {entry.teams?.clubs?.short_name?.slice(0, 2)}
-                              </div>
+                              <ClubLogo club={entry.teams?.clubs ?? {}} size="sm" className="h-6 w-6" />
                               <span className="font-semibold text-sm">{entry.teams?.clubs?.short_name}</span>
                             </div>
                           </td>
@@ -317,16 +287,11 @@ export default function Index() {
               <Link to="/clubs">All Clubs <ChevronRight className="h-3 w-3 ml-1" /></Link>
             </Button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {(clubs ?? []).slice(0, 8).map((club: any) => (
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+            {(clubs ?? []).map((club: any) => (
               <Link key={club.id} to={`/clubs/${club.id}`}>
                 <div className="card-sport text-center p-4 group">
-                  <div
-                    className="h-14 w-14 rounded-full mx-auto mb-3 flex items-center justify-center text-lg font-black group-hover:scale-105 transition-transform"
-                    style={{ backgroundColor: club.primary_color, color: club.secondary_color }}
-                  >
-                    {club.short_name?.slice(0, 2)}
-                  </div>
+                  <ClubLogo club={club} size="lg" className="mx-auto mb-3 group-hover:scale-105 transition-transform" />
                   <div className="font-bold text-sm truncate">{club.name}</div>
                   {club.home_ground && (
                     <div className="text-xs text-muted-foreground mt-0.5 truncate">{club.home_ground}</div>
