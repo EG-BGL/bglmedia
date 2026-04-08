@@ -41,15 +41,21 @@ export default function SubmitResult() {
   const [goalKickersAway, setGoalKickersAway] = useState('');
   const [matchNotes, setMatchNotes] = useState('');
   // Multi-section upload state
-  type SectionKey = 'final_score' | 'match_stats_1' | 'match_stats_2' | 'key_stats';
-  const [sectionPreviews, setSectionPreviews] = useState<Record<SectionKey, string | null>>({ final_score: null, match_stats_1: null, match_stats_2: null, key_stats: null });
-  const [sectionExtracting, setSectionExtracting] = useState<Record<SectionKey, boolean>>({ final_score: false, match_stats_1: false, match_stats_2: false, key_stats: false });
-  const [sectionConfidence, setSectionConfidence] = useState<Record<SectionKey, string | null>>({ final_score: null, match_stats_1: null, match_stats_2: null, key_stats: null });
+  type SectionKey = 'final_score' | 'match_stats_1' | 'match_stats_2' | 'goalkickers_1' | 'goalkickers_2' | 'disposals_1' | 'disposals_2' | 'afl_fantasy_1' | 'afl_fantasy_2';
+  const defaultSections: Record<SectionKey, null> = { final_score: null, match_stats_1: null, match_stats_2: null, goalkickers_1: null, goalkickers_2: null, disposals_1: null, disposals_2: null, afl_fantasy_1: null, afl_fantasy_2: null };
+  const [sectionPreviews, setSectionPreviews] = useState<Record<SectionKey, string | null>>({ ...defaultSections });
+  const [sectionExtracting, setSectionExtracting] = useState<Record<SectionKey, boolean>>({ final_score: false, match_stats_1: false, match_stats_2: false, goalkickers_1: false, goalkickers_2: false, disposals_1: false, disposals_2: false, afl_fantasy_1: false, afl_fantasy_2: false });
+  const [sectionConfidence, setSectionConfidence] = useState<Record<SectionKey, string | null>>({ ...defaultSections });
   const fileRefs = {
     final_score: useRef<HTMLInputElement>(null),
     match_stats_1: useRef<HTMLInputElement>(null),
     match_stats_2: useRef<HTMLInputElement>(null),
-    key_stats: useRef<HTMLInputElement>(null),
+    goalkickers_1: useRef<HTMLInputElement>(null),
+    goalkickers_2: useRef<HTMLInputElement>(null),
+    disposals_1: useRef<HTMLInputElement>(null),
+    disposals_2: useRef<HTMLInputElement>(null),
+    afl_fantasy_1: useRef<HTMLInputElement>(null),
+    afl_fantasy_2: useRef<HTMLInputElement>(null),
   };
 
   useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading, navigate]);
@@ -181,7 +187,9 @@ export default function SubmitResult() {
 
       const { data: urlData } = supabase.storage.from('scorecard-images').getPublicUrl(path);
 
-      const extractionType = section === 'match_stats_1' || section === 'match_stats_2' ? 'match_stats' : section;
+      const extractionType = (section === 'match_stats_1' || section === 'match_stats_2') ? 'match_stats'
+        : (section === 'goalkickers_1' || section === 'goalkickers_2' || section === 'disposals_1' || section === 'disposals_2' || section === 'afl_fantasy_1' || section === 'afl_fantasy_2') ? 'key_stats'
+        : section;
       const { data: fnData, error: fnError } = await supabase.functions.invoke('extract-scorecard', {
         body: { imageUrl: urlData.publicUrl, extractionType },
       });
@@ -204,17 +212,15 @@ export default function SubmitResult() {
         if (fnData.away_q4) setAwayQ4(fnData.away_q4);
       }
 
-      if (section === 'key_stats') {
+      if (section.startsWith('goalkickers') || section.startsWith('disposals') || section.startsWith('afl_fantasy')) {
         if (fnData.goal_kickers_home?.length) setGoalKickersHome(fnData.goal_kickers_home.join(', '));
         if (fnData.goal_kickers_away?.length) setGoalKickersAway(fnData.goal_kickers_away.join(', '));
         if (fnData.best_players_home?.length) setBestHome(fnData.best_players_home.join(', '));
         if (fnData.best_players_away?.length) setBestAway(fnData.best_players_away.join(', '));
       }
 
-      // TODO: match_stats_1 and match_stats_2 data can be stored for team stats submission
-
       setSectionConfidence(p => ({ ...p, [section]: fnData.confidence ?? 'medium' }));
-      const labels: Record<SectionKey, string> = { final_score: 'Final scores', match_stats_1: 'Match stats (1)', match_stats_2: 'Match stats (2)', key_stats: 'Key stats' };
+      const labels: Record<SectionKey, string> = { final_score: 'Final scores', match_stats_1: 'Match stats (1)', match_stats_2: 'Match stats (2)', goalkickers_1: 'Goalkickers 1', goalkickers_2: 'Goalkickers 2', disposals_1: 'Disposals 1', disposals_2: 'Disposals 2', afl_fantasy_1: 'AFL Fantasy 1', afl_fantasy_2: 'AFL Fantasy 2' };
       toast.success(`${labels[section]} extracted!`);
     } catch {
       toast.error('Failed to process image');
@@ -302,12 +308,17 @@ export default function SubmitResult() {
             </h3>
             <p className="text-[10px] text-muted-foreground mb-3">Upload photos for each section and AI will extract the data automatically</p>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {([
                 { key: 'final_score' as SectionKey, label: 'Final Score + Worm', icon: Trophy },
                 { key: 'match_stats_1' as SectionKey, label: 'Match Stats 1', icon: BarChart3 },
                 { key: 'match_stats_2' as SectionKey, label: 'Match Stats 2', icon: BarChart3 },
-                { key: 'key_stats' as SectionKey, label: 'Key Stats', icon: Users },
+                { key: 'goalkickers_1' as SectionKey, label: 'Goalkickers 1', icon: Users },
+                { key: 'goalkickers_2' as SectionKey, label: 'Goalkickers 2', icon: Users },
+                { key: 'disposals_1' as SectionKey, label: 'Disposals 1', icon: BarChart3 },
+                { key: 'disposals_2' as SectionKey, label: 'Disposals 2', icon: BarChart3 },
+                { key: 'afl_fantasy_1' as SectionKey, label: 'AFL Fantasy 1', icon: Sparkles },
+                { key: 'afl_fantasy_2' as SectionKey, label: 'AFL Fantasy 2', icon: Sparkles },
               ]).map(({ key, label, icon: Icon }) => (
                 <div key={key} className="relative">
                   <input ref={fileRefs[key]} type="file" accept="image/*" onChange={(e) => handleSectionUpload(key, e)} className="hidden" />
@@ -315,24 +326,24 @@ export default function SubmitResult() {
                     type="button"
                     onClick={() => fileRefs[key].current?.click()}
                     disabled={sectionExtracting[key]}
-                    className={`w-full rounded-xl border p-2.5 text-left transition-colors hover:bg-muted/50 ${sectionPreviews[key] ? 'border-primary/40 bg-primary/5' : 'border-border/60'}`}
+                    className={`w-full rounded-xl border p-2 text-left transition-colors hover:bg-muted/50 ${sectionPreviews[key] ? 'border-primary/40 bg-primary/5' : 'border-border/60'}`}
                   >
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Icon className="h-3.5 w-3.5 text-primary shrink-0" />
-                      <span className="text-[10px] font-bold truncate">{label}</span>
+                    <div className="flex items-center gap-1 mb-1">
+                      <Icon className="h-3 w-3 text-primary shrink-0" />
+                      <span className="text-[9px] font-bold truncate leading-tight">{label}</span>
                       {sectionConfidence[key] && (
-                        <CheckCircle2 className={`h-3 w-3 ml-auto shrink-0 ${sectionConfidence[key] === 'high' ? 'text-green-600 dark:text-green-400' : sectionConfidence[key] === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-destructive'}`} />
+                        <CheckCircle2 className={`h-2.5 w-2.5 ml-auto shrink-0 ${sectionConfidence[key] === 'high' ? 'text-green-600 dark:text-green-400' : sectionConfidence[key] === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-destructive'}`} />
                       )}
                     </div>
                     {sectionExtracting[key] ? (
-                      <div className="flex items-center justify-center h-14 text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                      <div className="flex items-center justify-center h-12 text-muted-foreground">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       </div>
                     ) : sectionPreviews[key] ? (
-                      <img src={sectionPreviews[key]!} alt={label} className="w-full h-14 object-cover rounded-lg" />
+                      <img src={sectionPreviews[key]!} alt={label} className="w-full h-12 object-cover rounded-lg" />
                     ) : (
-                      <div className="flex items-center justify-center h-14 rounded-lg border border-dashed border-border/60 bg-muted/30">
-                        <Camera className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex items-center justify-center h-12 rounded-lg border border-dashed border-border/60 bg-muted/30">
+                        <Camera className="h-3.5 w-3.5 text-muted-foreground" />
                       </div>
                     )}
                   </button>
