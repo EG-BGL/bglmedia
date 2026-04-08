@@ -19,10 +19,24 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = isSignUp ? await signUp(email, password) : await signIn(email, password);
-      if (error) { toast.error(error.message); }
-      else { if (isSignUp) toast.success('Check your email to confirm.'); else { toast.success('Signed in!'); navigate('/portal'); } }
-    } finally { setLoading(false); }
+      if (isSignUp) {
+        const { error } = await signUp(email, password);
+        if (error) toast.error(error.message);
+        else toast.success('Check your email to confirm.');
+      } else {
+        const { error } = await signIn(email, password);
+        if (error) {
+          toast.error(error.message);
+        } else {
+          toast.success('Signed in!');
+          navigate('/portal');
+          return; // Don't reset loading — page is navigating
+        }
+      }
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Something went wrong');
+    }
+    setLoading(false);
   };
 
   return (
