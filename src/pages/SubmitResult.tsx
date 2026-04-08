@@ -295,27 +295,51 @@ export default function SubmitResult() {
             </div>
           )}
 
+          {/* AI Scorecard Reader - Multi Section */}
           <div className="match-card p-4">
             <h3 className="section-label mb-2 flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5 text-primary" /> AI Scorecard Reader
             </h3>
-            <p className="text-[10px] text-muted-foreground mb-3">Upload a photo of the scorecard and AI will extract the scores automatically</p>
-            <input ref={scorecardRef} type="file" accept="image/*" onChange={handleScorecardUpload} className="hidden" />
-            <Button type="button" variant="outline" onClick={() => scorecardRef.current?.click()} disabled={extracting} className="w-full h-12 rounded-xl gap-2 font-bold">
-              {extracting ? <><Loader2 className="h-4 w-4 animate-spin" /> Reading scorecard...</> : <><Camera className="h-4 w-4" /> Upload Scorecard Photo</>}
-            </Button>
-            {scorecardPreview && (
-              <div className="mt-3 rounded-xl overflow-hidden border border-border/60">
-                <img src={scorecardPreview} alt="Scorecard" className="w-full max-h-48 object-contain bg-muted/30" />
-              </div>
-            )}
-            {aiConfidence && (
-              <div className={`mt-2 flex items-center gap-1.5 text-xs ${aiConfidence === 'high' ? 'text-green-600 dark:text-green-400' : aiConfidence === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-destructive'}`}>
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                AI confidence: <span className="font-bold capitalize">{aiConfidence}</span>
-                {aiConfidence !== 'high' && <span className="text-muted-foreground">— please review the scores</span>}
-              </div>
-            )}
+            <p className="text-[10px] text-muted-foreground mb-3">Upload photos for each section and AI will extract the data automatically</p>
+
+            <div className="space-y-3">
+              {([
+                { key: 'final_score' as SectionKey, label: 'Final Score + Worm', icon: Trophy, desc: 'Score totals & quarter-by-quarter' },
+                { key: 'match_stats_1' as SectionKey, label: 'Match Stats 1 (Top)', icon: BarChart3, desc: 'Top half of team stats' },
+                { key: 'match_stats_2' as SectionKey, label: 'Match Stats 2 (Bottom)', icon: BarChart3, desc: 'Bottom half of team stats' },
+                { key: 'key_stats' as SectionKey, label: 'Key Stats', icon: Users, desc: 'Goalkickers, Disposals & AFL Fantasy' },
+              ]).map(({ key, label, icon: Icon, desc }) => (
+                <div key={key} className="rounded-xl border border-border/60 p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon className="h-4 w-4 text-primary shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold">{label}</p>
+                      <p className="text-[10px] text-muted-foreground">{desc}</p>
+                    </div>
+                    {sectionConfidence[key] && (
+                      <CheckCircle2 className={`h-4 w-4 shrink-0 ${sectionConfidence[key] === 'high' ? 'text-green-600 dark:text-green-400' : sectionConfidence[key] === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-destructive'}`} />
+                    )}
+                  </div>
+                  <input ref={fileRefs[key]} type="file" accept="image/*" onChange={(e) => handleSectionUpload(key, e)} className="hidden" />
+                  <Button type="button" variant="outline" size="sm" onClick={() => fileRefs[key].current?.click()} disabled={sectionExtracting[key]} className="w-full h-9 rounded-lg gap-2 text-xs font-bold">
+                    {sectionExtracting[key] ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Reading...</> :
+                      sectionPreviews[key] ? <><ImageIcon className="h-3.5 w-3.5" /> Replace Photo</> :
+                      <><Camera className="h-3.5 w-3.5" /> Upload Photo</>}
+                  </Button>
+                  {sectionPreviews[key] && (
+                    <div className="mt-2 rounded-lg overflow-hidden border border-border/40">
+                      <img src={sectionPreviews[key]!} alt={label} className="w-full max-h-32 object-contain bg-muted/30" />
+                    </div>
+                  )}
+                  {sectionConfidence[key] && (
+                    <p className={`mt-1.5 text-[10px] flex items-center gap-1 ${sectionConfidence[key] === 'high' ? 'text-green-600 dark:text-green-400' : sectionConfidence[key] === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-destructive'}`}>
+                      AI confidence: <span className="font-bold capitalize">{sectionConfidence[key]}</span>
+                      {sectionConfidence[key] !== 'high' && <span className="text-muted-foreground">— please review</span>}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Submission Status Info */}
