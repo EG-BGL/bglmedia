@@ -2,6 +2,7 @@ import Layout from '@/components/layout/Layout';
 import { useLadder, useCurrentSeason } from '@/hooks/useData';
 import ClubLogo from '@/components/ClubLogo';
 import { Link } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
 
 export default function Ladder() {
   const { data: season } = useCurrentSeason();
@@ -15,58 +16,59 @@ export default function Ladder() {
           <p className="text-xs text-muted-foreground mt-0.5">{season?.name ?? '2026'} Season Standings</p>
         </div>
 
-        <div className="bg-card rounded-xl border border-border/60 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/60 bg-muted/30">
-                  <th className="text-left py-3 pl-3 pr-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-7"></th>
-                  <th className="text-left py-3 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Team</th>
-                  <th className="text-center py-3 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">P</th>
-                  <th className="text-center py-3 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">W</th>
-                  <th className="text-center py-3 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">L</th>
-                  <th className="text-center py-3 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">D</th>
-                  <th className="text-center py-3 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hidden sm:table-cell">PF</th>
-                  <th className="text-center py-3 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hidden sm:table-cell">PA</th>
-                  <th className="text-center py-3 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">%</th>
-                  <th className="text-center py-3 px-2 pr-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pts</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
-                  <tr><td colSpan={10} className="py-16 text-center text-sm text-muted-foreground">Loading...</td></tr>
-                ) : (ladder ?? []).length === 0 ? (
-                  <tr><td colSpan={10} className="py-16 text-center text-sm text-muted-foreground">No ladder data yet.</td></tr>
-                ) : (ladder ?? []).map((entry: any, i: number) => (
-                  <tr key={entry.id} className={`border-b border-border/30 last:border-0 transition-colors hover:bg-muted/20 ${i < 4 ? 'bg-accent/[0.03]' : ''}`}>
-                    <td className="py-3 pl-3 pr-1">
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
-                        i < 4 ? 'bg-accent/15 text-accent' : 'text-muted-foreground'
-                      }`}>
-                        {i + 1}
+        {isLoading ? (
+          <div className="py-16 text-center text-sm text-muted-foreground">Loading...</div>
+        ) : (ladder ?? []).length === 0 ? (
+          <div className="py-16 text-center text-sm text-muted-foreground">No ladder data yet.</div>
+        ) : (
+          <div className="space-y-2">
+            {(ladder ?? []).map((entry: any, i: number) => {
+              const club = entry.teams?.clubs;
+              const isTop4 = i < 4;
+              return (
+                <Link key={entry.id} to={`/clubs/${club?.id}`}>
+                  <div className={`match-card p-3.5 flex items-center gap-3 ${isTop4 ? 'border-l-2 border-l-primary' : ''}`}>
+                    {/* Position */}
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
+                      isTop4 ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {i + 1}
+                    </div>
+
+                    {/* Team */}
+                    <ClubLogo club={club ?? {}} size="sm" className="!h-8 !w-8" />
+                    <div className="flex-1 min-w-0">
+                      <span className="font-bold text-sm block truncate">{club?.name}</span>
+                      <span className="text-[10px] text-muted-foreground">{entry.played ?? 0} played</span>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="flex items-center gap-3 shrink-0 text-xs tabular-nums">
+                      <div className="text-center">
+                        <div className="text-[9px] text-muted-foreground uppercase font-bold">W-L-D</div>
+                        <div className="font-bold">{entry.wins ?? 0}-{entry.losses ?? 0}-{entry.draws ?? 0}</div>
                       </div>
-                    </td>
-                    <td className="py-3 px-2">
-                      <Link to={`/clubs/${entry.teams?.clubs?.id}`} className="flex items-center gap-2 hover:opacity-80">
-                        <ClubLogo club={entry.teams?.clubs ?? {}} size="sm" className="!h-7 !w-7" />
-                        <div>
-                          <span className="font-bold text-xs block">{entry.teams?.clubs?.short_name}</span>
-                          <span className="text-[10px] text-muted-foreground hidden sm:block">{entry.teams?.clubs?.name}</span>
-                        </div>
-                      </Link>
-                    </td>
-                    <td className="text-center py-3 px-1.5 text-xs tabular-nums text-muted-foreground">{entry.played}</td>
-                    <td className="text-center py-3 px-1.5 text-xs tabular-nums font-bold">{entry.wins}</td>
-                    <td className="text-center py-3 px-1.5 text-xs tabular-nums text-muted-foreground">{entry.losses}</td>
-                    <td className="text-center py-3 px-1.5 text-xs tabular-nums text-muted-foreground">{entry.draws}</td>
-                    <td className="text-center py-3 px-1.5 text-xs tabular-nums text-muted-foreground hidden sm:table-cell">{entry.points_for}</td>
-                    <td className="text-center py-3 px-1.5 text-xs tabular-nums text-muted-foreground hidden sm:table-cell">{entry.points_against}</td>
-                    <td className="text-center py-3 px-1.5 text-xs tabular-nums font-semibold">{Number(entry.percentage).toFixed(1)}</td>
-                    <td className="text-center py-3 px-2 pr-3 stat-number text-sm">{entry.competition_points}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <div className="text-center hidden sm:block">
+                        <div className="text-[9px] text-muted-foreground uppercase font-bold">%</div>
+                        <div className="font-semibold">{Number(entry.percentage ?? 0).toFixed(1)}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-[9px] text-muted-foreground uppercase font-bold">Pts</div>
+                        <div className="font-black text-sm text-primary">{entry.competition_points ?? 0}</div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Legend */}
+        <div className="flex items-center gap-3 text-[10px] text-muted-foreground pt-2">
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-0.5 bg-primary rounded-full" />
+            <span>Finals qualifying</span>
           </div>
         </div>
       </div>
