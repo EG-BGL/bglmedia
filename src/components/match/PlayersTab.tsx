@@ -69,9 +69,22 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
               <thead>
                 <tr className="border-b border-border/30">
                   <th className="text-left py-2 px-2 font-black uppercase tracking-wider text-muted-foreground sticky left-0 bg-card z-10 min-w-[130px]">Player</th>
-                  {STAT_COLS.map(col => (
-                    <th key={col.label} className="text-center py-2 px-1.5 font-black uppercase tracking-wider text-muted-foreground min-w-[32px]">{col.label}</th>
-                  ))}
+                  {STAT_COLS.map(col => {
+                    const active = sortKey === col.key;
+                    return (
+                      <th
+                        key={col.label}
+                        className="text-center py-2 px-1.5 font-black uppercase tracking-wider min-w-[32px] cursor-pointer select-none hover:text-foreground transition-colors"
+                        style={{ color: active ? 'hsl(var(--primary))' : undefined }}
+                        onClick={() => handleSort(col.key)}
+                      >
+                        <span className="inline-flex items-center gap-0.5">
+                          {col.label}
+                          {active && (sortDir === 'desc' ? <ChevronDown className="h-2.5 w-2.5" /> : <ChevronUp className="h-2.5 w-2.5" />)}
+                        </span>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
