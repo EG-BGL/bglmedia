@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-
+import bglLogo from '@/assets/bgl-logo.jpeg';
 export default function Footer() {
   return (
     <footer className="border-t border-border bg-card mt-auto">
@@ -27,11 +27,8 @@ export default function Footer() {
             </div>
           </div>
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-6 w-6 rounded-md bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-black text-[9px]">BGL</span>
-              </div>
-              <span className="font-black text-sm">BGLMedia</span>
+            <div className="mb-3">
+              <img src={bglLogo} alt="BGLMedia" className="h-8 w-auto" />
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">BGLMedia. Your local community football competition.</p>
           </div>
