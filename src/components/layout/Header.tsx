@@ -4,7 +4,6 @@ import { Menu, X, User, LogOut, ClipboardList, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import bglLogo from '@/assets/bgl-logo.jpeg';
-import SportSwitcher from './SportSwitcher';
 
 const navItems = [
   { label: 'Home', path: '/' },
@@ -31,9 +30,8 @@ export default function Header() {
           <img src={bglLogo} alt="BGLMedia" className="h-8 w-auto" />
         </Link>
 
-        {/* Sport switcher + Desktop nav */}
+        {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-3">
-          <SportSwitcher />
         <nav className="flex items-center bg-muted/60 rounded-full p-1 gap-0.5">
           {navItems.map((item) => (
             <Link
@@ -78,7 +76,6 @@ export default function Header() {
 
         {/* Mobile actions */}
         <div className="flex md:hidden items-center gap-1">
-          <SportSwitcher />
           {user && (role === 'coach' || role === 'league_admin') && (
             <Button asChild size="sm" className="rounded-full font-bold gap-1 h-8 px-3 text-xs">
               <Link to="/portal/submit"><ClipboardList className="h-3.5 w-3.5" />Submit</Link>
