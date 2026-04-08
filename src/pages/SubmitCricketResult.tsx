@@ -452,7 +452,28 @@ export default function SubmitCricketResult() {
         }
       }
 
-      // Mark fixture as completed
+      // Auto-approve: create a results record and mark fixture completed
+      const homeInnings = innings.filter(inn => inn.teamId === selectedMatch!.home_team_id);
+      const awayInnings = innings.filter(inn => inn.teamId === selectedMatch!.away_team_id);
+      const homeTotal = homeInnings.reduce((sum, inn) => sum + (parseInt(inn.totalRuns) || 0), 0);
+      const awayTotal = awayInnings.reduce((sum, inn) => sum + (parseInt(inn.totalRuns) || 0), 0);
+
+      await supabase.from('results').insert({
+        fixture_id: selectedFixture,
+        team_id: selectedMatch!.home_team_id,
+        home_score: homeTotal,
+        away_score: awayTotal,
+        home_goals: 0,
+        home_behinds: 0,
+        away_goals: 0,
+        away_behinds: 0,
+        status: 'approved',
+        submitted_by: user.id,
+        submitted_at: new Date().toISOString(),
+        approved_at: new Date().toISOString(),
+        match_notes: matchNotes || `Cricket: Home ${homeTotal} - Away ${awayTotal}`,
+      });
+
       await supabase.from('fixtures').update({ status: 'completed' }).eq('id', selectedFixture);
       setShowSuccess(true);
     } catch (err: any) {
