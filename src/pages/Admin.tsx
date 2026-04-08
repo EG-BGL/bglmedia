@@ -671,39 +671,75 @@ export default function Admin() {
               </div>
             )}
 
-            {/* Fixture list */}
-            {Object.keys(fixturesByRound).length === 0 ? (
-              <div className="py-12 text-center text-sm text-muted-foreground">No fixtures yet.</div>
-            ) : (
-              Object.entries(fixturesByRound).sort(([a], [b]) => Number(a) - Number(b)).map(([round, matches]) => (
-                <div key={round}>
-                  <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-2">Round {round}</h3>
-                  <div className="space-y-1.5">
-                    {matches.map((f: any) => (
-                      <div key={f.id} className="match-card p-3 flex items-center gap-2">
-                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                          <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" className="!h-6 !w-6" />
-                          <span className="text-xs font-bold truncate">{f.home_team?.clubs?.short_name}</span>
-                        </div>
-                        <div className="text-center shrink-0 px-1 flex items-center gap-1.5">
-                          <Badge variant="outline" className="text-[9px] rounded-full capitalize">{f.status}</Badge>
-                          {f.match_format && (
-                            <Badge className="text-[9px] rounded-full bg-accent/20 text-accent border-0">{f.match_format}</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
-                          <span className="text-xs font-bold truncate">{f.away_team?.clubs?.short_name}</span>
-                          <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" className="!h-6 !w-6" />
-                        </div>
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-full text-destructive shrink-0" onClick={() => handleDeleteFixture(f.id)}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
+            {/* Fixture list divided by sport & season */}
+            {(() => {
+              // Group fixtures by sport -> season -> round
+              type GroupedFixtures = Record<string, Record<string, Record<number, any[]>>>;
+              const grouped: GroupedFixtures = {};
+
+              fixtures.forEach((f: any) => {
+                const season = allSeasons.find((s: any) => s.season_id === f.season_id || s.id === f.season_id);
+                const comp = season ? competitions.find((c: any) => c.id === season.competition_id) : null;
+                const sport = comp ? sports.find((s: any) => s.id === comp.sport_id) : null;
+                const sportLabel = sport?.slug === 'cricket' ? 'Cricket' : 'AFL';
+                const seasonLabel = season?.name ?? 'Unknown Season';
+
+                if (!grouped[sportLabel]) grouped[sportLabel] = {};
+                if (!grouped[sportLabel][seasonLabel]) grouped[sportLabel][seasonLabel] = {};
+                if (!grouped[sportLabel][seasonLabel][f.round_number]) grouped[sportLabel][seasonLabel][f.round_number] = [];
+                grouped[sportLabel][seasonLabel][f.round_number].push(f);
+              });
+
+              const sportOrder = ['AFL', 'Cricket'];
+              const sortedSports = Object.keys(grouped).sort((a, b) => sportOrder.indexOf(a) - sportOrder.indexOf(b));
+
+              if (sortedSports.length === 0) {
+                return <div className="py-12 text-center text-sm text-muted-foreground">No fixtures yet.</div>;
+              }
+
+              return sortedSports.map((sportLabel) => (
+                <div key={sportLabel} className="space-y-4">
+                  <div className="flex items-center gap-2 pt-2">
+                    {sportLabel === 'Cricket' ? <CircleDot className="h-4 w-4 text-primary" /> : <Trophy className="h-4 w-4 text-primary" />}
+                    <h3 className="text-sm font-black">{sportLabel}</h3>
+                    <div className="flex-1 h-px bg-border" />
                   </div>
+                  {Object.entries(grouped[sportLabel]).map(([seasonLabel, rounds]) => (
+                    <div key={seasonLabel} className="space-y-2">
+                      <Badge variant="outline" className="text-[10px] rounded-full font-bold">{seasonLabel}</Badge>
+                      {Object.entries(rounds).sort(([a], [b]) => Number(a) - Number(b)).map(([round, matches]) => (
+                        <div key={round}>
+                          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-2">Round {round}</h4>
+                          <div className="space-y-1.5">
+                            {matches.map((f: any) => (
+                              <div key={f.id} className="match-card p-3 flex items-center gap-2">
+                                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                                  <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" className="!h-6 !w-6" />
+                                  <span className="text-xs font-bold truncate">{f.home_team?.clubs?.short_name}</span>
+                                </div>
+                                <div className="text-center shrink-0 px-1 flex items-center gap-1.5">
+                                  <Badge variant="outline" className="text-[9px] rounded-full capitalize">{f.status}</Badge>
+                                  {f.match_format && (
+                                    <Badge className="text-[9px] rounded-full bg-accent/20 text-accent border-0">{f.match_format}</Badge>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+                                  <span className="text-xs font-bold truncate">{f.away_team?.clubs?.short_name}</span>
+                                  <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" className="!h-6 !w-6" />
+                                </div>
+                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-full text-destructive shrink-0" onClick={() => handleDeleteFixture(f.id)}>
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
                 </div>
-              ))
-            )}
+              ));
+            })()}
           </TabsContent>
 
           {/* ── Teams Tab ── */}
