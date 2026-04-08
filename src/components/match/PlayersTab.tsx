@@ -27,11 +27,31 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
   const awayTeamId = (fixture as any)?.away_team?.id;
   const { data: allStats, isLoading: loadingStats } = useMatchPlayerStats(fixtureId);
 
-  // Combine and sort by AFL Fantasy descending
+  const [sortKey, setSortKey] = useState<string>('afl_fantasy');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir(d => d === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
+  };
+
+  const getStatValue = (s: any, key: string) => {
+    if (key === 'goals_behinds') return (s.goals ?? 0) * 10 + (s.behinds ?? 0);
+    return s[key] ?? 0;
+  };
+
   const combinedStats = useMemo(() => {
     if (!allStats?.length) return [];
-    return [...allStats].sort((a: any, b: any) => (b.afl_fantasy ?? 0) - (a.afl_fantasy ?? 0));
-  }, [allStats]);
+    return [...allStats].sort((a: any, b: any) => {
+      const av = getStatValue(a, sortKey);
+      const bv = getStatValue(b, sortKey);
+      return sortDir === 'desc' ? bv - av : av - bv;
+    });
+  }, [allStats, sortKey, sortDir]);
 
   const hasStats = combinedStats.length > 0;
 
