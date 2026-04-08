@@ -180,8 +180,7 @@ export default function SubmitResult() {
       if (statsError) console.error('Failed to save player stats:', statsError);
     }
 
-    toast.success('Result submitted! If both teams agree, it will be auto-confirmed.');
-    navigate('/portal');
+    setShowSuccess(true);
   };
 
   const handleSectionUpload = async (section: SectionKey, e: React.ChangeEvent<HTMLInputElement>) => {
