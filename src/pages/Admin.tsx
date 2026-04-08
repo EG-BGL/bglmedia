@@ -32,7 +32,7 @@ const emptyFixture: FixtureForm = { home_team_id: '', away_team_id: '', round_nu
 interface CompetitionForm {
   id?: string; name: string; short_name: string; description: string; competition_type: string; sport_id: string;
 }
-const emptyCompetition: CompetitionForm = { name: '', short_name: '', description: '', competition_type: 'senior', sport_id: '' };
+const emptyCompetition: CompetitionForm = { name: '', short_name: '', description: '', competition_type: 'AFL26', sport_id: '' };
 
 interface SeasonForm {
   id?: string; name: string; year: string; competition_id: string; start_date: string; end_date: string; is_current: boolean;
