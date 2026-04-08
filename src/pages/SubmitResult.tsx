@@ -54,7 +54,7 @@ export default function SubmitResult() {
     const loadFixtures = async () => {
       if (role === 'league_admin') {
         // Admins can submit for any match
-        const { data } = await supabase.from('fixtures').select('*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))').eq('is_locked', false).in('status', ['scheduled', 'in_progress']).order('round_number');
+        const { data } = await supabase.from('fixtures').select('*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))').order('round_number');
         setFixtures(data ?? []);
         // Set all team IDs so admin can submit as any team
         const ids = new Set<string>();
@@ -65,7 +65,7 @@ export default function SubmitResult() {
         if (!teams?.length) return;
         const teamIds = teams.map(t => t.team_id);
         setCoachTeamIds(teamIds);
-        const { data } = await supabase.from('fixtures').select('*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))').eq('is_locked', false).in('status', ['scheduled', 'in_progress']).or(teamIds.map(id => `home_team_id.eq.${id},away_team_id.eq.${id}`).join(','));
+        const { data } = await supabase.from('fixtures').select('*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))').or(teamIds.map(id => `home_team_id.eq.${id},away_team_id.eq.${id}`).join(',')).order('round_number');
         setFixtures(data ?? []);
       }
     };
