@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
+import type { AppRole } from '@/lib/supabase-helpers';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,7 +17,7 @@ import ClubLogo from '@/components/ClubLogo';
 interface FormErrors { fixture?: string; homeGoals?: string; homeBehinds?: string; awayGoals?: string; awayBehinds?: string; quarters?: string; }
 
 export default function SubmitResult() {
-  const { user, loading } = useAuth();
+  const { user, role, loading } = useAuth();
   const navigate = useNavigate();
   const [fixtures, setFixtures] = useState<any[]>([]);
   const [coachTeamIds, setCoachTeamIds] = useState<string[]>([]);
@@ -44,14 +45,27 @@ export default function SubmitResult() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from('coaches_to_teams').select('team_id').eq('user_id', user.id).then(async ({ data: teams }) => {
-      if (!teams?.length) return;
-      const teamIds = teams.map(t => t.team_id);
-      setCoachTeamIds(teamIds);
-      const { data } = await supabase.from('fixtures').select('*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))').eq('is_locked', false).in('status', ['scheduled', 'completed']).or(teamIds.map(id => `home_team_id.eq.${id},away_team_id.eq.${id}`).join(','));
-      setFixtures(data ?? []);
-    });
-  }, [user]);
+
+    const loadFixtures = async () => {
+      if (role === 'league_admin') {
+        // Admins can submit for any match
+        const { data } = await supabase.from('fixtures').select('*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))').eq('is_locked', false).in('status', ['scheduled', 'in_progress']).order('round_number');
+        setFixtures(data ?? []);
+        // Set all team IDs so admin can submit as any team
+        const ids = new Set<string>();
+        (data ?? []).forEach((f: any) => { ids.add(f.home_team_id); ids.add(f.away_team_id); });
+        setCoachTeamIds(Array.from(ids));
+      } else {
+        const { data: teams } = await supabase.from('coaches_to_teams').select('team_id').eq('user_id', user.id);
+        if (!teams?.length) return;
+        const teamIds = teams.map(t => t.team_id);
+        setCoachTeamIds(teamIds);
+        const { data } = await supabase.from('fixtures').select('*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))').eq('is_locked', false).in('status', ['scheduled', 'in_progress']).or(teamIds.map(id => `home_team_id.eq.${id},away_team_id.eq.${id}`).join(','));
+        setFixtures(data ?? []);
+      }
+    };
+    loadFixtures();
+  }, [user, role]);
 
   // Load existing submissions for the selected fixture
   useEffect(() => {
