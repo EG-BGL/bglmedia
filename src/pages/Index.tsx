@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Calendar, Trophy, Users, ArrowRight, MapPin, Newspaper, ChevronRight, Clock, Star, TrendingUp } from 'lucide-react';
 import { useClubs, useFixtures, useResults, useLadder, useCurrentSeason, useNews } from '@/hooks/useData';
+import ClubLogo from '@/components/ClubLogo';
 
 export default function Index() {
   const { data: season } = useCurrentSeason();
