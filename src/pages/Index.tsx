@@ -2,8 +2,8 @@ import Layout from '@/components/layout/Layout';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Trophy, ChevronRight, MapPin, Newspaper, Clock, TrendingUp, ArrowRight } from 'lucide-react';
-import { useClubs, useFixtures, useResults, useLadder, useCurrentSeason, useNews } from '@/hooks/useData';
+import { Calendar, Trophy, ChevronRight, MapPin, Newspaper, Clock, TrendingUp, ArrowRight, Star } from 'lucide-react';
+import { useClubs, useFixtures, useResults, useLadder, useCurrentSeason, useNews, usePlayerOfTheRound } from '@/hooks/useData';
 import ClubLogo from '@/components/ClubLogo';
 
 export default function Index() {
@@ -13,6 +13,7 @@ export default function Index() {
   const { data: results } = useResults(season?.id);
   const { data: ladder } = useLadder(season?.id);
   const { data: news } = useNews(3);
+  const { data: playerOfRound } = usePlayerOfTheRound(season?.id);
 
   const upcomingFixtures = fixtures?.filter(f => f.status === 'scheduled').slice(0, 6) ?? [];
   const latestResults = results?.slice(0, 8) ?? [];
