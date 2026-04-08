@@ -4,6 +4,7 @@ import { Menu, X, User, LogOut, ClipboardList, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import bglLogo from '@/assets/bgl-logo.jpeg';
+import SportSwitcher from './SportSwitcher';
 
 const navItems = [
   { label: 'Home', path: '/' },
@@ -30,8 +31,10 @@ export default function Header() {
           <img src={bglLogo} alt="BGLMedia" className="h-8 w-auto" />
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center bg-muted/60 rounded-full p-1 gap-0.5">
+        {/* Sport switcher + Desktop nav */}
+        <div className="hidden md:flex items-center gap-3">
+          <SportSwitcher />
+        <nav className="flex items-center bg-muted/60 rounded-full p-1 gap-0.5">
           {navItems.map((item) => (
             <Link
               key={item.path}
@@ -46,6 +49,7 @@ export default function Header() {
             </Link>
           ))}
         </nav>
+        </div>
 
         {/* Desktop actions */}
         <div className="hidden md:flex items-center gap-2">

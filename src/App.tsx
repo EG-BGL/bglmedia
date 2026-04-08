@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { SportProvider } from "@/hooks/useSport";
 import Index from "./pages/Index";
 import Fixtures from "./pages/Fixtures";
 import Results from "./pages/Results";
@@ -24,6 +25,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <SportProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -46,6 +48,7 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
+      </SportProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
