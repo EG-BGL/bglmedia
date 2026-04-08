@@ -36,7 +36,7 @@ export default function MatchCentre() {
   const isCompleted = fixture.status === 'completed' && result;
   const isLive = fixture.status === 'in_progress';
 
-  const statusLabel = isLive ? 'LIVE' : isCompleted ? 'FINAL' : 'UPCOMING';
+  const statusLabel = isLive ? 'LIVE' : isCompleted ? 'FULL TIME' : 'UPCOMING';
   const statusClass = isLive
     ? 'bg-destructive text-destructive-foreground'
     : isCompleted

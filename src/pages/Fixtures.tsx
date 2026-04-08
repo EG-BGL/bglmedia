@@ -85,7 +85,7 @@ export default function Fixtures() {
                         </div>
                         <div className="text-center shrink-0 px-1">
                           {f.status === 'completed' ? (
-                            <Badge variant="secondary" className="rounded-full text-[10px] px-2">FT</Badge>
+                            <Badge variant="secondary" className="rounded-full text-[10px] px-2">Full Time</Badge>
                           ) : !fixtureIdsWithResults.has(f.id) ? (
                             <div>
                               <Badge className="rounded-full text-[10px] px-2 bg-accent text-accent-foreground border-0 mb-0.5">Upcoming</Badge>
