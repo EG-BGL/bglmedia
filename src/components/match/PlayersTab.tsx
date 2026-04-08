@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import ClubLogo from '@/components/ClubLogo';
-import { Award, Users, BarChart3 } from 'lucide-react';
-import { usePlayers, useMatchPlayerStats } from '@/hooks/useData';
+import { BarChart3 } from 'lucide-react';
+import { useMatchPlayerStats } from '@/hooks/useData';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 interface PlayersTabProps {
