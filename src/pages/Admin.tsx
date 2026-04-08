@@ -11,7 +11,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Check, X, Shield, Plus, Pencil, Trash2, Upload, Image, Calendar, Newspaper, FileText, Users, Clock, AlertTriangle, CircleDot, Trophy } from 'lucide-react';
+import { Check, X, Shield, Plus, Pencil, Trash2, Upload, Image, Calendar, Newspaper, FileText, Users, Clock, AlertTriangle, CircleDot, Trophy, UserCheck } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 interface ClubForm {
