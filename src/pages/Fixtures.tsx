@@ -183,10 +183,16 @@ export default function Fixtures() {
                               </div>
                             ) : f.status === 'completed' && resultsByFixture.has(f.id) ? (() => {
                               const r = resultsByFixture.get(f.id);
+                              const aflHomeWon = (r.home_score ?? 0) > (r.away_score ?? 0);
+                              const aflDraw = (r.home_score ?? 0) === (r.away_score ?? 0);
+                              const margin = Math.abs((r.home_score ?? 0) - (r.away_score ?? 0));
+                              const winnerName = aflHomeWon ? homeShort : awayShort;
+                              const aflResultText = aflDraw ? 'Draw' : `${winnerName} by ${margin} pts`;
                               return (
                                 <div>
                                   <div className="stat-number text-xl font-black">{r.home_score} – {r.away_score}</div>
-                                  <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">FT</Badge>
+                                  <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">FULL TIME</Badge>
+                                  <div className="text-[9px] text-muted-foreground font-semibold mt-0.5 whitespace-nowrap">{aflResultText}</div>
                                 </div>
                               );
                             })() : f.status === 'completed' ? (
