@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ChevronLeft, Send, AlertCircle, CheckCircle2, Plus, Trash2, CircleDot } from 'lucide-react';
+import { ChevronLeft, Send, AlertCircle, CheckCircle2, Plus, Trash2, CircleDot, Camera, Loader2, Sparkles } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 interface BattingEntry {
