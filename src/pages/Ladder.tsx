@@ -128,7 +128,7 @@ export default function Ladder() {
                     <ClubLogo club={club ?? {}} size="sm" className="!h-8 !w-8" />
                     <div className="flex-1 min-w-0">
                       <span className="font-bold text-sm block truncate">{club?.name}</span>
-                      <span className="text-[10px] text-muted-foreground sm:hidden">{entry.played ?? 0} played · {entry.wins ?? 0}W {entry.losses ?? 0}L</span>
+                      <span className="text-[10px] text-muted-foreground sm:hidden">{entry.played ?? 0} played · {entry.wins ?? 0}W {entry.losses ?? 0}L{isCricket ? ` · NRR ${nrr > 0 ? '+' : ''}${nrr.toFixed(3)}` : ''}</span>
                     </div>
                     {isCricket ? (
                       <div className="flex items-center gap-3 shrink-0 text-xs tabular-nums">
