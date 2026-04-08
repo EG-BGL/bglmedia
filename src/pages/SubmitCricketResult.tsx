@@ -214,12 +214,6 @@ export default function SubmitCricketResult() {
       setSectionExtracting(prev => ({ ...prev, [sectionKey]: false }));
     }
   };
-    } catch (err: any) {
-      toast.error('AI reading failed: ' + (err?.message ?? 'Unknown error'));
-    } finally {
-      setAiLoading(false);
-    }
-  };
   useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading, navigate]);
 
   useEffect(() => {
