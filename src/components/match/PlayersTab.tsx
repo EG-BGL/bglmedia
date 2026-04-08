@@ -66,8 +66,18 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
     <div className="space-y-3">
       {hasStats && (
         <div className="match-card overflow-hidden">
-          <div className="px-4 py-3 border-b border-border/30">
+          <div className="px-4 py-3 border-b border-border/30 flex items-center justify-between">
             <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Player Stats</h3>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setFilter('all')}
+                className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full transition-colors ${filter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+              >All</button>
+              <button
+                onClick={() => { setFilter('goalkickers'); setSortKey('goals_behinds'); setSortDir('desc'); }}
+                className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full transition-colors ${filter === 'goalkickers' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+              >Goalkickers</button>
+            </div>
           </div>
           <ScrollArea className="w-full">
             <table className="w-full text-[10px]">
