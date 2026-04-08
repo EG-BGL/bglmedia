@@ -257,7 +257,7 @@ export default function SubmitResult() {
               <Sparkles className="h-3.5 w-3.5 text-primary" /> AI Scorecard Reader
             </h3>
             <p className="text-[10px] text-muted-foreground mb-3">Upload a photo of the scorecard and AI will extract the scores automatically</p>
-            <input ref={scorecardRef} type="file" accept="image/*" capture="environment" onChange={handleScorecardUpload} className="hidden" />
+            <input ref={scorecardRef} type="file" accept="image/*" onChange={handleScorecardUpload} className="hidden" />
             <Button type="button" variant="outline" onClick={() => scorecardRef.current?.click()} disabled={extracting} className="w-full h-12 rounded-xl gap-2 font-bold">
               {extracting ? <><Loader2 className="h-4 w-4 animate-spin" /> Reading scorecard...</> : <><Camera className="h-4 w-4" /> Upload Scorecard Photo</>}
             </Button>
