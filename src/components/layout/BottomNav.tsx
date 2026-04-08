@@ -3,7 +3,7 @@ import { Home, Calendar, Trophy, Users, User, ClipboardList } from 'lucide-react
 import { useAuth } from '@/hooks/useAuth';
 
 const tabs = [
-  { label: 'Home', path: '/home', icon: Home },
+  { label: 'Home', path: '/', icon: Home },
   { label: 'Fixtures', path: '/fixtures', icon: Calendar },
   { label: 'Submit', path: '/portal/submit', icon: ClipboardList, authOnly: true },
   { label: 'Ladder', path: '/ladder', icon: Trophy },
@@ -19,7 +19,7 @@ export default function BottomNav() {
   const isCoachOrAdmin = role === 'coach' || role === 'league_admin';
 
   const isActive = (path: string) => {
-    if (path === '/home') return location.pathname === '/home';
+    if (path === '/') return location.pathname === '/';
     if (path === '/profile') return location.pathname === '/portal' || location.pathname === '/login';
     return location.pathname.startsWith(path);
   };

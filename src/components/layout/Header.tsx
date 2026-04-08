@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import bglLogo from '@/assets/bgl-logo.jpeg';
 
 const navItems = [
-  { label: 'Home', path: '/home' },
+  { label: 'Home', path: '/' },
   { label: 'Fixtures & Results', path: '/fixtures' },
   { label: 'Ladder', path: '/ladder' },
   { label: 'Clubs', path: '/clubs' },

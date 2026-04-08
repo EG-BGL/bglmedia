@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
-import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Fixtures from "./pages/Fixtures";
 import Results from "./pages/Results";
@@ -29,8 +28,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/home" element={<Index />} />
+            <Route path="/" element={<Index />} />
             <Route path="/fixtures" element={<Fixtures />} />
             <Route path="/results" element={<Results />} />
             <Route path="/ladder" element={<Ladder />} />
