@@ -100,11 +100,16 @@ export default function Header() {
       {mobileOpen && (
         <div className="md:hidden border-t border-border/50 bg-card animate-in slide-in-from-top-1 duration-150">
           <nav className="page-container flex flex-col py-2 gap-0.5">
-            {user ? (
+              {user ? (
               <>
                 {(role === 'coach' || role === 'league_admin') && (
+                  <Link to="/coach-hub" className="flex items-center gap-3 px-4 py-3 rounded-xl text-foreground hover:bg-muted font-medium text-sm">
+                    <BarChart3 className="h-4 w-4 opacity-60" /> Coach Hub
+                  </Link>
+                )}
+                {(role === 'coach' || role === 'league_admin') && (
                   <Link to="/portal" className="flex items-center gap-3 px-4 py-3 rounded-xl text-foreground hover:bg-muted font-medium text-sm">
-                    <User className="h-4 w-4 opacity-60" /> Dashboard
+                    <ClipboardList className="h-4 w-4 opacity-60" /> Dashboard
                   </Link>
                 )}
                 {role === 'league_admin' && (
@@ -112,6 +117,9 @@ export default function Header() {
                     <Shield className="h-4 w-4 opacity-60" /> Admin Panel
                   </Link>
                 )}
+                <Link to="/profile" className="flex items-center gap-3 px-4 py-3 rounded-xl text-foreground hover:bg-muted font-medium text-sm">
+                  <Settings className="h-4 w-4 opacity-60" /> Account Settings
+                </Link>
                 <button
                   onClick={() => { signOut(); setMobileOpen(false); }}
                   className="flex items-center gap-3 px-4 py-3 rounded-xl text-destructive hover:bg-destructive/10 font-medium text-sm w-full text-left"
