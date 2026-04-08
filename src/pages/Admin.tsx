@@ -26,8 +26,9 @@ const emptyClub: ClubForm = {
 interface FixtureForm {
   home_team_id: string; away_team_id: string; round_number: string;
   venue: string; scheduled_at: string; match_format: string;
+  competition_id: string; season_id: string;
 }
-const emptyFixture: FixtureForm = { home_team_id: '', away_team_id: '', round_number: '', venue: '', scheduled_at: '', match_format: '' };
+const emptyFixture: FixtureForm = { home_team_id: '', away_team_id: '', round_number: '', venue: '', scheduled_at: '', match_format: '', competition_id: '', season_id: '' };
 
 interface CompetitionForm {
   id?: string; name: string; short_name: string; description: string; competition_type: string; sport_id: string;
@@ -186,13 +187,14 @@ export default function Admin() {
     if (fixtureForm.home_team_id === fixtureForm.away_team_id) {
       toast.error('Home and away teams must be different'); return;
     }
-    if (!currentSeason) { toast.error('No current season found'); return; }
+    const selectedSeasonId = fixtureForm.season_id || currentSeason?.id;
+    if (!selectedSeasonId) { toast.error('No season selected'); return; }
 
     const payload: any = {
       home_team_id: fixtureForm.home_team_id,
       away_team_id: fixtureForm.away_team_id,
       round_number: parseInt(fixtureForm.round_number),
-      season_id: currentSeason.id,
+      season_id: selectedSeasonId,
       venue: fixtureForm.venue.trim() || null,
       scheduled_at: fixtureForm.scheduled_at || null,
       match_format: fixtureForm.match_format || null,
@@ -355,8 +357,9 @@ export default function Admin() {
     fixturesByRound[f.round_number].push(f);
   });
 
-  // Filter teams for current season
-  const seasonTeams = currentSeason ? teams.filter((t: any) => t.season_id === currentSeason.id) : teams;
+  // Filter teams based on fixture form's selected season, fallback to current season
+  const fixtureSeasonId = fixtureForm.season_id || currentSeason?.id;
+  const seasonTeams = fixtureSeasonId ? teams.filter((t: any) => t.season_id === fixtureSeasonId) : teams;
 
   // Helper to get sport name
   const getSportName = (sportId: string) => sports.find(s => s.id === sportId)?.slug?.toUpperCase() ?? 'Unknown';
@@ -588,6 +591,32 @@ export default function Admin() {
               <div className="match-card p-4 space-y-3">
                 <h3 className="font-black text-sm">New Fixture</h3>
                 <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2 sm:col-span-1">
+                    <Label className="text-xs font-bold">Competition *</Label>
+                    <Select value={fixtureForm.competition_id} onValueChange={v => {
+                      setFixtureForm(f => ({ ...f, competition_id: v, season_id: '', home_team_id: '', away_team_id: '' }));
+                    }}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select competition" /></SelectTrigger>
+                      <SelectContent>
+                        {competitions.map((c: any) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name} ({c.sports?.name})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-2 sm:col-span-1">
+                    <Label className="text-xs font-bold">Season *</Label>
+                    <Select value={fixtureForm.season_id} onValueChange={v => {
+                      setFixtureForm(f => ({ ...f, season_id: v, home_team_id: '', away_team_id: '' }));
+                    }}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select season" /></SelectTrigger>
+                      <SelectContent>
+                        {allSeasons.filter((s: any) => !fixtureForm.competition_id || s.competition_id === fixtureForm.competition_id).map((s: any) => (
+                          <SelectItem key={s.id} value={s.id}>{s.name} ({s.year})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="col-span-2 sm:col-span-1">
                     <Label className="text-xs font-bold">Home Team *</Label>
                     <Select value={fixtureForm.home_team_id} onValueChange={v => setFixtureForm(f => ({ ...f, home_team_id: v }))}>
