@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ChevronLeft, Send, AlertCircle, CheckCircle2, Camera, Loader2, Sparkles, ClipboardList, BarChart3, Trophy, Users } from 'lucide-react';
+import { ChevronLeft, Send, AlertCircle, CheckCircle2, Camera, Loader2, Sparkles, ClipboardList, BarChart3, Trophy, Users, ImageIcon } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 interface FormErrors { fixture?: string; homeGoals?: string; homeBehinds?: string; awayGoals?: string; awayBehinds?: string; quarters?: string; }
