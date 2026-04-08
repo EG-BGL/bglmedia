@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, LogOut, ClipboardList, Shield } from 'lucide-react';
+import { Menu, X, User, LogOut, ClipboardList, Shield, BarChart3, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import bglLogo from '@/assets/bgl-logo.jpeg';
@@ -58,13 +58,18 @@ export default function Header() {
           )}
           {user ? (
             <div className="flex items-center gap-1">
+              {(role === 'coach' || role === 'league_admin') && (
+                <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" title="Coach Hub">
+                  <Link to="/coach-hub"><BarChart3 className="h-4 w-4" /></Link>
+                </Button>
+              )}
               {role === 'league_admin' && (
                 <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full">
                   <Link to="/admin"><Shield className="h-4 w-4" /></Link>
                 </Button>
               )}
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" onClick={signOut}>
-                <LogOut className="h-4 w-4" />
+              <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" title="Profile">
+                <Link to="/profile"><User className="h-4 w-4" /></Link>
               </Button>
             </div>
           ) : (
