@@ -1,7 +1,7 @@
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
 import { useMatchPlayerStats } from '@/hooks/useData';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 interface PlayersTabProps {
   fixture: any;
