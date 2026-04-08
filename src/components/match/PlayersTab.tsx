@@ -47,12 +47,16 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
 
   const combinedStats = useMemo(() => {
     if (!allStats?.length) return [];
-    return [...allStats].sort((a: any, b: any) => {
+    let filtered = [...allStats];
+    if (filter === 'goalkickers') {
+      filtered = filtered.filter((s: any) => (s.goals ?? 0) > 0);
+    }
+    return filtered.sort((a: any, b: any) => {
       const av = getStatValue(a, sortKey);
       const bv = getStatValue(b, sortKey);
       return sortDir === 'desc' ? bv - av : av - bv;
     });
-  }, [allStats, sortKey, sortDir]);
+  }, [allStats, sortKey, sortDir, filter]);
 
   const hasStats = combinedStats.length > 0;
 
