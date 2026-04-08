@@ -1097,6 +1097,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_ladder_from_cricket_result: {
+        Args: { p_fixture_id: string }
+        Returns: undefined
+      }
       update_ladder_from_result: {
         Args: {
           p_away_behinds: number
