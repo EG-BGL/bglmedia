@@ -187,7 +187,9 @@ export default function SubmitResult() {
 
       const { data: urlData } = supabase.storage.from('scorecard-images').getPublicUrl(path);
 
-      const extractionType = section === 'match_stats_1' || section === 'match_stats_2' ? 'match_stats' : section;
+      const extractionType = (section === 'match_stats_1' || section === 'match_stats_2') ? 'match_stats'
+        : (section === 'goalkickers_1' || section === 'goalkickers_2' || section === 'disposals_1' || section === 'disposals_2' || section === 'afl_fantasy_1' || section === 'afl_fantasy_2') ? 'key_stats'
+        : section;
       const { data: fnData, error: fnError } = await supabase.functions.invoke('extract-scorecard', {
         body: { imageUrl: urlData.publicUrl, extractionType },
       });
@@ -210,17 +212,15 @@ export default function SubmitResult() {
         if (fnData.away_q4) setAwayQ4(fnData.away_q4);
       }
 
-      if (section === 'key_stats') {
+      if (section.startsWith('goalkickers') || section.startsWith('disposals') || section.startsWith('afl_fantasy')) {
         if (fnData.goal_kickers_home?.length) setGoalKickersHome(fnData.goal_kickers_home.join(', '));
         if (fnData.goal_kickers_away?.length) setGoalKickersAway(fnData.goal_kickers_away.join(', '));
         if (fnData.best_players_home?.length) setBestHome(fnData.best_players_home.join(', '));
         if (fnData.best_players_away?.length) setBestAway(fnData.best_players_away.join(', '));
       }
 
-      // TODO: match_stats_1 and match_stats_2 data can be stored for team stats submission
-
       setSectionConfidence(p => ({ ...p, [section]: fnData.confidence ?? 'medium' }));
-      const labels: Record<SectionKey, string> = { final_score: 'Final scores', match_stats_1: 'Match stats (1)', match_stats_2: 'Match stats (2)', key_stats: 'Key stats' };
+      const labels: Record<SectionKey, string> = { final_score: 'Final scores', match_stats_1: 'Match stats (1)', match_stats_2: 'Match stats (2)', goalkickers_1: 'Goalkickers 1', goalkickers_2: 'Goalkickers 2', disposals_1: 'Disposals 1', disposals_2: 'Disposals 2', afl_fantasy_1: 'AFL Fantasy 1', afl_fantasy_2: 'AFL Fantasy 2' };
       toast.success(`${labels[section]} extracted!`);
     } catch {
       toast.error('Failed to process image');
