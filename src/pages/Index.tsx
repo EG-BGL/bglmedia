@@ -1,30 +1,34 @@
 import Layout from '@/components/layout/Layout';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Calendar, Trophy, ChevronRight, MapPin, Newspaper, Clock, TrendingUp, ArrowRight, Star } from 'lucide-react';
-import { useClubs, useFixtures, useResults, useLadder, useCurrentSeason, useNews, usePlayerOfTheRound } from '@/hooks/useData';
+import { Trophy, ChevronRight, MapPin, Newspaper, TrendingUp, ArrowRight, Star } from 'lucide-react';
+import { useClubs, useLadder, useCurrentSeason, useNews, usePlayerOfTheRound, useAllCurrentSeasons, useAllResults } from '@/hooks/useData';
 import ClubLogo from '@/components/ClubLogo';
 import { useSport } from '@/hooks/useSport';
 
 export default function Index() {
   const { currentSport } = useSport();
   const { data: season } = useCurrentSeason(currentSport?.id);
-  const { data: clubs } = useClubs();
-  const { data: fixtures } = useFixtures(season?.id);
-  const { data: results } = useResults(season?.id);
-  const { data: ladder } = useLadder(season?.id);
+  const { data: allCurrentSeasons } = useAllCurrentSeasons();
+  const { data: allResults } = useAllResults();
   const { data: news } = useNews(3);
   const { data: playerOfRound } = usePlayerOfTheRound(season?.id);
 
-  const upcomingFixtures = fixtures?.filter(f => f.status === 'scheduled').slice(0, 6) ?? [];
-  const latestResults = results?.slice(0, 8) ?? [];
-  const topLadder = ladder?.slice(0, 8) ?? [];
+  const aflSeason = allCurrentSeasons?.find((s: any) => s.competitions?.sports?.slug === 'afl');
+  const cricketSeason = allCurrentSeasons?.find((s: any) => s.competitions?.sports?.slug === 'cricket');
+
+  const { data: aflLadder } = useLadder(aflSeason?.id);
+  const { data: cricketLadder } = useLadder(cricketSeason?.id);
+
+  const latestResults = allResults?.slice(0, 10) ?? [];
   const featuredMatch = latestResults[0];
+
+  const topAflLadder = (aflLadder ?? []).slice(0, 8);
+  const topCricketLadder = (cricketLadder ?? []).slice(0, 8);
 
   return (
     <Layout>
-      {/* Scores strip - horizontal scroll */}
+      {/* Scores strip */}
       {latestResults.length > 0 && (
         <div className="bg-card border-b border-border/50">
           <div className="page-container">
@@ -84,22 +88,17 @@ export default function Index() {
                 </div>
 
                 <div className="flex items-center justify-between gap-4">
-                  {/* Home */}
                   <div className="flex-1 text-center">
                     <ClubLogo club={featuredMatch.fixtures?.home_team?.clubs ?? {}} size="lg" className="mx-auto !h-14 !w-14 md:!h-16 md:!w-16 mb-2" />
                     <div className="text-white/80 text-xs font-semibold truncate">{featuredMatch.fixtures?.home_team?.clubs?.short_name}</div>
                   </div>
-
-                  {/* Score */}
                   <div className="text-center shrink-0">
                     {isCricketMatch ? (
-                      <>
-                        <div className="text-3xl md:text-4xl font-black text-white tabular-nums tracking-tighter">
-                          {featuredMatch.home_score}/{featuredMatch.fixtures?.home_team ? '' : '0'}
-                          <span className="text-white/20 mx-2">v</span>
-                          {featuredMatch.away_score}
-                        </div>
-                      </>
+                      <div className="text-3xl md:text-4xl font-black text-white tabular-nums tracking-tighter">
+                        {featuredMatch.home_score}
+                        <span className="text-white/20 mx-2">v</span>
+                        {featuredMatch.away_score}
+                      </div>
                     ) : (
                       <>
                         <div className="text-4xl md:text-5xl font-black text-white tabular-nums tracking-tighter">
@@ -113,8 +112,6 @@ export default function Index() {
                       </>
                     )}
                   </div>
-
-                  {/* Away */}
                   <div className="flex-1 text-center">
                     <ClubLogo club={featuredMatch.fixtures?.away_team?.clubs ?? {}} size="lg" className="mx-auto !h-14 !w-14 md:!h-16 md:!w-16 mb-2" />
                     <div className="text-white/80 text-xs font-semibold truncate">{featuredMatch.fixtures?.away_team?.clubs?.short_name}</div>
@@ -183,54 +180,61 @@ export default function Index() {
           </section>
         )}
 
-        {/* Upcoming Fixtures */}
-        {upcomingFixtures.length > 0 && (
+        {/* Recent Matches - All Sports */}
+        {latestResults.length > 1 && (
           <section>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="section-label flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" />Upcoming</h2>
-              <Link to="/fixtures" className="text-xs font-bold text-primary flex items-center gap-0.5">All <ChevronRight className="h-3 w-3" /></Link>
+              <h2 className="section-label flex items-center gap-1.5"><Trophy className="h-3.5 w-3.5" />Recent Matches</h2>
+              <Link to="/results" className="text-xs font-bold text-primary flex items-center gap-0.5">All <ChevronRight className="h-3 w-3" /></Link>
             </div>
             <div className="space-y-2">
-              {upcomingFixtures.map((f: any) => (
-                <Link key={f.id} to={`/match/${f.id}`} className="block match-card p-3.5">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" />
-                      <span className="font-bold text-sm truncate">{f.home_team?.clubs?.short_name}</span>
+              {latestResults.slice(1, 8).map((r: any) => {
+                const sportSlug = r.fixtures?.seasons?.competitions?.sports?.slug;
+                const isCricket = sportSlug === 'cricket';
+                const compName = r.fixtures?.seasons?.competitions?.short_name || r.fixtures?.seasons?.competitions?.name || '';
+                return (
+                  <Link key={r.id} to={`/match/${r.fixture_id}`} className="block match-card p-3.5">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Badge variant="outline" className="rounded-full text-[9px] font-bold px-2 py-0">
+                        {isCricket ? 'Cricket' : 'AFL'}
+                      </Badge>
+                      <span className="text-[10px] text-muted-foreground">{compName} · Rd {r.fixtures?.round_number}</span>
                     </div>
-                    <div className="text-center shrink-0 px-2">
-                      <div className="text-[10px] text-muted-foreground font-medium">
-                        {f.scheduled_at ? new Date(f.scheduled_at).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBA'}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <ClubLogo club={r.fixtures?.home_team?.clubs ?? {}} size="sm" />
+                        <span className={`font-bold text-sm truncate ${r.home_score! > r.away_score! ? '' : 'text-muted-foreground'}`}>
+                          {r.fixtures?.home_team?.clubs?.short_name}
+                        </span>
                       </div>
-                      <div className="text-xs font-bold text-muted-foreground">
-                        {f.scheduled_at ? new Date(f.scheduled_at).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) : ''}
+                      <div className="text-center shrink-0">
+                        <span className="stat-number text-base">
+                          {r.home_score} – {r.away_score}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                        <span className={`font-bold text-sm truncate ${r.away_score! > r.home_score! ? '' : 'text-muted-foreground'}`}>
+                          {r.fixtures?.away_team?.clubs?.short_name}
+                        </span>
+                        <ClubLogo club={r.fixtures?.away_team?.clubs ?? {}} size="sm" />
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
-                      <span className="font-bold text-sm truncate">{f.away_team?.clubs?.short_name}</span>
-                      <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" />
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-center gap-1 mt-2.5 pt-2 border-t border-border/40">
-                    <span className="text-xs font-bold text-primary flex items-center gap-1">
-                      View Match <ChevronRight className="h-3 w-3" />
-                    </span>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           </section>
         )}
 
-        {/* Ladder */}
-        {topLadder.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="section-label flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" />Ladder</h2>
-              <Link to="/ladder" className="text-xs font-bold text-primary flex items-center gap-0.5">Full <ChevronRight className="h-3 w-3" /></Link>
-            </div>
-            <div className="bg-card rounded-xl border border-border/60 overflow-hidden">
-              <div className="overflow-x-auto">
+        {/* Ladders - Both Sports Side by Side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {topAflLadder.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="section-label flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" />AFL Ladder</h2>
+                <Link to="/ladder" className="text-xs font-bold text-primary flex items-center gap-0.5">Full <ChevronRight className="h-3 w-3" /></Link>
+              </div>
+              <div className="bg-card rounded-xl border border-border/60 overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border/60 bg-muted/30">
@@ -243,7 +247,7 @@ export default function Index() {
                     </tr>
                   </thead>
                   <tbody>
-                    {topLadder.map((entry: any, i: number) => (
+                    {topAflLadder.map((entry: any, i: number) => (
                       <tr key={entry.id} className={`border-b border-border/40 last:border-0 ${i < 4 ? '' : 'opacity-60'}`}>
                         <td className="py-2.5 pl-3 pr-1">
                           <span className={`text-xs font-black ${i < 4 ? 'text-accent' : 'text-muted-foreground'}`}>{i + 1}</span>
@@ -263,45 +267,59 @@ export default function Index() {
                   </tbody>
                 </table>
               </div>
-            </div>
-          </section>
-        )}
+            </section>
+          )}
 
-        {/* Latest Results */}
-        {latestResults.length > 1 && (
-          <section>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="section-label flex items-center gap-1.5"><Trophy className="h-3.5 w-3.5" />Results</h2>
-              <Link to="/results" className="text-xs font-bold text-primary flex items-center gap-0.5">All <ChevronRight className="h-3 w-3" /></Link>
-            </div>
-            <div className="space-y-2">
-              {latestResults.slice(1, 6).map((r: any) => (
-                <Link key={r.id} to={`/match/${r.fixture_id}`} className="block match-card p-3.5">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <ClubLogo club={r.fixtures?.home_team?.clubs ?? {}} size="sm" />
-                      <span className={`font-bold text-sm truncate ${r.home_score! > r.away_score! ? '' : 'text-muted-foreground'}`}>
-                        {r.fixtures?.home_team?.clubs?.short_name}
-                      </span>
-                    </div>
-                    <div className="text-center shrink-0">
-                      <span className="stat-number text-base">
-                        {r.home_score} – {r.away_score}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
-                      <span className={`font-bold text-sm truncate ${r.away_score! > r.home_score! ? '' : 'text-muted-foreground'}`}>
-                        {r.fixtures?.away_team?.clubs?.short_name}
-                      </span>
-                      <ClubLogo club={r.fixtures?.away_team?.clubs ?? {}} size="sm" />
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
+          {topCricketLadder.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="section-label flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" />Cricket Ladder</h2>
+                <Link to="/ladder" className="text-xs font-bold text-primary flex items-center gap-0.5">Full <ChevronRight className="h-3 w-3" /></Link>
+              </div>
+              <div className="bg-card rounded-xl border border-border/60 overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/60 bg-muted/30">
+                      <th className="text-left py-2.5 pl-3 pr-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-7"></th>
+                      <th className="text-left py-2.5 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Team</th>
+                      <th className="text-center py-2.5 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-8">P</th>
+                      <th className="text-center py-2.5 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-8">W</th>
+                      <th className="text-center py-2.5 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-12 hidden sm:table-cell">NRR</th>
+                      <th className="text-center py-2.5 px-2 pr-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-8">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {topCricketLadder.map((entry: any, i: number) => {
+                      const pf = entry.points_for ?? 0;
+                      const pa = entry.points_against ?? 0;
+                      const played = entry.played ?? 0;
+                      const nrr = played > 0 && pa > 0 ? (pf / played) - (pa / played) : pf > 0 ? 99.999 : 0;
+                      return (
+                        <tr key={entry.id} className={`border-b border-border/40 last:border-0 ${i < 4 ? '' : 'opacity-60'}`}>
+                          <td className="py-2.5 pl-3 pr-1">
+                            <span className={`text-xs font-black ${i < 4 ? 'text-accent' : 'text-muted-foreground'}`}>{i + 1}</span>
+                          </td>
+                          <td className="py-2.5 px-2">
+                            <div className="flex items-center gap-2">
+                              <ClubLogo club={entry.teams?.clubs ?? {}} size="sm" className="!h-6 !w-6" />
+                              <span className="font-semibold text-xs">{entry.teams?.clubs?.short_name}</span>
+                            </div>
+                          </td>
+                          <td className="text-center py-2.5 px-2 text-xs tabular-nums">{played}</td>
+                          <td className="text-center py-2.5 px-2 text-xs tabular-nums font-bold">{entry.wins}</td>
+                          <td className={`text-center py-2.5 px-2 text-xs tabular-nums hidden sm:table-cell ${nrr > 0 ? 'text-green-600' : nrr < 0 ? 'text-red-500' : ''}`}>
+                            {nrr > 0 ? '+' : ''}{nrr.toFixed(2)}
+                          </td>
+                          <td className="text-center py-2.5 px-2 pr-3 text-xs stat-number">{entry.competition_points}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+        </div>
 
         {/* News */}
         {(news ?? []).length > 0 && (
