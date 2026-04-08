@@ -1,7 +1,8 @@
 import { Badge } from '@/components/ui/badge';
 import ClubLogo from '@/components/ClubLogo';
-import { Target, Award, FileText, Info, ChevronDown } from 'lucide-react';
+import { Target, Award, FileText, Info, ChevronDown, User } from 'lucide-react';
 import { useState } from 'react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface SummaryTabProps {
   fixture: any;
