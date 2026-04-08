@@ -134,6 +134,19 @@ export function usePlayers(teamId?: string) {
   });
 }
 
+export function useNews(limit?: number) {
+  return useQuery({
+    queryKey: ['news', limit],
+    queryFn: async () => {
+      let q = supabase.from('news').select('*').eq('is_published', true).order('published_at', { ascending: false });
+      if (limit) q = q.limit(limit);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 export function useFixture(id: string) {
   return useQuery({
     queryKey: ['fixture', id],

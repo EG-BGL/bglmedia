@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Trophy, Users, ArrowRight, MapPin } from 'lucide-react';
-import { useClubs, useFixtures, useResults, useLadder, useCurrentSeason } from '@/hooks/useData';
+import { Calendar, Trophy, Users, ArrowRight, MapPin, Newspaper } from 'lucide-react';
+import { useClubs, useFixtures, useResults, useLadder, useCurrentSeason, useNews } from '@/hooks/useData';
 
 export default function Index() {
   const { data: season } = useCurrentSeason();
