@@ -42,6 +42,7 @@ export default function SubmitResult() {
   const [goalKickersAway, setGoalKickersAway] = useState('');
   const [matchNotes, setMatchNotes] = useState('');
   const [extractedPlayerStats, setExtractedPlayerStats] = useState<any[]>([]);
+  const [showSuccess, setShowSuccess] = useState(false);
   // Multi-section upload state
   type SectionKey = 'final_score' | 'match_stats_1' | 'match_stats_2' | 'goalkickers_1' | 'goalkickers_2' | 'disposals_1' | 'disposals_2' | 'afl_fantasy_1' | 'afl_fantasy_2' | 'afl_fantasy_3';
   const defaultSections: Record<SectionKey, null> = { final_score: null, match_stats_1: null, match_stats_2: null, goalkickers_1: null, goalkickers_2: null, disposals_1: null, disposals_2: null, afl_fantasy_1: null, afl_fantasy_2: null, afl_fantasy_3: null };
