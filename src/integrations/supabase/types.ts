@@ -148,6 +148,7 @@ export type Database = {
           id: string
           name: string
           short_name: string | null
+          sport_id: string | null
           updated_at: string
         }
         Insert: {
@@ -157,6 +158,7 @@ export type Database = {
           id?: string
           name: string
           short_name?: string | null
+          sport_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -166,9 +168,253 @@ export type Database = {
           id?: string
           name?: string
           short_name?: string | null
+          sport_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "competitions_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cricket_match_results: {
+        Row: {
+          all_out: boolean | null
+          created_at: string
+          declared: boolean | null
+          extras: number | null
+          extras_breakdown: Json | null
+          fixture_id: string
+          follow_on: boolean | null
+          id: string
+          innings_number: number
+          run_rate: number | null
+          team_id: string
+          total_overs: number | null
+          total_runs: number | null
+          total_wickets: number | null
+          updated_at: string
+        }
+        Insert: {
+          all_out?: boolean | null
+          created_at?: string
+          declared?: boolean | null
+          extras?: number | null
+          extras_breakdown?: Json | null
+          fixture_id: string
+          follow_on?: boolean | null
+          id?: string
+          innings_number?: number
+          run_rate?: number | null
+          team_id: string
+          total_overs?: number | null
+          total_runs?: number | null
+          total_wickets?: number | null
+          updated_at?: string
+        }
+        Update: {
+          all_out?: boolean | null
+          created_at?: string
+          declared?: boolean | null
+          extras?: number | null
+          extras_breakdown?: Json | null
+          fixture_id?: string
+          follow_on?: boolean | null
+          id?: string
+          innings_number?: number
+          run_rate?: number | null
+          team_id?: string
+          total_overs?: number | null
+          total_runs?: number | null
+          total_wickets?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cricket_match_results_fixture_id_fkey"
+            columns: ["fixture_id"]
+            isOneToOne: false
+            referencedRelation: "fixtures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cricket_match_results_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cricket_player_stats: {
+        Row: {
+          balls_faced: number | null
+          bowler_name: string | null
+          catches: number | null
+          created_at: string
+          economy: number | null
+          fixture_id: string
+          fours: number | null
+          how_out: string | null
+          id: string
+          innings_number: number
+          maidens: number | null
+          no_balls: number | null
+          not_out: boolean | null
+          overs_bowled: number | null
+          player_id: string
+          run_outs: number | null
+          runs_conceded: number | null
+          runs_scored: number | null
+          sixes: number | null
+          strike_rate: number | null
+          stumpings: number | null
+          team_id: string
+          updated_at: string
+          wickets: number | null
+          wides: number | null
+        }
+        Insert: {
+          balls_faced?: number | null
+          bowler_name?: string | null
+          catches?: number | null
+          created_at?: string
+          economy?: number | null
+          fixture_id: string
+          fours?: number | null
+          how_out?: string | null
+          id?: string
+          innings_number?: number
+          maidens?: number | null
+          no_balls?: number | null
+          not_out?: boolean | null
+          overs_bowled?: number | null
+          player_id: string
+          run_outs?: number | null
+          runs_conceded?: number | null
+          runs_scored?: number | null
+          sixes?: number | null
+          strike_rate?: number | null
+          stumpings?: number | null
+          team_id: string
+          updated_at?: string
+          wickets?: number | null
+          wides?: number | null
+        }
+        Update: {
+          balls_faced?: number | null
+          bowler_name?: string | null
+          catches?: number | null
+          created_at?: string
+          economy?: number | null
+          fixture_id?: string
+          fours?: number | null
+          how_out?: string | null
+          id?: string
+          innings_number?: number
+          maidens?: number | null
+          no_balls?: number | null
+          not_out?: boolean | null
+          overs_bowled?: number | null
+          player_id?: string
+          run_outs?: number | null
+          runs_conceded?: number | null
+          runs_scored?: number | null
+          sixes?: number | null
+          strike_rate?: number | null
+          stumpings?: number | null
+          team_id?: string
+          updated_at?: string
+          wickets?: number | null
+          wides?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cricket_player_stats_fixture_id_fkey"
+            columns: ["fixture_id"]
+            isOneToOne: false
+            referencedRelation: "fixtures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cricket_player_stats_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cricket_player_stats_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cricket_team_stats: {
+        Row: {
+          created_at: string
+          extras: number | null
+          fixture_id: string
+          id: string
+          innings_number: number
+          partnership_highest: number | null
+          run_rate: number | null
+          team_id: string
+          total_overs: number | null
+          total_runs: number | null
+          total_wickets: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          extras?: number | null
+          fixture_id: string
+          id?: string
+          innings_number?: number
+          partnership_highest?: number | null
+          run_rate?: number | null
+          team_id: string
+          total_overs?: number | null
+          total_runs?: number | null
+          total_wickets?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          extras?: number | null
+          fixture_id?: string
+          id?: string
+          innings_number?: number
+          partnership_highest?: number | null
+          run_rate?: number | null
+          team_id?: string
+          total_overs?: number | null
+          total_runs?: number | null
+          total_wickets?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cricket_team_stats_fixture_id_fkey"
+            columns: ["fixture_id"]
+            isOneToOne: false
+            referencedRelation: "fixtures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cricket_team_stats_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       fixtures: {
         Row: {
@@ -177,6 +423,7 @@ export type Database = {
           home_team_id: string
           id: string
           is_locked: boolean | null
+          match_format: string | null
           round_number: number
           scheduled_at: string | null
           season_id: string
@@ -190,6 +437,7 @@ export type Database = {
           home_team_id: string
           id?: string
           is_locked?: boolean | null
+          match_format?: string | null
           round_number: number
           scheduled_at?: string | null
           season_id: string
@@ -203,6 +451,7 @@ export type Database = {
           home_team_id?: string
           id?: string
           is_locked?: boolean | null
+          match_format?: string | null
           round_number?: number
           scheduled_at?: string | null
           season_id?: string
@@ -732,6 +981,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sports: {
+        Row: {
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       teams: {
         Row: {

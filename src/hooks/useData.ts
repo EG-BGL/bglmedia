@@ -35,13 +35,17 @@ export function useSeasons() {
   });
 }
 
-export function useCurrentSeason() {
+export function useCurrentSeason(sportId?: string) {
   return useQuery({
-    queryKey: ['current-season'],
+    queryKey: ['current-season', sportId],
     queryFn: async () => {
-      const { data, error } = await supabase.from('seasons').select('*, competitions(*)').eq('is_current', true).maybeSingle();
+      let q = supabase.from('seasons').select('*, competitions(*)').eq('is_current', true);
+      if (sportId) q = q.eq('competitions.sport_id', sportId);
+      const { data, error } = await q;
       if (error) throw error;
-      return data;
+      // Filter out seasons where competitions was filtered to empty
+      const filtered = sportId ? data?.filter((s: any) => s.competitions !== null) : data;
+      return filtered?.[0] ?? null;
     },
   });
 }
