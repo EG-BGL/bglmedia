@@ -42,10 +42,10 @@ export default function SubmitResult() {
   const [matchNotes, setMatchNotes] = useState('');
   const [extractedPlayerStats, setExtractedPlayerStats] = useState<any[]>([]);
   // Multi-section upload state
-  type SectionKey = 'final_score' | 'match_stats_1' | 'match_stats_2' | 'goalkickers_1' | 'goalkickers_2' | 'disposals_1' | 'disposals_2' | 'afl_fantasy_1' | 'afl_fantasy_2';
-  const defaultSections: Record<SectionKey, null> = { final_score: null, match_stats_1: null, match_stats_2: null, goalkickers_1: null, goalkickers_2: null, disposals_1: null, disposals_2: null, afl_fantasy_1: null, afl_fantasy_2: null };
+  type SectionKey = 'final_score' | 'match_stats_1' | 'match_stats_2' | 'goalkickers_1' | 'goalkickers_2' | 'disposals_1' | 'disposals_2' | 'afl_fantasy_1' | 'afl_fantasy_2' | 'afl_fantasy_3';
+  const defaultSections: Record<SectionKey, null> = { final_score: null, match_stats_1: null, match_stats_2: null, goalkickers_1: null, goalkickers_2: null, disposals_1: null, disposals_2: null, afl_fantasy_1: null, afl_fantasy_2: null, afl_fantasy_3: null };
   const [sectionPreviews, setSectionPreviews] = useState<Record<SectionKey, string | null>>({ ...defaultSections });
-  const [sectionExtracting, setSectionExtracting] = useState<Record<SectionKey, boolean>>({ final_score: false, match_stats_1: false, match_stats_2: false, goalkickers_1: false, goalkickers_2: false, disposals_1: false, disposals_2: false, afl_fantasy_1: false, afl_fantasy_2: false });
+  const [sectionExtracting, setSectionExtracting] = useState<Record<SectionKey, boolean>>({ final_score: false, match_stats_1: false, match_stats_2: false, goalkickers_1: false, goalkickers_2: false, disposals_1: false, disposals_2: false, afl_fantasy_1: false, afl_fantasy_2: false, afl_fantasy_3: false });
   const [sectionConfidence, setSectionConfidence] = useState<Record<SectionKey, string | null>>({ ...defaultSections });
   const fileRefs = {
     final_score: useRef<HTMLInputElement>(null),
@@ -57,6 +57,7 @@ export default function SubmitResult() {
     disposals_2: useRef<HTMLInputElement>(null),
     afl_fantasy_1: useRef<HTMLInputElement>(null),
     afl_fantasy_2: useRef<HTMLInputElement>(null),
+    afl_fantasy_3: useRef<HTMLInputElement>(null),
   };
 
   useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading, navigate]);
@@ -200,7 +201,7 @@ export default function SubmitResult() {
       const { data: urlData } = supabase.storage.from('scorecard-images').getPublicUrl(path);
 
       const extractionType = (section === 'match_stats_1' || section === 'match_stats_2') ? 'match_stats'
-        : (section === 'goalkickers_1' || section === 'goalkickers_2' || section === 'disposals_1' || section === 'disposals_2' || section === 'afl_fantasy_1' || section === 'afl_fantasy_2') ? 'key_stats'
+        : (section === 'goalkickers_1' || section === 'goalkickers_2' || section === 'disposals_1' || section === 'disposals_2' || section === 'afl_fantasy_1' || section === 'afl_fantasy_2' || section === 'afl_fantasy_3') ? 'key_stats'
         : section;
       const { data: fnData, error: fnError } = await supabase.functions.invoke('extract-scorecard', {
         body: { imageUrl: urlData.publicUrl, extractionType },
@@ -248,7 +249,7 @@ export default function SubmitResult() {
       }
 
       setSectionConfidence(p => ({ ...p, [section]: fnData.confidence ?? 'medium' }));
-      const labels: Record<SectionKey, string> = { final_score: 'Final scores', match_stats_1: 'Match stats (1)', match_stats_2: 'Match stats (2)', goalkickers_1: 'Goalkickers 1', goalkickers_2: 'Goalkickers 2', disposals_1: 'Disposals 1', disposals_2: 'Disposals 2', afl_fantasy_1: 'AFL Fantasy 1', afl_fantasy_2: 'AFL Fantasy 2' };
+      const labels: Record<SectionKey, string> = { final_score: 'Final scores', match_stats_1: 'Match stats (1)', match_stats_2: 'Match stats (2)', goalkickers_1: 'Goalkickers 1', goalkickers_2: 'Goalkickers 2', disposals_1: 'Disposals 1', disposals_2: 'Disposals 2', afl_fantasy_1: 'AFL Fantasy 1', afl_fantasy_2: 'AFL Fantasy 2', afl_fantasy_3: 'AFL Fantasy 3' };
       toast.success(`${labels[section]} extracted!`);
     } catch {
       toast.error('Failed to process image');
@@ -347,6 +348,7 @@ export default function SubmitResult() {
                 { key: 'disposals_2' as SectionKey, label: 'Disposals 2', icon: BarChart3 },
                 { key: 'afl_fantasy_1' as SectionKey, label: 'AFL Fantasy 1', icon: Sparkles },
                 { key: 'afl_fantasy_2' as SectionKey, label: 'AFL Fantasy 2', icon: Sparkles },
+                { key: 'afl_fantasy_3' as SectionKey, label: 'AFL Fantasy 3', icon: Sparkles },
               ]).map(({ key, label, icon: Icon }) => (
                 <div key={key} className="relative">
                   <input ref={fileRefs[key]} type="file" accept="image/*" onChange={(e) => handleSectionUpload(key, e)} className="hidden" />
