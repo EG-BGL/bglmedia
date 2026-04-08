@@ -179,3 +179,18 @@ export function useFixture(id: string) {
     enabled: !!id,
   });
 }
+
+export function useMatchTeamStats(fixtureId: string | undefined) {
+  return useQuery({
+    queryKey: ['match_team_stats', fixtureId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('match_team_stats')
+        .select('*')
+        .eq('fixture_id', fixtureId!);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!fixtureId,
+  });
+}
