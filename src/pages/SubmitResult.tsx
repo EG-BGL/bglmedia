@@ -463,35 +463,6 @@ export default function SubmitResult() {
                 </div>
               </div>
 
-              {/* Players */}
-              <div className="match-card p-4 space-y-3">
-                <h3 className="section-label">Players</h3>
-                <div><Label className="text-[10px] font-bold">Best — {selectedMatch?.home_team?.clubs?.short_name ?? 'Home'}</Label><Input value={bestHome} onChange={e=>setBestHome(e.target.value)} placeholder="J. Mitchell, T. Williams" className="mt-1 rounded-lg" /></div>
-                <div><Label className="text-[10px] font-bold">Best — {selectedMatch?.away_team?.clubs?.short_name ?? 'Away'}</Label><Input value={bestAway} onChange={e=>setBestAway(e.target.value)} placeholder="S. Kelly, M. Brown" className="mt-1 rounded-lg" /></div>
-                <div className="border-t border-border/50 pt-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <Label className="text-[10px] font-bold">Goals — {selectedMatch?.home_team?.clubs?.short_name ?? 'Home'}</Label>
-                    {(sectionPreviews['goalkickers_1'] || sectionPreviews['goalkickers_2']) && (
-                      <Badge variant="outline" className="text-[8px] rounded-full gap-1 h-4 px-1.5 border-primary/30 text-primary">
-                        <Sparkles className="h-2.5 w-2.5" /> AI filled
-                      </Badge>
-                    )}
-                  </div>
-                  <Input value={goalKickersHome} onChange={e=>setGoalKickersHome(e.target.value)} placeholder="M. Lewis 3, Z. Wilson 2" className="rounded-lg" />
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <Label className="text-[10px] font-bold">Goals — {selectedMatch?.away_team?.clubs?.short_name ?? 'Away'}</Label>
-                    {(sectionPreviews['goalkickers_1'] || sectionPreviews['goalkickers_2']) && (
-                      <Badge variant="outline" className="text-[8px] rounded-full gap-1 h-4 px-1.5 border-primary/30 text-primary">
-                        <Sparkles className="h-2.5 w-2.5" /> AI filled
-                      </Badge>
-                    )}
-                  </div>
-                  <Input value={goalKickersAway} onChange={e=>setGoalKickersAway(e.target.value)} placeholder="N. Harris 2" className="rounded-lg" />
-                </div>
-              </div>
-
               {/* Notes */}
               <div className="match-card p-4">
                 <h3 className="section-label mb-2">Notes</h3>
