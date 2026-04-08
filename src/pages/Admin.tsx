@@ -389,6 +389,7 @@ export default function Admin() {
               <TabsTrigger value="competitions" className="rounded-full text-[10px] font-bold px-3"><Trophy className="h-3 w-3 mr-1" />Competitions</TabsTrigger>
               <TabsTrigger value="clubs" className="rounded-full text-[10px] font-bold px-3"><Users className="h-3 w-3 mr-1" />Teams</TabsTrigger>
               <TabsTrigger value="players" className="rounded-full text-[10px] font-bold px-3"><Users className="h-3 w-3 mr-1" />Players</TabsTrigger>
+              <TabsTrigger value="coaches" className="rounded-full text-[10px] font-bold px-3"><UserCheck className="h-3 w-3 mr-1" />Coaches</TabsTrigger>
               <TabsTrigger value="pending" className="rounded-full text-[10px] font-bold px-3"><Clock className="h-3 w-3 mr-1" />Pending</TabsTrigger>
               <TabsTrigger value="news" className="rounded-full text-[10px] font-bold px-3"><Newspaper className="h-3 w-3 mr-1" />News</TabsTrigger>
               <TabsTrigger value="audit" className="rounded-full text-[10px] font-bold px-3"><FileText className="h-3 w-3 mr-1" />Audit</TabsTrigger>
