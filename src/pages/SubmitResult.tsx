@@ -45,14 +45,27 @@ export default function SubmitResult() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from('coaches_to_teams').select('team_id').eq('user_id', user.id).then(async ({ data: teams }) => {
-      if (!teams?.length) return;
-      const teamIds = teams.map(t => t.team_id);
-      setCoachTeamIds(teamIds);
-      const { data } = await supabase.from('fixtures').select('*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))').eq('is_locked', false).in('status', ['scheduled', 'completed']).or(teamIds.map(id => `home_team_id.eq.${id},away_team_id.eq.${id}`).join(','));
-      setFixtures(data ?? []);
-    });
-  }, [user]);
+
+    const loadFixtures = async () => {
+      if (role === 'league_admin') {
+        // Admins can submit for any match
+        const { data } = await supabase.from('fixtures').select('*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))').eq('is_locked', false).in('status', ['scheduled', 'in_progress']).order('round_number');
+        setFixtures(data ?? []);
+        // Set all team IDs so admin can submit as any team
+        const ids = new Set<string>();
+        (data ?? []).forEach((f: any) => { ids.add(f.home_team_id); ids.add(f.away_team_id); });
+        setCoachTeamIds(Array.from(ids));
+      } else {
+        const { data: teams } = await supabase.from('coaches_to_teams').select('team_id').eq('user_id', user.id);
+        if (!teams?.length) return;
+        const teamIds = teams.map(t => t.team_id);
+        setCoachTeamIds(teamIds);
+        const { data } = await supabase.from('fixtures').select('*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))').eq('is_locked', false).in('status', ['scheduled', 'in_progress']).or(teamIds.map(id => `home_team_id.eq.${id},away_team_id.eq.${id}`).join(','));
+        setFixtures(data ?? []);
+      }
+    };
+    loadFixtures();
+  }, [user, role]);
 
   // Load existing submissions for the selected fixture
   useEffect(() => {
