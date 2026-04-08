@@ -536,40 +536,60 @@ export default function SubmitCricketResult() {
           {/* AI Scorecard Reader */}
           {selectedMatch && (
             <div className="match-card p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <h3 className="section-label">AI Scorecard Reader</h3>
-                {aiFilled && <Badge className="bg-primary/10 text-primary text-[9px] rounded-full border-0">AI filled</Badge>}
+              <h3 className="section-label mb-2 flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-primary" /> AI Scorecard Reader
+              </h3>
+              <p className="text-[10px] text-muted-foreground mb-3">Upload photos for each section and AI will extract the data automatically</p>
+
+              <div className="grid grid-cols-3 gap-2">
+                {cricketSections.map(({ key, label, icon: Icon }) => (
+                  <label key={key} className="cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) handleSectionUpload(key, file);
+                        e.target.value = '';
+                      }}
+                      disabled={sectionExtracting[key]}
+                    />
+                    <div className={`relative flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed transition-all overflow-hidden ${
+                      sectionPreviews[key] ? 'border-primary/30 bg-primary/5' : 'border-border hover:border-primary/40 hover:bg-muted/50'
+                    } ${sectionExtracting[key] ? 'border-primary/50 bg-primary/5 animate-pulse' : ''}`}
+                    style={{ aspectRatio: '1' }}>
+                      {sectionPreviews[key] ? (
+                        <>
+                          <img src={sectionPreviews[key]!} alt={label} className="absolute inset-0 w-full h-full object-cover opacity-30" />
+                          <div className="relative z-10 flex flex-col items-center gap-1">
+                            {sectionExtracting[key] ? (
+                              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                            ) : sectionConfidence[key] === 'failed' ? (
+                              <AlertCircle className="h-5 w-5 text-destructive" />
+                            ) : (
+                              <CheckCircle2 className="h-5 w-5 text-primary" />
+                            )}
+                            <span className="text-[9px] font-bold text-center px-1 leading-tight">{label}</span>
+                            {sectionConfidence[key] && sectionConfidence[key] !== 'failed' && (
+                              <Badge variant="outline" className="text-[8px] rounded-full">{sectionConfidence[key]}</Badge>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {sectionExtracting[key] ? (
+                            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                          ) : (
+                            <Icon className="h-5 w-5 text-muted-foreground" />
+                          )}
+                          <span className="text-[9px] font-bold text-muted-foreground text-center px-1 leading-tight">{label}</span>
+                        </>
+                      )}
+                    </div>
+                  </label>
+                ))}
               </div>
-              <p className="text-[10px] text-muted-foreground mb-3">
-                Upload photos of the scorecard and AI will extract all batting, bowling, and innings data automatically.
-              </p>
-              <div className="flex gap-2">
-                <label className="flex-1">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={e => handleAiScorecardUpload(e.target.files)}
-                    disabled={aiLoading}
-                  />
-                  <div className={`flex items-center justify-center gap-2 h-12 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${aiLoading ? 'border-primary/50 bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/50'}`}>
-                    {aiLoading ? (
-                      <><Loader2 className="h-4 w-4 animate-spin text-primary" /><span className="text-xs font-bold text-primary">Reading scorecard...</span></>
-                    ) : (
-                      <><Camera className="h-4 w-4 text-muted-foreground" /><span className="text-xs font-bold text-muted-foreground">Upload Scorecard Photos</span></>
-                    )}
-                  </div>
-                </label>
-              </div>
-              {aiImages.length > 0 && (
-                <div className="flex gap-2 mt-2 overflow-x-auto">
-                  {aiImages.map((file, i) => (
-                    <img key={i} src={URL.createObjectURL(file)} alt={`Scorecard ${i + 1}`} className="h-16 w-16 rounded-lg object-cover border border-border/50" />
-                  ))}
-                </div>
-              )}
             </div>
           )}
 
