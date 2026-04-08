@@ -184,7 +184,7 @@ export default function Fixtures() {
                               <span className={`text-xs tabular-nums ml-auto shrink-0 ${homeWon ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>{homeScore}</span>
                             )}
                             {aflResult && (
-                              <span className={`text-xs tabular-nums ml-auto shrink-0 ${aflResult.homeWon ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>{aflResult.r.home_goals}.{aflResult.r.home_behinds}</span>
+                              <span className={`text-xs tabular-nums ml-auto shrink-0 ${aflResult.homeWon ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>{aflResult.r.home_goals}.{aflResult.r.home_behinds}.{aflResult.r.home_score}</span>
                             )}
                           </div>
                           <div className="text-center shrink-0 px-1">
