@@ -17,7 +17,7 @@ import ClubLogo from '@/components/ClubLogo';
 interface FormErrors { fixture?: string; homeGoals?: string; homeBehinds?: string; awayGoals?: string; awayBehinds?: string; quarters?: string; }
 
 export default function SubmitResult() {
-  const { user, loading } = useAuth();
+  const { user, role, loading } = useAuth();
   const navigate = useNavigate();
   const [fixtures, setFixtures] = useState<any[]>([]);
   const [coachTeamIds, setCoachTeamIds] = useState<string[]>([]);
