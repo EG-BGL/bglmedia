@@ -29,6 +29,7 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
 
   const [sortKey, setSortKey] = useState<string>('afl_fantasy');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [filter, setFilter] = useState<'all' | 'goalkickers'>('all');
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
