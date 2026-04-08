@@ -412,14 +412,12 @@ export default function Admin() {
                       </Select>
                     </div>
                     <div className="col-span-2 sm:col-span-1">
-                      <Label className="text-xs font-bold">Type</Label>
+                      <Label className="text-xs font-bold">Games</Label>
                       <Select value={compForm.competition_type} onValueChange={v => setCompForm(f => ({ ...f, competition_type: v }))}>
                         <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="senior">Senior</SelectItem>
-                          <SelectItem value="junior">Junior</SelectItem>
-                          <SelectItem value="womens">Women's</SelectItem>
-                          <SelectItem value="masters">Masters</SelectItem>
+                          <SelectItem value="AFL26">AFL26</SelectItem>
+                          <SelectItem value="Cricket 26">Cricket 26</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
