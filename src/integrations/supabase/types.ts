@@ -400,6 +400,7 @@ export type Database = {
           status: Database["public"]["Enums"]["result_status"] | null
           submitted_at: string | null
           submitted_by: string | null
+          team_id: string | null
           updated_at: string
         }
         Insert: {
@@ -430,6 +431,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["result_status"] | null
           submitted_at?: string | null
           submitted_by?: string | null
+          team_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -460,6 +462,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["result_status"] | null
           submitted_at?: string | null
           submitted_by?: string | null
+          team_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -468,6 +471,13 @@ export type Database = {
             columns: ["fixture_id"]
             isOneToOne: false
             referencedRelation: "fixtures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "results_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
@@ -603,6 +613,16 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      update_ladder_from_result: {
+        Args: {
+          p_away_behinds: number
+          p_away_goals: number
+          p_fixture_id: string
+          p_home_behinds: number
+          p_home_goals: number
+        }
+        Returns: undefined
       }
     }
     Enums: {
