@@ -373,6 +373,96 @@ export type Database = {
           },
         ]
       }
+      match_team_stats: {
+        Row: {
+          clearances: number | null
+          contested_marks: number | null
+          contested_possessions: number | null
+          created_at: string
+          disposals: number | null
+          fifty_m_penalties: number | null
+          fixture_id: string
+          frees_against: number | null
+          frees_for: number | null
+          handballs: number | null
+          hitouts: number | null
+          id: string
+          inside_50s: number | null
+          intercept_marks: number | null
+          kicks: number | null
+          marks: number | null
+          rebound_50s: number | null
+          spoils: number | null
+          tackles: number | null
+          team_id: string
+          uncontested_possessions: number | null
+          updated_at: string
+        }
+        Insert: {
+          clearances?: number | null
+          contested_marks?: number | null
+          contested_possessions?: number | null
+          created_at?: string
+          disposals?: number | null
+          fifty_m_penalties?: number | null
+          fixture_id: string
+          frees_against?: number | null
+          frees_for?: number | null
+          handballs?: number | null
+          hitouts?: number | null
+          id?: string
+          inside_50s?: number | null
+          intercept_marks?: number | null
+          kicks?: number | null
+          marks?: number | null
+          rebound_50s?: number | null
+          spoils?: number | null
+          tackles?: number | null
+          team_id: string
+          uncontested_possessions?: number | null
+          updated_at?: string
+        }
+        Update: {
+          clearances?: number | null
+          contested_marks?: number | null
+          contested_possessions?: number | null
+          created_at?: string
+          disposals?: number | null
+          fifty_m_penalties?: number | null
+          fixture_id?: string
+          frees_against?: number | null
+          frees_for?: number | null
+          handballs?: number | null
+          hitouts?: number | null
+          id?: string
+          inside_50s?: number | null
+          intercept_marks?: number | null
+          kicks?: number | null
+          marks?: number | null
+          rebound_50s?: number | null
+          spoils?: number | null
+          tackles?: number | null
+          team_id?: string
+          uncontested_possessions?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_team_stats_fixture_id_fkey"
+            columns: ["fixture_id"]
+            isOneToOne: false
+            referencedRelation: "fixtures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_team_stats_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       news: {
         Row: {
           author_id: string
