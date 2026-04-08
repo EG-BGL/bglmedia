@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -287,11 +287,23 @@ export default function Admin() {
             <TabsList className="inline-flex h-9 bg-muted/60 rounded-full p-0.5 gap-0.5">
               <TabsTrigger value="fixtures" className="rounded-full text-[10px] font-bold px-3"><Calendar className="h-3 w-3 mr-1" />Fixtures</TabsTrigger>
               <TabsTrigger value="clubs" className="rounded-full text-[10px] font-bold px-3"><Users className="h-3 w-3 mr-1" />Teams</TabsTrigger>
+              <TabsTrigger value="players" className="rounded-full text-[10px] font-bold px-3"><Users className="h-3 w-3 mr-1" />Players</TabsTrigger>
               <TabsTrigger value="pending" className="rounded-full text-[10px] font-bold px-3"><Clock className="h-3 w-3 mr-1" />Pending</TabsTrigger>
               <TabsTrigger value="news" className="rounded-full text-[10px] font-bold px-3"><Newspaper className="h-3 w-3 mr-1" />News</TabsTrigger>
               <TabsTrigger value="audit" className="rounded-full text-[10px] font-bold px-3"><FileText className="h-3 w-3 mr-1" />Audit</TabsTrigger>
             </TabsList>
           </div>
+
+          {/* ── Players Tab ── */}
+          <TabsContent value="players" className="mt-4">
+            <div className="text-center py-8 space-y-3">
+              <Users className="h-10 w-10 mx-auto text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">Manage player rosters for each team</p>
+              <Button asChild className="rounded-full font-bold text-xs gap-1.5">
+                <Link to="/admin/players"><Plus className="h-3.5 w-3.5" /> Manage Players</Link>
+              </Button>
+            </div>
+          </TabsContent>
 
           {/* ── Fixtures Tab ── */}
           <TabsContent value="fixtures" className="space-y-4 mt-4">
