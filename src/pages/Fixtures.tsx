@@ -163,6 +163,17 @@ export default function Fixtures() {
                     const homeWon = hasCricketResult && homeInnings.reduce((s: number, i: any) => s + (i.total_runs ?? 0), 0) > awayInnings.reduce((s: number, i: any) => s + (i.total_runs ?? 0), 0);
                     const awayWon = hasCricketResult && awayInnings.reduce((s: number, i: any) => s + (i.total_runs ?? 0), 0) > homeInnings.reduce((s: number, i: any) => s + (i.total_runs ?? 0), 0);
 
+                    const aflResult = !isCricket && f.status === 'completed' && resultsByFixture.has(f.id) ? (() => {
+                      const r = resultsByFixture.get(f.id);
+                      const hWon = (r.home_score ?? 0) > (r.away_score ?? 0);
+                      const aWon = (r.away_score ?? 0) > (r.home_score ?? 0);
+                      const draw = (r.home_score ?? 0) === (r.away_score ?? 0);
+                      const margin = Math.abs((r.home_score ?? 0) - (r.away_score ?? 0));
+                      const winner = hWon ? homeShort : awayShort;
+                      const text = draw ? 'Draw' : `${winner} won by ${margin} pts`;
+                      return { r, homeWon: hWon, awayWon: aWon, draw, text };
+                    })() : null;
+
                     return (
                       <Link key={f.id} to={`/match/${f.id}`} className="block match-card px-3 py-2.5">
                         <div className="flex items-center gap-2">
