@@ -150,6 +150,42 @@ export function useMatchPlayerStats(fixtureId?: string) {
   });
 }
 
+export function usePlayerOfTheRound(seasonId?: string) {
+  return useQuery({
+    queryKey: ['player-of-round', seasonId],
+    queryFn: async () => {
+      // Get the latest completed round
+      const { data: completedFixtures } = await supabase
+        .from('fixtures')
+        .select('id, round_number')
+        .eq('season_id', seasonId!)
+        .eq('status', 'completed')
+        .order('round_number', { ascending: false })
+        .limit(20);
+
+      if (!completedFixtures?.length) return null;
+
+      const latestRound = completedFixtures[0].round_number;
+      const roundFixtureIds = completedFixtures
+        .filter(f => f.round_number === latestRound)
+        .map(f => f.id);
+
+      // Get top fantasy scorer from that round
+      const { data: stats } = await supabase
+        .from('match_player_stats')
+        .select('*, players(first_name, last_name, jersey_number, team_id, teams(*, clubs(*)))')
+        .in('fixture_id', roundFixtureIds)
+        .order('afl_fantasy', { ascending: false })
+        .limit(1);
+
+      if (!stats?.length) return null;
+
+      return { ...stats[0], round_number: latestRound };
+    },
+    enabled: !!seasonId,
+  });
+}
+
 export function useNews(limit?: number) {
   return useQuery({
     queryKey: ['news', limit],
