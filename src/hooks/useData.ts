@@ -86,23 +86,18 @@ export function useResults(seasonId?: string) {
   return useQuery({
     queryKey: ['results', seasonId],
     queryFn: async () => {
-      let q = supabase.from('results').select(`
+      const selectStr = `
         *,
-        fixtures(
+        fixtures!inner(
           *,
           home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)),
-          away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))
+          away_team:teams!fixtures_away_team_id_fkey(*, clubs(*)),
+          seasons:seasons!fixtures_season_id_fkey(*, competitions:competitions!seasons_competition_id_fkey(*, sports:sports!competitions_sport_id_fkey(*)))
         )
-      `).eq('status', 'approved').order('created_at', { ascending: false });
+      `;
+      let q = supabase.from('results').select(selectStr).eq('status', 'approved').order('created_at', { ascending: false });
       if (seasonId) {
-        q = supabase.from('results').select(`
-          *,
-          fixtures!inner(
-            *,
-            home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)),
-            away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))
-          )
-        `).eq('status', 'approved').eq('fixtures.season_id', seasonId).order('created_at', { ascending: false });
+        q = q.eq('fixtures.season_id', seasonId);
       }
       const { data, error } = await q;
       if (error) throw error;
