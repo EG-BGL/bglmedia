@@ -110,6 +110,54 @@ export default function Index() {
           </Link>
         )}
 
+        {/* Player of the Round */}
+        {playerOfRound && (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="section-label flex items-center gap-1.5"><Star className="h-3.5 w-3.5" />Player of the Round</h2>
+              <Badge variant="secondary" className="rounded-full text-[10px] font-bold">Rd {playerOfRound.round_number}</Badge>
+            </div>
+            <div className="match-card p-4">
+              <div className="flex items-center gap-4">
+                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0">
+                  <span className="text-2xl font-black text-primary">
+                    {playerOfRound.players?.jersey_number ?? '?'}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-black text-base">
+                    {playerOfRound.players?.first_name} {playerOfRound.players?.last_name}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <ClubLogo club={playerOfRound.players?.teams?.clubs ?? {}} size="sm" className="!h-4 !w-4" />
+                    <span className="text-xs text-muted-foreground font-medium">
+                      {playerOfRound.players?.teams?.clubs?.short_name}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-center shrink-0">
+                  <div className="text-2xl font-black text-accent">{playerOfRound.afl_fantasy}</div>
+                  <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Fantasy</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-5 gap-2 mt-4 pt-3 border-t border-border/40">
+                {[
+                  { label: 'D', value: playerOfRound.disposals },
+                  { label: 'K', value: playerOfRound.kicks },
+                  { label: 'M', value: playerOfRound.marks },
+                  { label: 'T', value: playerOfRound.tackles },
+                  { label: 'G', value: `${playerOfRound.goals ?? 0}.${playerOfRound.behinds ?? 0}` },
+                ].map(s => (
+                  <div key={s.label} className="text-center">
+                    <div className="text-sm font-black tabular-nums">{s.value ?? 0}</div>
+                    <div className="text-[9px] text-muted-foreground font-bold uppercase">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Upcoming Fixtures */}
         {upcomingFixtures.length > 0 && (
           <section>
