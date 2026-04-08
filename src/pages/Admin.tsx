@@ -133,6 +133,13 @@ export default function Admin() {
       const { data, error } = await supabase.from('clubs').insert(payload).select().single();
       if (error) { toast.error(error.message); return; }
       await supabase.from('audit_logs').insert({ table_name: 'clubs', record_id: data.id, action: 'created', performed_by: user!.id, new_data: payload });
+      // Auto-create a team entry for the current season
+      if (currentSeason) {
+        const { data: compData } = await supabase.from('competitions').select('id').limit(1).single();
+        if (compData) {
+          await supabase.from('teams').insert({ club_id: data.id, season_id: currentSeason.id, competition_id: compData.id });
+        }
+      }
       toast.success('Created!');
     }
     setClubForm(emptyClub); setEditingClub(false); loadData();
