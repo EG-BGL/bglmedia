@@ -68,7 +68,112 @@ export default function SubmitCricketResult() {
   }[]>([]);
 
   const [activeInnings, setActiveInnings] = useState('0');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiImages, setAiImages] = useState<File[]>([]);
+  const [aiFilled, setAiFilled] = useState(false);
 
+  const handleAiScorecardUpload = async (files: FileList | null) => {
+    if (!files?.length || !selectedMatch) return;
+    setAiLoading(true);
+    setAiFilled(false);
+    const newFiles = Array.from(files);
+    setAiImages(prev => [...prev, ...newFiles]);
+
+    try {
+      // Process all images and merge results
+      const allInningsData: any[] = [];
+
+      for (const file of newFiles) {
+        // Upload to storage
+        const fileName = `cricket-${Date.now()}-${Math.random().toString(36).slice(2)}.${file.name.split('.').pop()}`;
+        const { error: uploadError } = await supabase.storage.from('scorecard-images').upload(fileName, file);
+        if (uploadError) { toast.error('Upload failed: ' + uploadError.message); continue; }
+
+        const { data: urlData } = supabase.storage.from('scorecard-images').getPublicUrl(fileName);
+
+        // Call AI extraction
+        const { data: result, error: fnError } = await supabase.functions.invoke('extract-scorecard', {
+          body: { imageUrl: urlData.publicUrl, extractionType: 'cricket_scorecard' },
+        });
+
+        if (fnError) { toast.error('AI extraction failed'); continue; }
+        if (result?.innings?.length) {
+          allInningsData.push(...result.innings);
+        }
+      }
+
+      if (allInningsData.length === 0) {
+        toast.error('Could not extract scorecard data from images');
+        setAiLoading(false);
+        return;
+      }
+
+      // Map extracted innings to our form state
+      const homeId = selectedMatch.home_team_id;
+      const awayId = selectedMatch.away_team_id;
+      const homeName = (selectedMatch.home_team?.clubs?.short_name ?? '').toLowerCase();
+      const awayName = (selectedMatch.away_team?.clubs?.short_name ?? '').toLowerCase();
+
+      const mappedInnings = allInningsData.map((inn: any, idx: number) => {
+        // Try to match team name
+        const tName = (inn.team_name ?? '').toLowerCase();
+        let teamId = idx % 2 === 0 ? homeId : awayId;
+        if (tName.includes(homeName) && homeName) teamId = homeId;
+        else if (tName.includes(awayName) && awayName) teamId = awayId;
+
+        const batting = (inn.batting ?? []).map((b: any) => ({
+          playerName: b.name ?? '',
+          runs: String(b.runs ?? ''),
+          balls: String(b.balls ?? ''),
+          fours: String(b.fours ?? ''),
+          sixes: String(b.sixes ?? ''),
+          howOut: b.how_out ?? '',
+          bowlerName: b.bowler ?? '',
+          notOut: b.not_out ?? false,
+        }));
+
+        const bowling = (inn.bowling ?? []).map((b: any) => ({
+          playerName: b.name ?? '',
+          overs: String(b.overs ?? ''),
+          maidens: String(b.maidens ?? ''),
+          runs: String(b.runs ?? ''),
+          wickets: String(b.wickets ?? ''),
+          wides: String(b.wides ?? ''),
+          noBalls: String(b.no_balls ?? ''),
+        }));
+
+        return {
+          teamId,
+          totalRuns: String(inn.total_runs ?? ''),
+          totalWickets: String(inn.total_wickets ?? ''),
+          totalOvers: String(inn.total_overs ?? ''),
+          extras: String(inn.extras ?? ''),
+          allOut: inn.all_out ?? false,
+          declared: inn.declared ?? false,
+          batting: batting.length > 0 ? batting : [emptyBatting()],
+          bowling: bowling.length > 0 ? bowling : [emptyBowling()],
+        };
+      });
+
+      if (mappedInnings.length >= 2) {
+        setInnings(mappedInnings);
+      } else if (mappedInnings.length === 1) {
+        // Only got one innings, keep the other as empty
+        setInnings(prev => {
+          const updated = [...prev];
+          updated[0] = mappedInnings[0];
+          return updated;
+        });
+      }
+
+      setAiFilled(true);
+      toast.success('Scorecard extracted! Review the data below.');
+    } catch (err: any) {
+      toast.error('AI reading failed: ' + (err?.message ?? 'Unknown error'));
+    } finally {
+      setAiLoading(false);
+    }
+  };
   useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading, navigate]);
 
   useEffect(() => {
