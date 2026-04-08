@@ -29,7 +29,7 @@ export default function Header() {
           <span className="font-black text-base tracking-tight hidden sm:inline">SDFL</span>
         </Link>
 
-        {/* Desktop nav - horizontal pill tabs */}
+        {/* Desktop nav - horizontal pill tabs (hidden on mobile, bottom nav handles it) */}
         <nav className="hidden md:flex items-center bg-muted/60 rounded-full p-1 gap-0.5">
           {navItems.map((item) => (
             <Link
@@ -71,13 +71,20 @@ export default function Header() {
           )}
         </div>
 
-        {/* Mobile toggle */}
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="md:hidden p-2 -mr-2 text-foreground"
-        >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        {/* Mobile actions - submit button + menu */}
+        <div className="flex md:hidden items-center gap-1">
+          {user && (role === 'coach' || role === 'league_admin') && (
+            <Button asChild size="sm" className="rounded-full font-bold gap-1 h-8 px-3 text-xs">
+              <Link to="/portal/submit"><ClipboardList className="h-3.5 w-3.5" />Submit</Link>
+            </Button>
+          )}
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="p-2 -mr-2 text-foreground"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu - full overlay */}
