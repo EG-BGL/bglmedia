@@ -1,8 +1,9 @@
 import { Badge } from '@/components/ui/badge';
 import ClubLogo from '@/components/ClubLogo';
-import { Target, Award, FileText, Info, ChevronDown, User } from 'lucide-react';
+import { Trophy, FileText, Info, ChevronDown, Zap, Target, Hand, Shield, ArrowUpCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useMatchPlayerStats } from '@/hooks/useData';
 
 interface SummaryTabProps {
   fixture: any;
@@ -15,8 +16,23 @@ interface SummaryTabProps {
   statusLabel: string;
 }
 
+interface LeaderStat {
+  label: string;
+  icon: React.ReactNode;
+  playerName: string;
+  value: number;
+  club: any;
+  suffix: string;
+}
+
+function getClubForTeam(teamId: string, fixture: any, homeClub: any, awayClub: any) {
+  if (teamId === fixture?.home_team_id || teamId === (fixture as any)?.home_team?.id) return homeClub;
+  return awayClub;
+}
+
 export default function SummaryTab({ fixture, result, homeClub, awayClub, matchDate, homeWon, awayWon, statusLabel }: SummaryTabProps) {
   const [notesExpanded, setNotesExpanded] = useState(false);
+  const { data: playerStats } = useMatchPlayerStats(fixture?.id);
 
   if (!result) {
     return (
@@ -26,6 +42,50 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
         <p className="text-xs text-muted-foreground">Check back after kick-off for live scores and stats.</p>
       </div>
     );
+  }
+
+  // Build match leaders from player stats
+  const leaders: LeaderStat[] = [];
+  if (playerStats && playerStats.length > 0) {
+    const statDefs: { key: string; label: string; icon: React.ReactNode; suffix: string }[] = [
+      { key: 'afl_fantasy', label: 'Fantasy', icon: <Zap className="h-4 w-4" />, suffix: 'pts' },
+      { key: 'disposals', label: 'Disposals', icon: <Hand className="h-4 w-4" />, suffix: 'disp' },
+      { key: 'goals', label: 'Goals', icon: <Target className="h-4 w-4" />, suffix: 'goals' },
+      { key: 'marks', label: 'Marks', icon: <ArrowUpCircle className="h-4 w-4" />, suffix: 'marks' },
+      { key: 'tackles', label: 'Tackles', icon: <Shield className="h-4 w-4" />, suffix: 'tackles' },
+      { key: 'kicks', label: 'Kicks', icon: <Target className="h-4 w-4" />, suffix: 'kicks' },
+    ];
+    for (const def of statDefs) {
+      const sorted = [...playerStats].sort((a: any, b: any) => (b[def.key] ?? 0) - (a[def.key] ?? 0));
+      const top = sorted[0];
+      if (top && (top as any)[def.key] > 0) {
+        const player = (top as any)?.players;
+        const name = player ? `${player.first_name} ${player.last_name}` : 'Unknown';
+        leaders.push({
+          label: def.label,
+          icon: def.icon,
+          playerName: name,
+          value: (top as any)[def.key],
+          club: getClubForTeam((top as any).team_id, fixture, homeClub, awayClub),
+          suffix: def.suffix,
+        });
+      }
+    }
+  }
+
+  // Fallback: derive goal leaders from goal_kickers arrays if no player stats
+  const goalKickersExist = result.goal_kickers_home?.length > 0 || result.goal_kickers_away?.length > 0;
+  const fallbackGoalLeaders: { name: string; goals: number; club: any }[] = [];
+  if (leaders.length === 0 && goalKickersExist) {
+    const parseGK = (list: string[] | null, club: any) => {
+      list?.forEach((gk: string) => {
+        const m = gk.match(/^(.+?)(?:\s+(\d+))?$/);
+        fallbackGoalLeaders.push({ name: m?.[1] ?? gk, goals: m?.[2] ? parseInt(m[2]) : 1, club });
+      });
+    };
+    parseGK(result.goal_kickers_home, homeClub);
+    parseGK(result.goal_kickers_away, awayClub);
+    fallbackGoalLeaders.sort((a, b) => b.goals - a.goals);
   }
 
   return (
@@ -79,75 +139,81 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
         </div>
       </div>
 
-      {/* Goal Kickers */}
-      {(result.goal_kickers_home?.length > 0 || result.goal_kickers_away?.length > 0) && (
+      {/* Match Leaders */}
+      {(leaders.length > 0 || fallbackGoalLeaders.length > 0) && (
         <div className="match-card overflow-hidden">
           <div className="px-4 py-3 border-b border-border/30 flex items-center gap-1.5">
-            <Target className="h-3.5 w-3.5 text-muted-foreground" />
-            <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Goal Kickers</h3>
+            <Trophy className="h-3.5 w-3.5 text-primary" />
+            <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Match Leaders</h3>
           </div>
-          <div className="px-4 py-3 grid grid-cols-2 gap-4">
-            {/* Home */}
-            <div>
-              <div className="flex items-center gap-1.5 mb-3 pb-2 border-b border-border/30">
-                <ClubLogo club={homeClub ?? {}} size="sm" className="!h-5 !w-5" />
-                <span className="font-bold text-xs">{homeClub?.short_name}</span>
-              </div>
-              <div className="space-y-2">
-                {result.goal_kickers_home?.map((gk: string, i: number) => {
-                  const match = gk.match(/^(.+?)(?:\s+(\d+))?$/);
-                  const name = match?.[1] ?? gk;
-                  const goals = match?.[2] ? parseInt(match[2]) : 1;
-                  const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
-                  return (
-                    <div key={i} className="flex items-center gap-2 p-1.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                      <Avatar className="h-8 w-8 shrink-0">
-                        <AvatarFallback className="text-[10px] font-bold" style={{ backgroundColor: homeClub?.primary_color ?? '#1a365d', color: homeClub?.secondary_color ?? '#d69e2e' }}>
-                          {initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-foreground truncate">{name}</p>
-                      </div>
-                      <Badge variant="secondary" className="text-[10px] font-black tabular-nums px-1.5 py-0 rounded-full shrink-0">
-                        {goals} {goals === 1 ? 'goal' : 'goals'}
-                      </Badge>
+
+          {leaders.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-border/20">
+              {leaders.map((leader, i) => {
+                const initials = leader.playerName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+                return (
+                  <div key={i} className="bg-card p-3 flex flex-col items-center text-center gap-2">
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      {leader.icon}
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{leader.label}</span>
                     </div>
-                  );
-                }) ?? <p className="text-xs text-muted-foreground/50 italic">—</p>}
-              </div>
-            </div>
-            {/* Away */}
-            <div>
-              <div className="flex items-center gap-1.5 mb-3 pb-2 border-b border-border/30">
-                <ClubLogo club={awayClub ?? {}} size="sm" className="!h-5 !w-5" />
-                <span className="font-bold text-xs">{awayClub?.short_name}</span>
-              </div>
-              <div className="space-y-2">
-                {result.goal_kickers_away?.map((gk: string, i: number) => {
-                  const match = gk.match(/^(.+?)(?:\s+(\d+))?$/);
-                  const name = match?.[1] ?? gk;
-                  const goals = match?.[2] ? parseInt(match[2]) : 1;
-                  const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
-                  return (
-                    <div key={i} className="flex items-center gap-2 p-1.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                      <Avatar className="h-8 w-8 shrink-0">
-                        <AvatarFallback className="text-[10px] font-bold" style={{ backgroundColor: awayClub?.primary_color ?? '#1a365d', color: awayClub?.secondary_color ?? '#d69e2e' }}>
-                          {initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-foreground truncate">{name}</p>
+                    <Avatar className="h-11 w-11">
+                      <AvatarFallback
+                        className="text-xs font-black"
+                        style={{
+                          backgroundColor: leader.club?.primary_color ?? '#1a365d',
+                          color: leader.club?.secondary_color ?? '#d69e2e',
+                        }}
+                      >
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-xs font-bold text-foreground truncate max-w-[100px]">{leader.playerName}</p>
+                      <div className="flex items-center justify-center gap-1 mt-0.5">
+                        <ClubLogo club={leader.club ?? {}} size="sm" className="!h-3.5 !w-3.5" />
+                        <span className="text-[10px] text-muted-foreground">{leader.club?.short_name}</span>
                       </div>
-                      <Badge variant="secondary" className="text-[10px] font-black tabular-nums px-1.5 py-0 rounded-full shrink-0">
-                        {goals} {goals === 1 ? 'goal' : 'goals'}
-                      </Badge>
                     </div>
-                  );
-                }) ?? <p className="text-xs text-muted-foreground/50 italic">—</p>}
-              </div>
+                    <Badge className="bg-primary/15 text-primary border-0 text-sm font-black tabular-nums px-2.5 py-0.5 rounded-full">
+                      {leader.value}
+                    </Badge>
+                    <span className="text-[9px] uppercase tracking-widest text-muted-foreground/60 font-bold -mt-1">{leader.suffix}</span>
+                  </div>
+                );
+              })}
             </div>
-          </div>
+          ) : (
+            /* Fallback: goal kickers as leader tiles */
+            <div className="px-4 py-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {fallbackGoalLeaders.slice(0, 6).map((gk, i) => {
+                const initials = gk.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+                return (
+                  <div key={i} className="flex flex-col items-center text-center p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors gap-1.5">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback
+                        className="text-[10px] font-black"
+                        style={{
+                          backgroundColor: gk.club?.primary_color ?? '#1a365d',
+                          color: gk.club?.secondary_color ?? '#d69e2e',
+                        }}
+                      >
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <p className="text-xs font-semibold text-foreground truncate max-w-[90px]">{gk.name}</p>
+                    <div className="flex items-center gap-1">
+                      <ClubLogo club={gk.club ?? {}} size="sm" className="!h-3.5 !w-3.5" />
+                      <span className="text-[10px] text-muted-foreground">{gk.club?.short_name}</span>
+                    </div>
+                    <Badge className="bg-primary/15 text-primary border-0 text-xs font-black tabular-nums px-2 py-0 rounded-full">
+                      {gk.goals} {gk.goals === 1 ? 'goal' : 'goals'}
+                    </Badge>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
