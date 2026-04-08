@@ -10,6 +10,17 @@ export default function MatchCentre() {
   const { id } = useParams<{ id: string }>();
   const { data: fixture, isLoading } = useFixture(id!);
   const [notesExpanded, setNotesExpanded] = useState(false);
+  const [showStickyScore, setShowStickyScore] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyScore(!entry.isIntersecting),
+      { threshold: 0, rootMargin: '-56px 0px 0px 0px' }
+    );
+    if (heroRef.current) observer.observe(heroRef.current);
+    return () => observer.disconnect();
+  }, [fixture]);
 
   const result = (fixture as any)?.results?.[0];
   const homeClub = (fixture as any)?.home_team?.clubs;
