@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
@@ -41,6 +42,7 @@ export default function SubmitResult() {
   const [goalKickersAway, setGoalKickersAway] = useState('');
   const [matchNotes, setMatchNotes] = useState('');
   const [extractedPlayerStats, setExtractedPlayerStats] = useState<any[]>([]);
+  const [showSuccess, setShowSuccess] = useState(false);
   // Multi-section upload state
   type SectionKey = 'final_score' | 'match_stats_1' | 'match_stats_2' | 'goalkickers_1' | 'goalkickers_2' | 'disposals_1' | 'disposals_2' | 'afl_fantasy_1' | 'afl_fantasy_2' | 'afl_fantasy_3';
   const defaultSections: Record<SectionKey, null> = { final_score: null, match_stats_1: null, match_stats_2: null, goalkickers_1: null, goalkickers_2: null, disposals_1: null, disposals_2: null, afl_fantasy_1: null, afl_fantasy_2: null, afl_fantasy_3: null };
@@ -179,8 +181,7 @@ export default function SubmitResult() {
       if (statsError) console.error('Failed to save player stats:', statsError);
     }
 
-    toast.success('Result submitted! If both teams agree, it will be auto-confirmed.');
-    navigate('/portal');
+    setShowSuccess(true);
   };
 
   const handleSectionUpload = async (section: SectionKey, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -479,6 +480,25 @@ export default function SubmitResult() {
           )}
         </form>
       </div>
+
+      <Dialog open={showSuccess} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md" onPointerDownOutside={e => e.preventDefault()}>
+          <DialogHeader className="text-center items-center">
+            <div className="mx-auto mb-3 h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
+              <CheckCircle2 className="h-7 w-7 text-primary" />
+            </div>
+            <DialogTitle className="text-lg font-black">Result Submitted!</DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">
+              Your result has been submitted successfully. If both teams agree on the scores, it will be auto-confirmed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button onClick={() => navigate('/portal')} className="w-full h-12 font-bold rounded-xl">
+              Back to Dashboard
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
