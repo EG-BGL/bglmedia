@@ -480,6 +480,25 @@ export default function SubmitResult() {
           )}
         </form>
       </div>
+
+      <Dialog open={showSuccess} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md" onPointerDownOutside={e => e.preventDefault()}>
+          <DialogHeader className="text-center items-center">
+            <div className="mx-auto mb-3 h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
+              <CheckCircle2 className="h-7 w-7 text-primary" />
+            </div>
+            <DialogTitle className="text-lg font-black">Result Submitted!</DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">
+              Your result has been submitted successfully. If both teams agree on the scores, it will be auto-confirmed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button onClick={() => navigate('/portal')} className="w-full h-12 font-bold rounded-xl">
+              Back to Dashboard
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
