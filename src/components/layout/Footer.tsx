@@ -29,15 +29,15 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <div className="h-6 w-6 rounded-md bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-black text-[9px]">SD</span>
+                <span className="text-primary-foreground font-black text-[9px]">BGL</span>
               </div>
-              <span className="font-black text-sm">SDFL</span>
+              <span className="font-black text-sm">BGLMedia</span>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">Sandbelt District Football League. Your local community football competition.</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">BGLMedia. Your local community football competition.</p>
           </div>
         </div>
         <div className="border-t border-border mt-6 pt-4 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} SDFL. All rights reserved.
+          © {new Date().getFullYear()} BGLMedia. All rights reserved.
         </div>
       </div>
     </footer>
