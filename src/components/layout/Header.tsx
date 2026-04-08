@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, User, LogOut, ClipboardList, Shield, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import bglLogo from '@/assets/bgl-logo.jpeg';
 
 const navItems = [
   { label: 'Home', path: '/' },
@@ -22,11 +23,8 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border/50">
       <div className="page-container flex items-center justify-between h-14">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-black text-sm">BGL</span>
-          </div>
-          <span className="font-black text-base tracking-tight hidden sm:inline">BGLMedia</span>
+        <Link to="/" className="flex items-center shrink-0">
+          <img src={bglLogo} alt="BGLMedia" className="h-8 w-auto" />
         </Link>
 
         {/* Desktop nav - horizontal pill tabs (hidden on mobile, bottom nav handles it) */}
