@@ -56,6 +56,11 @@ export default function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
+          {user && (role === 'coach' || role === 'league_admin') && (
+            <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold gap-1.5">
+              <Link to="/portal/submit"><ClipboardList className="h-4 w-4" />Submit Result</Link>
+            </Button>
+          )}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
