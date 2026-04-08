@@ -16,7 +16,6 @@ export default function Fixtures() {
   const fixtureIdsWithResults = new Set(results?.map((r: any) => r.fixture_id ?? r.fixtures?.id) ?? []);
   const resultsByFixture = new Map((results ?? []).map((r: any) => [r.fixture_id ?? r.fixtures?.id, r]));
   const [selectedRound, setSelectedRound] = useState<string>('all');
-  const [selectedRound, setSelectedRound] = useState<string>('all');
 
   const rounds = [...new Set(fixtures?.map(f => f.round_number) ?? [])].sort((a, b) => a - b);
   const filtered = selectedRound === 'all' ? fixtures : fixtures?.filter(f => f.round_number === Number(selectedRound));
