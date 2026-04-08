@@ -40,6 +40,7 @@ export default function SubmitResult() {
   const [goalKickersHome, setGoalKickersHome] = useState('');
   const [goalKickersAway, setGoalKickersAway] = useState('');
   const [matchNotes, setMatchNotes] = useState('');
+  const [extractedPlayerStats, setExtractedPlayerStats] = useState<any[]>([]);
   // Multi-section upload state
   type SectionKey = 'final_score' | 'match_stats_1' | 'match_stats_2' | 'goalkickers_1' | 'goalkickers_2' | 'disposals_1' | 'disposals_2' | 'afl_fantasy_1' | 'afl_fantasy_2';
   const defaultSections: Record<SectionKey, null> = { final_score: null, match_stats_1: null, match_stats_2: null, goalkickers_1: null, goalkickers_2: null, disposals_1: null, disposals_2: null, afl_fantasy_1: null, afl_fantasy_2: null };
@@ -167,7 +168,18 @@ export default function SubmitResult() {
       match_notes: matchNotes||null, status: 'submitted', submitted_by: user.id, submitted_at: new Date().toISOString(),
     });
     setSubmitting(false);
-    if (error) toast.error('Failed: '+error.message); else { toast.success('Result submitted! If both teams agree, it will be auto-confirmed.'); navigate('/portal'); }
+    if (error) { toast.error('Failed: '+error.message); return; }
+
+    // Save extracted player stats if any
+    if (extractedPlayerStats.length > 0) {
+      const { error: statsError } = await supabase.functions.invoke('save-player-stats', {
+        body: { fixture_id: selectedFixture, player_stats: extractedPlayerStats },
+      });
+      if (statsError) console.error('Failed to save player stats:', statsError);
+    }
+
+    toast.success('Result submitted! If both teams agree, it will be auto-confirmed.');
+    navigate('/portal');
   };
 
   const handleSectionUpload = async (section: SectionKey, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -217,6 +229,22 @@ export default function SubmitResult() {
         if (fnData.goal_kickers_away?.length) setGoalKickersAway(fnData.goal_kickers_away.join(', '));
         if (fnData.best_players_home?.length) setBestHome(fnData.best_players_home.join(', '));
         if (fnData.best_players_away?.length) setBestAway(fnData.best_players_away.join(', '));
+        // Accumulate player stats from AI extraction
+        if (fnData.player_stats?.length) {
+          setExtractedPlayerStats(prev => {
+            const merged = [...prev];
+            for (const ps of fnData.player_stats) {
+              const existing = merged.findIndex(m => m.name === ps.name && m.team === ps.team);
+              if (existing >= 0) {
+                // Merge non-null values
+                Object.keys(ps).forEach(k => { if (ps[k] != null && k !== 'name' && k !== 'team') merged[existing][k] = ps[k]; });
+              } else {
+                merged.push({ ...ps });
+              }
+            }
+            return merged;
+          });
+        }
       }
 
       setSectionConfidence(p => ({ ...p, [section]: fnData.confidence ?? 'medium' }));
