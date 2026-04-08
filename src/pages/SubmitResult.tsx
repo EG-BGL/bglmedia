@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ChevronLeft, Send, AlertCircle, CheckCircle2, Camera, Loader2, Sparkles } from 'lucide-react';
+import { ChevronLeft, Send, AlertCircle, CheckCircle2, Camera, Loader2, Sparkles, ClipboardList, BarChart3, Trophy, Users } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 interface FormErrors { fixture?: string; homeGoals?: string; homeBehinds?: string; awayGoals?: string; awayBehinds?: string; quarters?: string; }
@@ -251,7 +251,38 @@ export default function SubmitResult() {
             )}
           </div>
 
-          {/* Scorecard Photo Upload */}
+          {/* What You'll Need Checklist */}
+          {selectedMatch && !alreadySubmitted && (
+            <div className="match-card p-4">
+              <h3 className="section-label mb-3 flex items-center gap-1.5">
+                <ClipboardList className="h-3.5 w-3.5 text-primary" /> What You'll Need
+              </h3>
+              <div className="space-y-2.5">
+                <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-muted/50">
+                  <Trophy className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs font-bold">Final Score / Qtr by Qtr / Momentum Worm</p>
+                    <p className="text-[10px] text-muted-foreground">Goals, behinds and quarter-by-quarter scores for both teams</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-muted/50">
+                  <BarChart3 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs font-bold">Match Stats (Top & Bottom)</p>
+                    <p className="text-[10px] text-muted-foreground">Team statistics including disposals, marks, tackles, hitouts and more</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-muted/50">
+                  <Users className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs font-bold">Key Stats — All Goalkickers, Disposals & AFL Fantasy</p>
+                    <p className="text-[10px] text-muted-foreground">Individual player stats for the match centre leaderboards</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="match-card p-4">
             <h3 className="section-label mb-2 flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5 text-primary" /> AI Scorecard Reader
