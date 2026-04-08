@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useFixture } from '@/hooks/useData';
 import ClubLogo from '@/components/ClubLogo';
 import { MapPin, Calendar, Clock, ChevronLeft, Target, Award, FileText, Info, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function MatchCentre() {
   const { id } = useParams<{ id: string }>();
