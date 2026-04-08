@@ -137,6 +137,11 @@ export default function Index() {
                       <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" />
                     </div>
                   </div>
+                  <div className="flex items-center justify-center gap-1 mt-2.5 pt-2 border-t border-border/40">
+                    <span className="text-xs font-bold text-primary flex items-center gap-1">
+                      View Match <ChevronRight className="h-3 w-3" />
+                    </span>
+                  </div>
                 </Link>
               ))}
             </div>
