@@ -134,6 +134,22 @@ export function usePlayers(teamId?: string) {
   });
 }
 
+export function useMatchPlayerStats(fixtureId?: string) {
+  return useQuery({
+    queryKey: ['match-player-stats', fixtureId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('match_player_stats')
+        .select('*, players(first_name, last_name, jersey_number)')
+        .eq('fixture_id', fixtureId!)
+        .order('afl_fantasy', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!fixtureId,
+  });
+}
+
 export function useNews(limit?: number) {
   return useQuery({
     queryKey: ['news', limit],

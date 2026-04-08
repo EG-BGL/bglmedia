@@ -297,6 +297,82 @@ export type Database = {
           },
         ]
       }
+      match_player_stats: {
+        Row: {
+          afl_fantasy: number | null
+          behinds: number | null
+          created_at: string
+          disposals: number | null
+          fixture_id: string
+          goals: number | null
+          handballs: number | null
+          hitouts: number | null
+          id: string
+          kicks: number | null
+          marks: number | null
+          player_id: string
+          tackles: number | null
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          afl_fantasy?: number | null
+          behinds?: number | null
+          created_at?: string
+          disposals?: number | null
+          fixture_id: string
+          goals?: number | null
+          handballs?: number | null
+          hitouts?: number | null
+          id?: string
+          kicks?: number | null
+          marks?: number | null
+          player_id: string
+          tackles?: number | null
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          afl_fantasy?: number | null
+          behinds?: number | null
+          created_at?: string
+          disposals?: number | null
+          fixture_id?: string
+          goals?: number | null
+          handballs?: number | null
+          hitouts?: number | null
+          id?: string
+          kicks?: number | null
+          marks?: number | null
+          player_id?: string
+          tackles?: number | null
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_player_stats_fixture_id_fkey"
+            columns: ["fixture_id"]
+            isOneToOne: false
+            referencedRelation: "fixtures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_player_stats_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_player_stats_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       news: {
         Row: {
           author_id: string
