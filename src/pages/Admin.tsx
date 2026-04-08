@@ -11,7 +11,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Check, X, Shield, Plus, Pencil, Trash2, Upload, Image, Calendar, Newspaper, FileText, Users, Clock, AlertTriangle, CircleDot, Trophy } from 'lucide-react';
+import { Check, X, Shield, Plus, Pencil, Trash2, Upload, Image, Calendar, Newspaper, FileText, Users, Clock, AlertTriangle, CircleDot, Trophy, UserCheck } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 interface ClubForm {
@@ -69,6 +69,11 @@ export default function Admin() {
   const [uploadingCsv, setUploadingCsv] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const csvRef = useRef<HTMLInputElement>(null);
+  // Coach assignment state
+  const [coachAssignments, setCoachAssignments] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [coachForm, setCoachForm] = useState({ user_id: '', team_id: '', season_id: '', is_primary: true });
+  const [showCoachForm, setShowCoachForm] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || role !== 'league_admin')) navigate('/login');
@@ -80,7 +85,7 @@ export default function Admin() {
   }, [role]);
 
   const loadData = async () => {
-    const [{ data: pendingResults }, { data: logs }, { data: clubData }, { data: newsData }, { data: seasonData }, { data: teamData }, { data: fixtureData }, { data: compData }, { data: sportData }, { data: allSeasonData }] = await Promise.all([
+    const [{ data: pendingResults }, { data: logs }, { data: clubData }, { data: newsData }, { data: seasonData }, { data: teamData }, { data: fixtureData }, { data: compData }, { data: sportData }, { data: allSeasonData }, { data: coachData }, { data: profileData }] = await Promise.all([
       supabase.from('results').select(`*, fixtures(*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*)))`).in('status', ['submitted', 'draft']).order('created_at', { ascending: false }),
       supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(50),
       supabase.from('clubs').select('*').order('name'),
@@ -91,6 +96,8 @@ export default function Admin() {
       supabase.from('competitions').select('*, sports(*)').order('name'),
       supabase.from('sports').select('*').order('name'),
       supabase.from('seasons').select('*, competitions(*, sports(*))').order('year', { ascending: false }),
+      supabase.from('coaches_to_teams').select('*, teams(*, clubs(*), seasons(*, competitions(*, sports(*))))').order('created_at', { ascending: false }),
+      supabase.from('profiles').select('*').order('full_name'),
     ]);
     setPending(pendingResults ?? []);
     setAuditLogs(logs ?? []);
@@ -102,6 +109,8 @@ export default function Admin() {
     setCompetitions(compData ?? []);
     setSports(sportData ?? []);
     setAllSeasons(allSeasonData ?? []);
+    setCoachAssignments(coachData ?? []);
+    setProfiles(profileData ?? []);
   };
 
   // ── Result actions ──
@@ -380,6 +389,7 @@ export default function Admin() {
               <TabsTrigger value="competitions" className="rounded-full text-[10px] font-bold px-3"><Trophy className="h-3 w-3 mr-1" />Competitions</TabsTrigger>
               <TabsTrigger value="clubs" className="rounded-full text-[10px] font-bold px-3"><Users className="h-3 w-3 mr-1" />Teams</TabsTrigger>
               <TabsTrigger value="players" className="rounded-full text-[10px] font-bold px-3"><Users className="h-3 w-3 mr-1" />Players</TabsTrigger>
+              <TabsTrigger value="coaches" className="rounded-full text-[10px] font-bold px-3"><UserCheck className="h-3 w-3 mr-1" />Coaches</TabsTrigger>
               <TabsTrigger value="pending" className="rounded-full text-[10px] font-bold px-3"><Clock className="h-3 w-3 mr-1" />Pending</TabsTrigger>
               <TabsTrigger value="news" className="rounded-full text-[10px] font-bold px-3"><Newspaper className="h-3 w-3 mr-1" />News</TabsTrigger>
               <TabsTrigger value="audit" className="rounded-full text-[10px] font-bold px-3"><FileText className="h-3 w-3 mr-1" />Audit</TabsTrigger>
@@ -1014,6 +1024,138 @@ export default function Admin() {
                 <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-full text-destructive shrink-0" onClick={() => handleDeleteNews(n.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
               </div>
             ))}
+          </TabsContent>
+
+          {/* ── Coaches Tab ── */}
+          <TabsContent value="coaches" className="mt-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-black text-sm">Coach Assignments</h3>
+              {!showCoachForm && (
+                <Button onClick={() => { setCoachForm({ user_id: '', team_id: '', season_id: currentSeason?.id || '', is_primary: true }); setShowCoachForm(true); }} size="sm" className="rounded-full gap-1.5 font-bold text-xs">
+                  <Plus className="h-3.5 w-3.5" /> Assign Coach
+                </Button>
+              )}
+            </div>
+
+            {showCoachForm && (
+              <div className="match-card p-4 space-y-3">
+                <h3 className="font-black text-sm">Assign Coach to Team</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs font-bold">Coach *</Label>
+                    <Select value={coachForm.user_id} onValueChange={v => setCoachForm(f => ({ ...f, user_id: v }))}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select coach" /></SelectTrigger>
+                      <SelectContent>
+                        {profiles.filter((p: any) => p.id).map((p: any) => (
+                          <SelectItem key={p.id} value={p.id}>{p.full_name || 'Unnamed'} ({p.id.slice(0, 8)})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-bold">Season *</Label>
+                    <Select value={coachForm.season_id} onValueChange={v => setCoachForm(f => ({ ...f, season_id: v, team_id: '' }))}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select season" /></SelectTrigger>
+                      <SelectContent>
+                        {allSeasons.map((s: any) => (
+                          <SelectItem key={s.id} value={s.id}>{s.name} - {s.competitions?.name} ({s.competitions?.sports?.name}){s.is_current ? ' ★' : ''}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-bold">Team *</Label>
+                    <Select value={coachForm.team_id} onValueChange={v => setCoachForm(f => ({ ...f, team_id: v }))}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select team" /></SelectTrigger>
+                      <SelectContent>
+                        {teams.filter((t: any) => !coachForm.season_id || t.season_id === coachForm.season_id).map((t: any) => (
+                          <SelectItem key={t.id} value={t.id}>{t.clubs?.name} ({t.division})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-end gap-2 pb-1">
+                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                      <input type="checkbox" checked={coachForm.is_primary} onChange={e => setCoachForm(f => ({ ...f, is_primary: e.target.checked }))} className="rounded" />
+                      Primary Coach
+                    </label>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={async () => {
+                    if (!coachForm.user_id || !coachForm.team_id || !coachForm.season_id) { toast.error('Coach, team, and season are required'); return; }
+                    const { error } = await supabase.from('coaches_to_teams').insert({
+                      user_id: coachForm.user_id,
+                      team_id: coachForm.team_id,
+                      season_id: coachForm.season_id,
+                      is_primary: coachForm.is_primary,
+                    });
+                    if (error) { toast.error(error.message); return; }
+                    // Ensure the user has the 'coach' role
+                    await supabase.from('user_roles').upsert({ user_id: coachForm.user_id, role: 'coach' } as any, { onConflict: 'user_id,role' });
+                    await supabase.from('audit_logs').insert({ table_name: 'coaches_to_teams', action: 'assigned', performed_by: user!.id, new_data: coachForm as any });
+                    toast.success('Coach assigned!');
+                    setShowCoachForm(false);
+                    setCoachForm({ user_id: '', team_id: '', season_id: '', is_primary: true });
+                    loadData();
+                  }} className="rounded-full font-bold gap-1.5 text-xs"><Check className="h-3.5 w-3.5" />Assign</Button>
+                  <Button variant="outline" className="rounded-full text-xs" onClick={() => setShowCoachForm(false)}>Cancel</Button>
+                </div>
+              </div>
+            )}
+
+            {/* Group by season */}
+            {(() => {
+              const bySeasonMap: Record<string, { season: any; items: any[] }> = {};
+              coachAssignments.forEach((a: any) => {
+                const sName = a.teams?.seasons?.name ?? 'Unknown Season';
+                const sId = a.season_id;
+                if (!bySeasonMap[sId]) bySeasonMap[sId] = { season: a.teams?.seasons, items: [] };
+                bySeasonMap[sId].items.push(a);
+              });
+              const groups = Object.values(bySeasonMap);
+              if (groups.length === 0) return <div className="match-card p-8 text-center text-sm text-muted-foreground">No coach assignments yet.</div>;
+              return (
+                <div className="space-y-4">
+                  {groups.map((group: any, gi: number) => (
+                    <div key={gi}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-bold text-xs text-muted-foreground uppercase tracking-wider">
+                          {group.season?.competitions?.name} · {group.season?.name}
+                        </h4>
+                        <Badge variant="outline" className="text-[9px] rounded-full">{group.season?.competitions?.sports?.name}</Badge>
+                        {group.season?.is_current && <Badge className="text-[9px] rounded-full bg-accent/20 text-accent border-0">Current</Badge>}
+                      </div>
+                      <div className="space-y-2">
+                        {group.items.map((a: any) => {
+                          const profile = profiles.find((p: any) => p.id === a.user_id);
+                          return (
+                            <div key={a.id} className="match-card p-3.5 flex items-center gap-3">
+                              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                <UserCheck className="h-4 w-4 text-primary" />
+                              </div>
+                              <ClubLogo club={a.teams?.clubs ?? {}} size="sm" className="!h-7 !w-7" />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-bold text-sm truncate">{profile?.full_name || a.user_id.slice(0, 8)}</div>
+                                <div className="text-[10px] text-muted-foreground">{a.teams?.clubs?.name} · {a.teams?.division}</div>
+                              </div>
+                              {a.is_primary && <Badge variant="secondary" className="text-[9px] rounded-full shrink-0">Primary</Badge>}
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-destructive shrink-0" onClick={async () => {
+                                if (!confirm('Remove this coach assignment?')) return;
+                                const { error } = await supabase.from('coaches_to_teams').delete().eq('id', a.id);
+                                if (error) { toast.error(error.message); return; }
+                                await supabase.from('audit_logs').insert({ table_name: 'coaches_to_teams', record_id: a.id, action: 'removed', performed_by: user!.id });
+                                toast.success('Assignment removed.'); loadData();
+                              }}><Trash2 className="h-3.5 w-3.5" /></Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </TabsContent>
 
           {/* ── Audit Tab ── */}
