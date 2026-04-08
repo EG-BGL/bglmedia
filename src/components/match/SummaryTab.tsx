@@ -87,26 +87,64 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
             <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Goal Kickers</h3>
           </div>
           <div className="px-4 py-3 grid grid-cols-2 gap-4">
+            {/* Home */}
             <div>
-              <div className="flex items-center gap-1.5 mb-2.5 pb-2 border-b border-border/30">
+              <div className="flex items-center gap-1.5 mb-3 pb-2 border-b border-border/30">
                 <ClubLogo club={homeClub ?? {}} size="sm" className="!h-5 !w-5" />
                 <span className="font-bold text-xs">{homeClub?.short_name}</span>
               </div>
-              <div className="space-y-1">
-                {result.goal_kickers_home?.map((gk: string, i: number) => (
-                  <div key={i} className="text-xs text-muted-foreground py-0.5">{gk}</div>
-                )) ?? <p className="text-xs text-muted-foreground/50 italic">—</p>}
+              <div className="space-y-2">
+                {result.goal_kickers_home?.map((gk: string, i: number) => {
+                  const match = gk.match(/^(.+?)(?:\s+(\d+))?$/);
+                  const name = match?.[1] ?? gk;
+                  const goals = match?.[2] ? parseInt(match[2]) : 1;
+                  const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+                  return (
+                    <div key={i} className="flex items-center gap-2 p-1.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <Avatar className="h-8 w-8 shrink-0">
+                        <AvatarFallback className="text-[10px] font-bold" style={{ backgroundColor: homeClub?.primary_color ?? '#1a365d', color: homeClub?.secondary_color ?? '#d69e2e' }}>
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-foreground truncate">{name}</p>
+                      </div>
+                      <Badge variant="secondary" className="text-[10px] font-black tabular-nums px-1.5 py-0 rounded-full shrink-0">
+                        {goals} {goals === 1 ? 'goal' : 'goals'}
+                      </Badge>
+                    </div>
+                  );
+                }) ?? <p className="text-xs text-muted-foreground/50 italic">—</p>}
               </div>
             </div>
+            {/* Away */}
             <div>
-              <div className="flex items-center gap-1.5 mb-2.5 pb-2 border-b border-border/30">
+              <div className="flex items-center gap-1.5 mb-3 pb-2 border-b border-border/30">
                 <ClubLogo club={awayClub ?? {}} size="sm" className="!h-5 !w-5" />
                 <span className="font-bold text-xs">{awayClub?.short_name}</span>
               </div>
-              <div className="space-y-1">
-                {result.goal_kickers_away?.map((gk: string, i: number) => (
-                  <div key={i} className="text-xs text-muted-foreground py-0.5">{gk}</div>
-                )) ?? <p className="text-xs text-muted-foreground/50 italic">—</p>}
+              <div className="space-y-2">
+                {result.goal_kickers_away?.map((gk: string, i: number) => {
+                  const match = gk.match(/^(.+?)(?:\s+(\d+))?$/);
+                  const name = match?.[1] ?? gk;
+                  const goals = match?.[2] ? parseInt(match[2]) : 1;
+                  const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+                  return (
+                    <div key={i} className="flex items-center gap-2 p-1.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <Avatar className="h-8 w-8 shrink-0">
+                        <AvatarFallback className="text-[10px] font-bold" style={{ backgroundColor: awayClub?.primary_color ?? '#1a365d', color: awayClub?.secondary_color ?? '#d69e2e' }}>
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-foreground truncate">{name}</p>
+                      </div>
+                      <Badge variant="secondary" className="text-[10px] font-black tabular-nums px-1.5 py-0 rounded-full shrink-0">
+                        {goals} {goals === 1 ? 'goal' : 'goals'}
+                      </Badge>
+                    </div>
+                  );
+                }) ?? <p className="text-xs text-muted-foreground/50 italic">—</p>}
               </div>
             </div>
           </div>
