@@ -227,6 +227,15 @@ export default function SubmitResult() {
         if (fnData.away_q4) setAwayQ4(fnData.away_q4);
       }
 
+      // Store extracted match team stats
+      if (section.startsWith('match_stats')) {
+        if (fnData.home_team_stats || fnData.away_team_stats) {
+          setExtractedTeamStats(prev => ({
+            home: { ...prev.home, ...Object.fromEntries(Object.entries(fnData.home_team_stats || {}).filter(([, v]) => v != null)) },
+            away: { ...prev.away, ...Object.fromEntries(Object.entries(fnData.away_team_stats || {}).filter(([, v]) => v != null)) },
+          }));
+        }
+
       if (section.startsWith('goalkickers') || section.startsWith('disposals') || section.startsWith('afl_fantasy')) {
         if (fnData.goal_kickers_home?.length) setGoalKickersHome(fnData.goal_kickers_home.join(', '));
         if (fnData.goal_kickers_away?.length) setGoalKickersAway(fnData.goal_kickers_away.join(', '));
