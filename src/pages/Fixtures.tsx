@@ -32,7 +32,7 @@ export default function Fixtures() {
       <div className="page-container py-5 space-y-4">
         <div>
           <h1 className="text-xl font-black tracking-tight">Fixtures & Results</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{season?.name ?? '2026'} Season</p>
+          <p className="text-sm text-muted-foreground mt-0.5">Find your fixture</p>
         </div>
 
         {/* Sport filter + Round filter */}
