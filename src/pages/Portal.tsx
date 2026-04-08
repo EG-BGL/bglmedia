@@ -37,12 +37,14 @@ export default function Portal() {
 
         {/* Quick actions */}
         <div className="grid gap-3 grid-cols-2">
-          <Link to="/portal/submit" className="match-card p-4 flex flex-col items-center gap-2 text-center">
-            <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <ClipboardList className="h-6 w-6 text-primary" />
-            </div>
-            <span className="font-bold text-sm">Submit Result</span>
-          </Link>
+          {(role === 'coach' || role === 'league_admin') && (
+            <Link to="/portal/submit" className="match-card p-4 flex flex-col items-center gap-2 text-center">
+              <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <ClipboardList className="h-6 w-6 text-primary" />
+              </div>
+              <span className="font-bold text-sm">Submit Result</span>
+            </Link>
+          )}
           {role === 'league_admin' && (
             <Link to="/admin" className="match-card p-4 flex flex-col items-center gap-2 text-center">
               <div className="h-12 w-12 rounded-2xl bg-accent/10 flex items-center justify-center">
