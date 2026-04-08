@@ -153,19 +153,32 @@ export default function Fixtures() {
                       ? getCricketResultText(cricketInnings, homeTeamId, awayTeamId, homeShort, awayShort)
                       : null;
 
+                    // Build cricket score strings per team e.g. "125/8" or "245/8 & 180/10"
+                    const homeInnings = hasCricketResult ? cricketInnings.filter((i: any) => i.team_id === homeTeamId) : [];
+                    const awayInnings = hasCricketResult ? cricketInnings.filter((i: any) => i.team_id === awayTeamId) : [];
+                    const formatInningsScore = (inns: any[]) => inns.map((i: any) => `${i.total_runs ?? 0}/${i.total_wickets ?? 0}${i.declared ? 'd' : ''}`).join(' & ');
+                    const homeScore = formatInningsScore(homeInnings);
+                    const awayScore = formatInningsScore(awayInnings);
+
+                    const homeWon = hasCricketResult && homeInnings.reduce((s: number, i: any) => s + (i.total_runs ?? 0), 0) > awayInnings.reduce((s: number, i: any) => s + (i.total_runs ?? 0), 0);
+                    const awayWon = hasCricketResult && awayInnings.reduce((s: number, i: any) => s + (i.total_runs ?? 0), 0) > homeInnings.reduce((s: number, i: any) => s + (i.total_runs ?? 0), 0);
+
                     return (
                       <Link key={f.id} to={`/match/${f.id}`} className="block match-card px-3 py-2.5">
                         <div className="flex items-center gap-2">
                           <div className="flex items-center gap-1.5 flex-1 min-w-0">
                             <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" />
-                            <span className="font-bold text-xs truncate">{homeShort}</span>
+                            <span className={`font-bold text-xs truncate ${hasCricketResult && !homeWon ? 'text-muted-foreground' : ''}`}>{homeShort}</span>
+                            {hasCricketResult && (
+                              <span className={`text-xs tabular-nums ml-auto shrink-0 ${homeWon ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>{homeScore}</span>
+                            )}
                           </div>
                           <div className="text-center shrink-0 px-1">
                             {f.status === 'completed' && hasCricketResult ? (
                               <div>
                                 <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">COMPLETED</Badge>
                                 {resultText && (
-                                  <div className="text-[9px] text-muted-foreground font-semibold mt-0.5">{resultText}</div>
+                                  <div className="text-[9px] text-muted-foreground font-semibold mt-0.5 whitespace-nowrap">{resultText}</div>
                                 )}
                               </div>
                             ) : f.status === 'completed' && resultsByFixture.has(f.id) ? (() => {
@@ -187,7 +200,10 @@ export default function Fixtures() {
                             )}
                           </div>
                           <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
-                            <span className="font-bold text-xs truncate">{awayShort}</span>
+                            {hasCricketResult && (
+                              <span className={`text-xs tabular-nums mr-auto shrink-0 ${awayWon ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>{awayScore}</span>
+                            )}
+                            <span className={`font-bold text-xs truncate ${hasCricketResult && !awayWon ? 'text-muted-foreground' : ''}`}>{awayShort}</span>
                             <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" />
                           </div>
                         </div>
