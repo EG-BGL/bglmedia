@@ -182,6 +182,25 @@ export default function SubmitResult() {
       if (statsError) console.error('Failed to save player stats:', statsError);
     }
 
+    // Save extracted team stats if any
+    const hasTeamStats = Object.values(extractedTeamStats.home).some(v => v != null) || Object.values(extractedTeamStats.away).some(v => v != null);
+    if (hasTeamStats && selectedMatch) {
+      const homeTeamId = selectedMatch.home_team?.id;
+      const awayTeamId = selectedMatch.away_team?.id;
+      if (homeTeamId) {
+        await supabase.from('match_team_stats').upsert(
+          { fixture_id: selectedFixture, team_id: homeTeamId, ...extractedTeamStats.home },
+          { onConflict: 'fixture_id,team_id' }
+        );
+      }
+      if (awayTeamId) {
+        await supabase.from('match_team_stats').upsert(
+          { fixture_id: selectedFixture, team_id: awayTeamId, ...extractedTeamStats.away },
+          { onConflict: 'fixture_id,team_id' }
+        );
+      }
+    }
+
     setShowSuccess(true);
   };
 
