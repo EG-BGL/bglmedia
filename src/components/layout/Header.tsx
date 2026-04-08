@@ -1,14 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown, User, LogOut, ClipboardList } from 'lucide-react';
+import { Menu, X, User, LogOut, ClipboardList, Shield, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 const navItems = [
   { label: 'Home', path: '/' },
@@ -26,28 +20,26 @@ export default function Header() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="sport-gradient sticky top-0 z-50 shadow-lg">
-      <div className="container mx-auto flex items-center justify-between py-3 px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent font-black text-accent-foreground text-lg">
-            FL
+    <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border/50">
+      <div className="page-container flex items-center justify-between h-14">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2.5 shrink-0">
+          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground font-black text-sm">SD</span>
           </div>
-          <div className="hidden sm:block">
-            <div className="text-lg font-bold text-primary-foreground leading-tight">FootyLeague</div>
-            <div className="text-xs text-primary-foreground/70">Community Football</div>
-          </div>
+          <span className="font-black text-base tracking-tight hidden sm:inline">SDFL</span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1">
+        {/* Desktop nav - horizontal pill tabs */}
+        <nav className="hidden md:flex items-center bg-muted/60 rounded-full p-1 gap-0.5">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${
                 isActive(item.path)
-                  ? 'bg-accent text-accent-foreground'
-                  : 'text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {item.label}
@@ -55,40 +47,27 @@ export default function Header() {
           ))}
         </nav>
 
+        {/* Desktop actions */}
         <div className="hidden md:flex items-center gap-2">
           {user && (role === 'coach' || role === 'league_admin') && (
-            <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold gap-1.5">
-              <Link to="/portal/submit"><ClipboardList className="h-4 w-4" />Submit Result</Link>
+            <Button asChild size="sm" className="rounded-full font-bold gap-1.5 h-8 px-4 text-xs">
+              <Link to="/portal/submit"><ClipboardList className="h-3.5 w-3.5" />Submit</Link>
             </Button>
           )}
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10 gap-2">
-                  <User className="h-4 w-4" />
-                  <span className="text-sm">{role === 'league_admin' ? 'Admin' : role === 'coach' ? 'Coach' : 'Account'}</span>
-                  <ChevronDown className="h-3 w-3" />
+            <div className="flex items-center gap-1">
+              {role === 'league_admin' && (
+                <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full">
+                  <Link to="/admin"><Shield className="h-4 w-4" /></Link>
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {(role === 'coach' || role === 'league_admin') && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/portal">Dashboard</Link>
-                  </DropdownMenuItem>
-                )}
-                {role === 'league_admin' && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin">Admin Panel</Link>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onClick={signOut} className="text-destructive">
-                  <LogOut className="h-4 w-4 mr-2" /> Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              )}
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" onClick={signOut}>
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           ) : (
-            <Button asChild variant="secondary" size="sm">
-              <Link to="/login">Sign In</Link>
+            <Button asChild variant="ghost" size="sm" className="rounded-full h-8 text-xs font-semibold">
+              <Link to="/login"><User className="h-3.5 w-3.5 mr-1" />Sign In</Link>
             </Button>
           )}
         </div>
@@ -96,50 +75,67 @@ export default function Header() {
         {/* Mobile toggle */}
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="md:hidden text-primary-foreground p-2"
+          className="md:hidden p-2 -mr-2 text-foreground"
         >
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu - full overlay */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-primary-foreground/10 pb-4">
-          <nav className="flex flex-col px-4 pt-2 gap-1">
+        <div className="md:hidden fixed inset-0 top-14 bg-background z-40 animate-in slide-in-from-top-2 duration-200">
+          <nav className="flex flex-col p-4 gap-1">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileOpen(false)}
-                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                className={`flex items-center justify-between px-4 py-3.5 rounded-xl text-base font-semibold transition-colors ${
                   isActive(item.path)
-                    ? 'bg-accent text-accent-foreground'
-                    : 'text-primary-foreground/80 hover:bg-primary-foreground/10'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-foreground hover:bg-muted'
                 }`}
               >
                 {item.label}
+                <ChevronRight className="h-4 w-4 opacity-40" />
               </Link>
             ))}
-            <div className="border-t border-primary-foreground/10 mt-2 pt-2">
-              {user ? (
-                <>
-                  {(role === 'coach' || role === 'league_admin') && (
-                    <Link to="/portal/submit" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-md text-sm font-bold bg-accent text-accent-foreground">
-                      <ClipboardList className="h-4 w-4" /> Submit Result
-                    </Link>
-                  )}
-                  {(role === 'coach' || role === 'league_admin') && (
-                    <Link to="/portal" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm text-primary-foreground/80">Dashboard</Link>
-                  )}
-                  {role === 'league_admin' && (
-                    <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm text-primary-foreground/80">Admin Panel</Link>
-                  )}
-                  <button onClick={() => { signOut(); setMobileOpen(false); }} className="block w-full text-left px-3 py-2 text-sm text-destructive">Sign Out</button>
-                </>
-              ) : (
-                <Link to="/login" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm font-medium text-accent">Sign In</Link>
-              )}
-            </div>
+
+            <div className="border-t border-border my-3" />
+
+            {user ? (
+              <>
+                {(role === 'coach' || role === 'league_admin') && (
+                  <Link
+                    to="/portal/submit"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-base"
+                  >
+                    <ClipboardList className="h-5 w-5" /> Submit Result
+                  </Link>
+                )}
+                {(role === 'coach' || role === 'league_admin') && (
+                  <Link to="/portal" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-foreground hover:bg-muted font-medium">
+                    <User className="h-4 w-4 opacity-60" /> Dashboard
+                  </Link>
+                )}
+                {role === 'league_admin' && (
+                  <Link to="/admin" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-foreground hover:bg-muted font-medium">
+                    <Shield className="h-4 w-4 opacity-60" /> Admin Panel
+                  </Link>
+                )}
+                <button
+                  onClick={() => { signOut(); setMobileOpen(false); }}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-destructive hover:bg-destructive/10 font-medium w-full text-left"
+                >
+                  <LogOut className="h-4 w-4" /> Sign Out
+                </button>
+              </>
+            ) : (
+              <Link to="/login" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-base">
+                <User className="h-5 w-5" /> Sign In
+              </Link>
+            )}
           </nav>
         </div>
       )}
