@@ -63,9 +63,8 @@ export default function Fixtures() {
         {isLoading ? (
           <div className="py-16 text-center text-sm text-muted-foreground">Loading...</div>
         ) : Object.keys(groupedFixtures).length === 0 ? (
-          Object.keys(groupedFixtures).length === 0 ? (
-            <div className="py-16 text-center text-sm text-muted-foreground">No fixtures found.</div>
-          ) : (
+          <div className="py-16 text-center text-sm text-muted-foreground">No fixtures found.</div>
+        ) : (
             Object.entries(groupedFixtures).sort(([a], [b]) => Number(a) - Number(b)).map(([round, matches]) => (
               <div key={round}>
                 <h2 className="section-label mb-2">Round {round}</h2>
