@@ -308,12 +308,17 @@ export default function SubmitResult() {
             </h3>
             <p className="text-[10px] text-muted-foreground mb-3">Upload photos for each section and AI will extract the data automatically</p>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {([
                 { key: 'final_score' as SectionKey, label: 'Final Score + Worm', icon: Trophy },
                 { key: 'match_stats_1' as SectionKey, label: 'Match Stats 1', icon: BarChart3 },
                 { key: 'match_stats_2' as SectionKey, label: 'Match Stats 2', icon: BarChart3 },
-                { key: 'key_stats' as SectionKey, label: 'Key Stats', icon: Users },
+                { key: 'goalkickers_1' as SectionKey, label: 'Goalkickers 1', icon: Users },
+                { key: 'goalkickers_2' as SectionKey, label: 'Goalkickers 2', icon: Users },
+                { key: 'disposals_1' as SectionKey, label: 'Disposals 1', icon: BarChart3 },
+                { key: 'disposals_2' as SectionKey, label: 'Disposals 2', icon: BarChart3 },
+                { key: 'afl_fantasy_1' as SectionKey, label: 'AFL Fantasy 1', icon: Sparkles },
+                { key: 'afl_fantasy_2' as SectionKey, label: 'AFL Fantasy 2', icon: Sparkles },
               ]).map(({ key, label, icon: Icon }) => (
                 <div key={key} className="relative">
                   <input ref={fileRefs[key]} type="file" accept="image/*" onChange={(e) => handleSectionUpload(key, e)} className="hidden" />
@@ -321,24 +326,24 @@ export default function SubmitResult() {
                     type="button"
                     onClick={() => fileRefs[key].current?.click()}
                     disabled={sectionExtracting[key]}
-                    className={`w-full rounded-xl border p-2.5 text-left transition-colors hover:bg-muted/50 ${sectionPreviews[key] ? 'border-primary/40 bg-primary/5' : 'border-border/60'}`}
+                    className={`w-full rounded-xl border p-2 text-left transition-colors hover:bg-muted/50 ${sectionPreviews[key] ? 'border-primary/40 bg-primary/5' : 'border-border/60'}`}
                   >
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Icon className="h-3.5 w-3.5 text-primary shrink-0" />
-                      <span className="text-[10px] font-bold truncate">{label}</span>
+                    <div className="flex items-center gap-1 mb-1">
+                      <Icon className="h-3 w-3 text-primary shrink-0" />
+                      <span className="text-[9px] font-bold truncate leading-tight">{label}</span>
                       {sectionConfidence[key] && (
-                        <CheckCircle2 className={`h-3 w-3 ml-auto shrink-0 ${sectionConfidence[key] === 'high' ? 'text-green-600 dark:text-green-400' : sectionConfidence[key] === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-destructive'}`} />
+                        <CheckCircle2 className={`h-2.5 w-2.5 ml-auto shrink-0 ${sectionConfidence[key] === 'high' ? 'text-green-600 dark:text-green-400' : sectionConfidence[key] === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-destructive'}`} />
                       )}
                     </div>
                     {sectionExtracting[key] ? (
-                      <div className="flex items-center justify-center h-14 text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                      <div className="flex items-center justify-center h-12 text-muted-foreground">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       </div>
                     ) : sectionPreviews[key] ? (
-                      <img src={sectionPreviews[key]!} alt={label} className="w-full h-14 object-cover rounded-lg" />
+                      <img src={sectionPreviews[key]!} alt={label} className="w-full h-12 object-cover rounded-lg" />
                     ) : (
-                      <div className="flex items-center justify-center h-14 rounded-lg border border-dashed border-border/60 bg-muted/30">
-                        <Camera className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex items-center justify-center h-12 rounded-lg border border-dashed border-border/60 bg-muted/30">
+                        <Camera className="h-3.5 w-3.5 text-muted-foreground" />
                       </div>
                     )}
                   </button>
