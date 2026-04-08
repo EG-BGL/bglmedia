@@ -40,11 +40,17 @@ export default function SubmitResult() {
   const [goalKickersHome, setGoalKickersHome] = useState('');
   const [goalKickersAway, setGoalKickersAway] = useState('');
   const [matchNotes, setMatchNotes] = useState('');
-  const [scorecardFile, setScorecardFile] = useState<File | null>(null);
-  const [scorecardPreview, setScorecardPreview] = useState<string | null>(null);
-  const [extracting, setExtracting] = useState(false);
-  const [aiConfidence, setAiConfidence] = useState<string | null>(null);
-  const scorecardRef = useRef<HTMLInputElement>(null);
+  // Multi-section upload state
+  type SectionKey = 'final_score' | 'match_stats_1' | 'match_stats_2' | 'key_stats';
+  const [sectionPreviews, setSectionPreviews] = useState<Record<SectionKey, string | null>>({ final_score: null, match_stats_1: null, match_stats_2: null, key_stats: null });
+  const [sectionExtracting, setSectionExtracting] = useState<Record<SectionKey, boolean>>({ final_score: false, match_stats_1: false, match_stats_2: false, key_stats: false });
+  const [sectionConfidence, setSectionConfidence] = useState<Record<SectionKey, string | null>>({ final_score: null, match_stats_1: null, match_stats_2: null, key_stats: null });
+  const fileRefs = {
+    final_score: useRef<HTMLInputElement>(null),
+    match_stats_1: useRef<HTMLInputElement>(null),
+    match_stats_2: useRef<HTMLInputElement>(null),
+    key_stats: useRef<HTMLInputElement>(null),
+  };
 
   useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading, navigate]);
 
