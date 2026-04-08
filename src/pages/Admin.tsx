@@ -294,6 +294,17 @@ export default function Admin() {
             </TabsList>
           </div>
 
+          {/* ── Players Tab ── */}
+          <TabsContent value="players" className="mt-4">
+            <div className="text-center py-8 space-y-3">
+              <Users className="h-10 w-10 mx-auto text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">Manage player rosters for each team</p>
+              <Button asChild className="rounded-full font-bold text-xs gap-1.5">
+                <Link to="/admin/players"><Plus className="h-3.5 w-3.5" /> Manage Players</Link>
+              </Button>
+            </div>
+          </TabsContent>
+
           {/* ── Fixtures Tab ── */}
           <TabsContent value="fixtures" className="space-y-4 mt-4">
             <div className="flex flex-wrap gap-2">
