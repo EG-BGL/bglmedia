@@ -3,9 +3,11 @@ import { useLadder, useCurrentSeason } from '@/hooks/useData';
 import ClubLogo from '@/components/ClubLogo';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
+import { useSport } from '@/hooks/useSport';
 
 export default function Ladder() {
-  const { data: season } = useCurrentSeason();
+  const { currentSport } = useSport();
+  const { data: season } = useCurrentSeason(currentSport?.id);
   const { data: ladder, isLoading } = useLadder(season?.id);
 
   return (

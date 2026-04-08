@@ -6,9 +6,11 @@ import { useFixtures, useResults, useCurrentSeason } from '@/hooks/useData';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ClubLogo from '@/components/ClubLogo';
+import { useSport } from '@/hooks/useSport';
 
 export default function Fixtures() {
-  const { data: season } = useCurrentSeason();
+  const { currentSport } = useSport();
+  const { data: season } = useCurrentSeason(currentSport?.id);
   const { data: fixtures, isLoading } = useFixtures(season?.id);
   const { data: results } = useResults(season?.id);
 
