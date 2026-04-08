@@ -24,9 +24,9 @@ export default function Header() {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 shrink-0">
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-black text-sm">SD</span>
+            <span className="text-primary-foreground font-black text-sm">BGL</span>
           </div>
-          <span className="font-black text-base tracking-tight hidden sm:inline">SDFL</span>
+          <span className="font-black text-base tracking-tight hidden sm:inline">BGLMedia</span>
         </Link>
 
         {/* Desktop nav - horizontal pill tabs (hidden on mobile, bottom nav handles it) */}
