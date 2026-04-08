@@ -486,26 +486,78 @@ export default function Admin() {
           </TabsContent>
 
           {/* ── Pending Tab ── */}
-          <TabsContent value="pending" className="space-y-3 mt-4">
-            {pending.length === 0 ? (
-              <div className="match-card p-8 text-center text-sm text-muted-foreground">No pending submissions.</div>
-            ) : pending.map((r: any) => (
-              <div key={r.id} className="match-card p-3.5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant={r.status === 'submitted' ? 'secondary' : 'outline'} className="text-[10px] rounded-full">{r.status}</Badge>
-                      <span className="font-bold text-sm">{r.fixtures?.home_team?.clubs?.short_name} vs {r.fixtures?.away_team?.clubs?.short_name}</span>
+          <TabsContent value="pending" className="space-y-4 mt-4">
+            {(() => {
+              // Group submissions by fixture_id
+              const byFixture: Record<string, any[]> = {};
+              pending.forEach((r: any) => {
+                const fid = r.fixture_id;
+                if (!byFixture[fid]) byFixture[fid] = [];
+                byFixture[fid].push(r);
+              });
+              const fixtureGroups = Object.entries(byFixture);
+              if (fixtureGroups.length === 0) return <div className="match-card p-8 text-center text-sm text-muted-foreground">No pending submissions.</div>;
+
+              return fixtureGroups.map(([fixtureId, submissions]) => {
+                const fixture = submissions[0]?.fixtures;
+                const hasConflict = submissions.length >= 2 && !(
+                  submissions[0].home_goals === submissions[1].home_goals &&
+                  submissions[0].home_behinds === submissions[1].home_behinds &&
+                  submissions[0].away_goals === submissions[1].away_goals &&
+                  submissions[0].away_behinds === submissions[1].away_behinds
+                );
+
+                return (
+                  <div key={fixtureId} className="match-card p-4 space-y-3">
+                    {/* Match header */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-sm">{fixture?.home_team?.clubs?.short_name} vs {fixture?.away_team?.clubs?.short_name}</span>
+                      <Badge variant="outline" className="text-[10px] rounded-full">Rd {fixture?.round_number}</Badge>
+                      {hasConflict && (
+                        <Badge className="text-[10px] rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 border-0 gap-1">
+                          <AlertTriangle className="h-2.5 w-2.5" /> Conflict
+                        </Badge>
+                      )}
+                      {submissions.length === 1 && (
+                        <Badge className="text-[10px] rounded-full bg-accent text-accent-foreground border-0">1 of 2 submitted</Badge>
+                      )}
                     </div>
-                    <div className="text-xs text-muted-foreground">Rd {r.fixtures?.round_number} • {r.home_goals}.{r.home_behinds}.{r.home_score} to {r.away_goals}.{r.away_behinds}.{r.away_score}</div>
+
+                    {/* Submissions */}
+                    <div className="space-y-2">
+                      {submissions.map((r: any) => {
+                        const teamName = r.team_id === fixture?.home_team_id
+                          ? fixture?.home_team?.clubs?.short_name
+                          : r.team_id === fixture?.away_team_id
+                          ? fixture?.away_team?.clubs?.short_name
+                          : 'Unknown';
+                        return (
+                          <div key={r.id} className={`rounded-xl p-3 border ${hasConflict ? 'border-amber-500/30 bg-amber-500/5' : 'border-border/50 bg-muted/30'}`}>
+                            <div className="flex items-center justify-between gap-2 mb-1.5">
+                              <div className="flex items-center gap-2">
+                                <Badge variant={r.status === 'submitted' ? 'secondary' : 'outline'} className="text-[10px] rounded-full">{r.status}</Badge>
+                                <span className="text-xs font-bold">{teamName}</span>
+                              </div>
+                              <span className="text-[10px] text-muted-foreground">
+                                {r.submitted_at ? new Date(r.submitted_at).toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
+                              </span>
+                            </div>
+                            <div className="text-sm font-black tabular-nums">
+                              {r.home_goals}.{r.home_behinds}.{r.home_score} to {r.away_goals}.{r.away_behinds}.{r.away_score}
+                            </div>
+                            {r.match_notes && <p className="text-[10px] text-muted-foreground mt-1">{r.match_notes}</p>}
+                            <div className="flex gap-2 mt-2">
+                              <Button size="sm" onClick={() => handleApprove(r.id)} className="rounded-full gap-1 text-xs font-bold h-7"><Check className="h-3 w-3" />Approve</Button>
+                              <Button size="sm" variant="destructive" onClick={() => handleReject(r.id)} className="rounded-full gap-1 text-xs font-bold h-7"><X className="h-3 w-3" />Reject</Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleApprove(r.id)} className="rounded-full gap-1 text-xs font-bold"><Check className="h-3 w-3" />Approve</Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleReject(r.id)} className="rounded-full gap-1 text-xs font-bold"><X className="h-3 w-3" />Reject</Button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                );
+              });
+            })()}
           </TabsContent>
 
           {/* ── News Tab ── */}
