@@ -184,8 +184,6 @@ export default function TeamsTab({ fixture, homeClub, awayClub }: TeamsTabProps)
         </div>
       )}
 
-      <TeamCard club={homeClub} label="HOME" />
-      <TeamCard club={awayClub} label="AWAY" />
     </div>
   );
 }
