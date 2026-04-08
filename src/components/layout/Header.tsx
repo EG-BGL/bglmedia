@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown, User, LogOut } from 'lucide-react';
+import { Menu, X, ChevronDown, User, LogOut, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -118,6 +118,11 @@ export default function Header() {
             <div className="border-t border-primary-foreground/10 mt-2 pt-2">
               {user ? (
                 <>
+                  {(role === 'coach' || role === 'league_admin') && (
+                    <Link to="/portal/submit" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-md text-sm font-bold bg-accent text-accent-foreground">
+                      <ClipboardList className="h-4 w-4" /> Submit Result
+                    </Link>
+                  )}
                   {(role === 'coach' || role === 'league_admin') && (
                     <Link to="/portal" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm text-primary-foreground/80">Dashboard</Link>
                   )}
