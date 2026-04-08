@@ -40,11 +40,21 @@ serve(async (req) => {
       });
     }
 
+    // Delete existing stats for this fixture to avoid duplicates on re-submission
+    await supabase.from("match_player_stats").delete().eq("fixture_id", fixture_id);
+
     const insertedStats = [];
 
+    // De-duplicate player_stats by name+team (keep last occurrence which has merged data)
+    const deduped = new Map<string, typeof player_stats[0]>();
     for (const ps of player_stats) {
+      if (!ps.name || !ps.team) continue;
+      const key = `${ps.name.trim().toLowerCase()}::${ps.team}`;
+      deduped.set(key, ps);
+    }
+
+    for (const ps of deduped.values()) {
       const { name, team, goals, behinds, disposals, kicks, handballs, marks, tackles, hitouts, afl_fantasy } = ps;
-      if (!name || !team) continue;
 
       const teamId = team === "home" ? fixture.home_team_id : fixture.away_team_id;
 
@@ -81,7 +91,7 @@ serve(async (req) => {
         playerId = newPlayer.id;
       }
 
-      // Upsert match player stats
+      // Insert match player stats (unique constraint prevents duplicates)
       const { error: statsErr } = await supabase
         .from("match_player_stats")
         .upsert(
@@ -104,21 +114,7 @@ serve(async (req) => {
 
       if (statsErr) {
         console.error("Failed to upsert stats for", name, statsErr);
-        // Try insert without onConflict
-        await supabase.from("match_player_stats").insert({
-          fixture_id,
-          player_id: playerId,
-          team_id: teamId,
-          goals: goals ?? 0,
-          behinds: behinds ?? 0,
-          disposals: disposals ?? 0,
-          kicks: kicks ?? 0,
-          handballs: handballs ?? 0,
-          marks: marks ?? 0,
-          tackles: tackles ?? 0,
-          hitouts: hitouts ?? 0,
-          afl_fantasy: afl_fantasy ?? 0,
-        });
+        continue;
       }
 
       insertedStats.push({ name, playerId });
