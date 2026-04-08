@@ -7,12 +7,74 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ClubLogo from '@/components/ClubLogo';
 import { useSport } from '@/hooks/useSport';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+
+function useCricketInningsForSeason(seasonId?: string, isCricket?: boolean) {
+  return useQuery({
+    queryKey: ['cricket-innings-season', seasonId],
+    queryFn: async () => {
+      // Get all fixture ids for this season, then get innings
+      const { data: fixtures } = await supabase
+        .from('fixtures')
+        .select('id')
+        .eq('season_id', seasonId!);
+      if (!fixtures?.length) return {};
+      const fixtureIds = fixtures.map(f => f.id);
+      const { data, error } = await supabase
+        .from('cricket_match_results')
+        .select('*')
+        .in('fixture_id', fixtureIds)
+        .order('innings_number');
+      if (error) throw error;
+      // Group by fixture_id
+      const map: Record<string, any[]> = {};
+      (data ?? []).forEach((inn: any) => {
+        if (!map[inn.fixture_id]) map[inn.fixture_id] = [];
+        map[inn.fixture_id].push(inn);
+      });
+      return map;
+    },
+    enabled: !!seasonId && !!isCricket,
+  });
+}
+
+function getCricketResultText(innings: any[], homeTeamId: string, awayTeamId: string, homeShort: string, awayShort: string) {
+  if (!innings?.length) return null;
+  const homeRuns = innings.filter((i: any) => i.team_id === homeTeamId).reduce((s: number, i: any) => s + (i.total_runs ?? 0), 0);
+  const awayRuns = innings.filter((i: any) => i.team_id === awayTeamId).reduce((s: number, i: any) => s + (i.total_runs ?? 0), 0);
+
+  if (homeRuns === awayRuns) return 'Match Tied';
+
+  const winnerIsHome = homeRuns > awayRuns;
+  const winnerName = winnerIsHome ? homeShort : awayShort;
+
+  // If the team batting second won, margin is in wickets
+  // Determine who batted second (last innings team)
+  const sortedInnings = [...innings].sort((a, b) => a.innings_number - b.innings_number);
+  const lastInnings = sortedInnings[sortedInnings.length - 1];
+  const chasingTeamId = lastInnings.team_id;
+  const winnerTeamId = winnerIsHome ? homeTeamId : awayTeamId;
+
+  if (winnerTeamId === chasingTeamId) {
+    // Won while chasing → margin in wickets
+    const wicketsLost = lastInnings.total_wickets ?? 0;
+    const wicketsRemaining = 10 - wicketsLost;
+    return `${winnerName} won by ${wicketsRemaining} wkt${wicketsRemaining !== 1 ? 's' : ''}`;
+  } else {
+    // Won batting first → margin in runs
+    const margin = Math.abs(homeRuns - awayRuns);
+    return `${winnerName} won by ${margin} run${margin !== 1 ? 's' : ''}`;
+  }
+}
 
 export default function Fixtures() {
   const { sports, currentSport, setSport } = useSport();
+  const isCricket = currentSport?.slug === 'cricket';
   const { data: season } = useCurrentSeason(currentSport?.id);
   const { data: fixtures, isLoading } = useFixtures(season?.id);
   const { data: results } = useResults(season?.id);
+  const { data: cricketInningsMap } = useCricketInningsForSeason(season?.id, isCricket);
 
   const fixtureIdsWithResults = new Set(results?.map((r: any) => r.fixture_id ?? r.fixtures?.id) ?? []);
   const resultsByFixture = new Map((results ?? []).map((r: any) => [r.fixture_id ?? r.fixtures?.id, r]));
@@ -80,44 +142,63 @@ export default function Fixtures() {
               <div key={round}>
                 <h2 className="section-label mb-2">Round {round}</h2>
                 <div className="space-y-2">
-                  {matches.map((f: any) => (
-                    <Link key={f.id} to={`/match/${f.id}`} className="block match-card px-3 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                          <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" />
-                          <span className="font-bold text-xs truncate">{f.home_team?.clubs?.short_name}</span>
-                        </div>
-                        <div className="text-center shrink-0 px-1">
-                          {f.status === 'completed' && resultsByFixture.has(f.id) ? (() => {
-                            const r = resultsByFixture.get(f.id);
-                            return (
+                  {matches.map((f: any) => {
+                    const homeTeamId = f.home_team?.id;
+                    const awayTeamId = f.away_team?.id;
+                    const homeShort = f.home_team?.clubs?.short_name ?? '';
+                    const awayShort = f.away_team?.clubs?.short_name ?? '';
+                    const cricketInnings = isCricket ? cricketInningsMap?.[f.id] : null;
+                    const hasCricketResult = isCricket && cricketInnings && cricketInnings.length > 0;
+                    const resultText = hasCricketResult
+                      ? getCricketResultText(cricketInnings, homeTeamId, awayTeamId, homeShort, awayShort)
+                      : null;
+
+                    return (
+                      <Link key={f.id} to={`/match/${f.id}`} className="block match-card px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                            <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" />
+                            <span className="font-bold text-xs truncate">{homeShort}</span>
+                          </div>
+                          <div className="text-center shrink-0 px-1">
+                            {f.status === 'completed' && hasCricketResult ? (
                               <div>
-                                <div className="stat-number text-xl font-black">{r.home_score} – {r.away_score}</div>
-                                <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">FT</Badge>
+                                <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">COMPLETED</Badge>
+                                {resultText && (
+                                  <div className="text-[9px] text-muted-foreground font-semibold mt-0.5">{resultText}</div>
+                                )}
                               </div>
-                            );
-                          })() : f.status === 'completed' ? (
-                            <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">FT</Badge>
-                          ) : (
-                            <div>
-                              <div className="text-[10px] text-muted-foreground">
-                                {f.scheduled_at ? new Date(f.scheduled_at).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBA'}
+                            ) : f.status === 'completed' && resultsByFixture.has(f.id) ? (() => {
+                              const r = resultsByFixture.get(f.id);
+                              return (
+                                <div>
+                                  <div className="stat-number text-xl font-black">{r.home_score} – {r.away_score}</div>
+                                  <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">FT</Badge>
+                                </div>
+                              );
+                            })() : f.status === 'completed' ? (
+                              <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">FT</Badge>
+                            ) : (
+                              <div>
+                                <div className="text-[10px] text-muted-foreground">
+                                  {f.scheduled_at ? new Date(f.scheduled_at).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBA'}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+                            <span className="font-bold text-xs truncate">{awayShort}</span>
+                            <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" />
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
-                          <span className="font-bold text-xs truncate">{f.away_team?.clubs?.short_name}</span>
-                          <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" />
-                        </div>
-                      </div>
-                      {f.venue && (
-                        <div className="flex items-center gap-1 mt-1.5 text-[9px] text-muted-foreground justify-center">
-                          <MapPin className="h-2.5 w-2.5" />{f.venue}
-                        </div>
-                      )}
-                    </Link>
-                  ))}
+                        {f.venue && (
+                          <div className="flex items-center gap-1 mt-1.5 text-[9px] text-muted-foreground justify-center">
+                            <MapPin className="h-2.5 w-2.5" />{f.venue}
+                          </div>
+                        )}
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             ))
