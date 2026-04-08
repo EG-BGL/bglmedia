@@ -12,6 +12,7 @@ export default function Index() {
   const { data: fixtures } = useFixtures(season?.id);
   const { data: results } = useResults(season?.id);
   const { data: ladder } = useLadder(season?.id);
+  const { data: news } = useNews(3);
 
   const upcomingFixtures = fixtures?.filter(f => f.status === 'scheduled').slice(0, 4) ?? [];
   const latestResults = results?.slice(0, 4) ?? [];
