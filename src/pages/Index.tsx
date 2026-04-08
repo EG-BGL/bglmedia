@@ -228,23 +228,6 @@ export default function Index() {
           </section>
         )}
 
-        {/* Clubs row */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="section-label">Clubs</h2>
-            <Link to="/clubs" className="text-xs font-bold text-primary flex items-center gap-0.5">All <ChevronRight className="h-3 w-3" /></Link>
-          </div>
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
-            {(clubs ?? []).map((club: any) => (
-              <Link key={club.id} to={`/clubs/${club.id}`} className="shrink-0 text-center group">
-                <div className="match-card p-3 w-20">
-                  <ClubLogo club={club} size="lg" className="mx-auto !h-12 !w-12 mb-1.5 group-hover:scale-105 transition-transform" />
-                  <div className="font-bold text-[10px] truncate">{club.short_name}</div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
 
         {/* News */}
         {(news ?? []).length > 0 && (
