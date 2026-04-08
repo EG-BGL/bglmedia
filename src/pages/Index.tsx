@@ -287,8 +287,8 @@ export default function Index() {
               <Link to="/clubs">All Clubs <ChevronRight className="h-3 w-3 ml-1" /></Link>
             </Button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {(clubs ?? []).slice(0, 8).map((club: any) => (
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+            {(clubs ?? []).map((club: any) => (
               <Link key={club.id} to={`/clubs/${club.id}`}>
                 <div className="card-sport text-center p-4 group">
                   <ClubLogo club={club} size="lg" className="mx-auto mb-3 group-hover:scale-105 transition-transform" />
