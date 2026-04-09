@@ -22,7 +22,7 @@ export default function Header() {
   const { notifications, unreadCount, markAsRead, markAllRead } = useNotifications();
 
   // Close menu on route change
-  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+  useEffect(() => { setMobileOpen(false); setNotifOpen(false); }, [location.pathname]);
 
   const isActive = (path: string) => location.pathname === path;
 
