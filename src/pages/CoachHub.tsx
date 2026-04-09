@@ -4,15 +4,37 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, Trophy, BarChart3, Users, ClipboardList, CircleDot, ChevronRight } from 'lucide-react';
+import { ChevronLeft, Trophy, BarChart3, Users, ClipboardList, CircleDot, TrendingUp, Hash, Target } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
+
+interface SeasonStats {
+  seasonName: string;
+  compName: string;
+  sportSlug: string;
+  year: number;
+  isCurrent: boolean;
+  teams: any[];
+  ladderEntries: any[];
+  // Aggregated stats across all teams in this season
+  played: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  pointsFor: number;
+  pointsAgainst: number;
+  competitionPoints: number;
+  bestFinish: number | null; // ladder position
+  winRate: string;
+}
 
 export default function CoachHub() {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
   const [assignments, setAssignments] = useState<any[]>([]);
+  const [seasonStats, setSeasonStats] = useState<SeasonStats[]>([]);
+  const [allTimeStats, setAllTimeStats] = useState({ totalSeasons: 0, totalMatches: 0, wins: 0, losses: 0, draws: 0, winRate: '0' });
   const [recentResults, setRecentResults] = useState<any[]>([]);
-  const [stats, setStats] = useState({ totalMatches: 0, wins: 0, losses: 0, draws: 0 });
+  const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
@@ -20,14 +42,123 @@ export default function CoachHub() {
 
   useEffect(() => {
     if (!user) return;
+    loadCoachData();
+  }, [user]);
 
-    // Fetch coach assignments with competition and sport info
-    supabase.from('coaches_to_teams').select('*, teams(*, clubs(*), seasons(*, competitions(*, sports(*))))')
-      .eq('user_id', user.id)
-      .then(({ data }) => setAssignments(data ?? []));
+  async function loadCoachData() {
+    if (!user) return;
+    setLoadingData(true);
 
-    // Fetch recent results submitted by this coach
-    supabase.from('results').select(`
+    // Fetch assignments with full details
+    const { data: assignData } = await supabase.from('coaches_to_teams')
+      .select('*, teams(*, clubs(*), seasons(*, competitions(*, sports(*))))')
+      .eq('user_id', user.id);
+
+    const assigns = assignData ?? [];
+    setAssignments(assigns);
+
+    // Get all team IDs the coach has been assigned to
+    const teamIds = assigns.map(a => a.team_id).filter(Boolean);
+    const seasonIds = [...new Set(assigns.map(a => a.season_id).filter(Boolean))];
+
+    // Fetch ladder entries for all coach's teams
+    let ladderData: any[] = [];
+    if (teamIds.length > 0) {
+      const { data } = await supabase.from('ladder_entries')
+        .select('*, teams(*, clubs(*))')
+        .in('team_id', teamIds);
+      ladderData = data ?? [];
+    }
+
+    // Fetch ALL ladder entries for each season to determine position
+    let allSeasonLadders: any[] = [];
+    if (seasonIds.length > 0) {
+      const { data } = await supabase.from('ladder_entries')
+        .select('*, teams(*, clubs(*))')
+        .in('season_id', seasonIds)
+        .order('competition_points', { ascending: false })
+        .order('percentage', { ascending: false });
+      allSeasonLadders = data ?? [];
+    }
+
+    // Group by season
+    const seasonMap: Record<string, SeasonStats> = {};
+    assigns.forEach((a: any) => {
+      const season = a.teams?.seasons;
+      const comp = season?.competitions;
+      const sport = comp?.sports;
+      const key = season?.id;
+      if (!key) return;
+
+      if (!seasonMap[key]) {
+        seasonMap[key] = {
+          seasonName: season?.name ?? '',
+          compName: comp?.name ?? '',
+          sportSlug: sport?.slug ?? 'afl',
+          year: season?.year ?? 0,
+          isCurrent: season?.is_current ?? false,
+          teams: [],
+          ladderEntries: [],
+          played: 0, wins: 0, losses: 0, draws: 0,
+          pointsFor: 0, pointsAgainst: 0, competitionPoints: 0,
+          bestFinish: null,
+          winRate: '0',
+        };
+      }
+      seasonMap[key].teams.push(a);
+    });
+
+    // Populate ladder stats per season
+    Object.entries(seasonMap).forEach(([seasonId, ss]) => {
+      const coachTeamIds = ss.teams.map((t: any) => t.team_id);
+      const coachLadder = ladderData.filter(le => coachTeamIds.includes(le.team_id) && le.season_id === seasonId);
+      ss.ladderEntries = coachLadder;
+
+      // Aggregate stats
+      coachLadder.forEach((le: any) => {
+        ss.played += le.played ?? 0;
+        ss.wins += le.wins ?? 0;
+        ss.losses += le.losses ?? 0;
+        ss.draws += le.draws ?? 0;
+        ss.pointsFor += le.points_for ?? 0;
+        ss.pointsAgainst += le.points_against ?? 0;
+        ss.competitionPoints += le.competition_points ?? 0;
+      });
+
+      ss.winRate = ss.played > 0 ? ((ss.wins / ss.played) * 100).toFixed(0) : '0';
+
+      // Determine ladder position for each team
+      const seasonLadder = allSeasonLadders.filter(le => le.season_id === seasonId);
+      let bestPos: number | null = null;
+      coachTeamIds.forEach((tid: string) => {
+        const pos = seasonLadder.findIndex(le => le.team_id === tid);
+        if (pos !== -1) {
+          const position = pos + 1;
+          if (bestPos === null || position < bestPos) bestPos = position;
+        }
+      });
+      ss.bestFinish = bestPos;
+    });
+
+    const sortedSeasons = Object.values(seasonMap).sort((a, b) => b.year - a.year || (b.isCurrent ? 1 : 0) - (a.isCurrent ? 1 : 0));
+    setSeasonStats(sortedSeasons);
+
+    // All-time stats
+    const totals = sortedSeasons.reduce((acc, s) => ({
+      totalSeasons: acc.totalSeasons + 1,
+      totalMatches: acc.totalMatches + s.played,
+      wins: acc.wins + s.wins,
+      losses: acc.losses + s.losses,
+      draws: acc.draws + s.draws,
+    }), { totalSeasons: 0, totalMatches: 0, wins: 0, losses: 0, draws: 0 });
+
+    setAllTimeStats({
+      ...totals,
+      winRate: totals.totalMatches > 0 ? ((totals.wins / totals.totalMatches) * 100).toFixed(0) : '0',
+    });
+
+    // Recent results
+    const { data: resultsData } = await supabase.from('results').select(`
       *,
       fixtures(
         *,
@@ -35,34 +166,18 @@ export default function CoachHub() {
         away_team:teams!fixtures_away_team_id_fkey(*, clubs(*)),
         seasons:seasons!fixtures_season_id_fkey(*, competitions:competitions!seasons_competition_id_fkey(*, sports:sports!competitions_sport_id_fkey(*)))
       )
-    `).eq('submitted_by', user.id).order('created_at', { ascending: false }).limit(10)
-      .then(({ data }) => {
-        const results = data ?? [];
-        setRecentResults(results);
+    `).eq('submitted_by', user.id).order('created_at', { ascending: false }).limit(10);
+    setRecentResults(resultsData ?? []);
+    setLoadingData(false);
+  }
 
-        // Calculate W/L/D for matches involving coach's teams
-        let w = 0, l = 0, d = 0;
-        results.forEach((r: any) => {
-          if (r.home_score === r.away_score) d++;
-          else if (r.home_score > r.away_score) w++;
-          else l++;
-        });
-        setStats({ totalMatches: results.length, wins: w, losses: l, draws: d });
-      });
-  }, [user]);
+  if (loading || loadingData) return <Layout><div className="page-container py-16 text-center text-muted-foreground">Loading...</div></Layout>;
 
-  if (loading) return <Layout><div className="page-container py-16 text-center text-muted-foreground">Loading...</div></Layout>;
-
-  // Group assignments by competition
-  const competitionGroups = assignments.reduce((acc: any, a: any) => {
-    const compName = a.teams?.seasons?.competitions?.name ?? 'Unknown';
-    const sportSlug = a.teams?.seasons?.competitions?.sports?.slug ?? 'afl';
-    const seasonName = a.teams?.seasons?.name ?? '';
-    const key = `${compName}-${seasonName}`;
-    if (!acc[key]) acc[key] = { compName, sportSlug, seasonName, teams: [] };
-    acc[key].teams.push(a);
-    return acc;
-  }, {});
+  const getOrdinal = (n: number) => {
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  };
 
   return (
     <Layout hideFooter>
@@ -76,19 +191,37 @@ export default function CoachHub() {
           <p className="text-xs text-muted-foreground mt-0.5">Your coaching overview and statistics</p>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-4 gap-2">
-          {[
-            { label: 'Matches', value: stats.totalMatches, icon: BarChart3 },
-            { label: 'Wins', value: stats.wins, icon: Trophy },
-            { label: 'Losses', value: stats.losses, icon: BarChart3 },
-            { label: 'Draws', value: stats.draws, icon: BarChart3 },
-          ].map(s => (
-            <div key={s.label} className="match-card p-3 text-center">
-              <div className="text-2xl font-black text-primary tabular-nums">{s.value}</div>
-              <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">{s.label}</div>
+        {/* All-Time Stats */}
+        <div className="match-card p-4">
+          <h2 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">Career Overview</h2>
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            <div className="text-center">
+              <div className="text-2xl font-black text-primary tabular-nums">{allTimeStats.totalSeasons}</div>
+              <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Seasons</div>
             </div>
-          ))}
+            <div className="text-center">
+              <div className="text-2xl font-black text-primary tabular-nums">{allTimeStats.totalMatches}</div>
+              <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Matches</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-black text-primary tabular-nums">{allTimeStats.winRate}%</div>
+              <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Win Rate</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-emerald-500/10 rounded-lg p-2 text-center">
+              <div className="text-lg font-black text-emerald-600 tabular-nums">{allTimeStats.wins}</div>
+              <div className="text-[9px] font-bold uppercase text-emerald-600/70">Wins</div>
+            </div>
+            <div className="bg-red-500/10 rounded-lg p-2 text-center">
+              <div className="text-lg font-black text-red-600 tabular-nums">{allTimeStats.losses}</div>
+              <div className="text-[9px] font-bold uppercase text-red-600/70">Losses</div>
+            </div>
+            <div className="bg-amber-500/10 rounded-lg p-2 text-center">
+              <div className="text-lg font-black text-amber-600 tabular-nums">{allTimeStats.draws}</div>
+              <div className="text-[9px] font-bold uppercase text-amber-600/70">Draws</div>
+            </div>
+          </div>
         </div>
 
         {/* Quick Actions */}
@@ -107,32 +240,106 @@ export default function CoachHub() {
           </Link>
         </div>
 
-        {/* Competitions */}
-        {Object.keys(competitionGroups).length > 0 && (
+        {/* Season-by-Season Breakdown */}
+        {seasonStats.length > 0 && (
           <section>
-            <h2 className="section-label mb-2 flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />My Competitions</h2>
+            <h2 className="section-label mb-2 flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" />Season Breakdown</h2>
             <div className="space-y-3">
-              {Object.values(competitionGroups).map((group: any, gi: number) => (
-                <div key={gi} className="match-card p-4">
+              {seasonStats.map((ss, i) => (
+                <div key={i} className="match-card p-4">
+                  {/* Season header */}
                   <div className="flex items-center gap-2 mb-3">
                     <Badge variant="outline" className="rounded-full text-[9px] font-bold px-2 py-0">
-                      {group.sportSlug === 'cricket' ? 'Cricket' : 'AFL'}
+                      {ss.sportSlug === 'cricket' ? 'Cricket' : 'AFL'}
                     </Badge>
-                    <span className="font-bold text-sm">{group.compName}</span>
-                    <span className="text-[10px] text-muted-foreground ml-auto">{group.seasonName}</span>
+                    <span className="font-bold text-sm">{ss.compName}</span>
+                    <div className="ml-auto flex items-center gap-1.5">
+                      {ss.isCurrent && <Badge className="rounded-full text-[9px] px-2 py-0 bg-emerald-500">Active</Badge>}
+                      <span className="text-[10px] text-muted-foreground">{ss.seasonName}</span>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    {group.teams.map((a: any) => (
-                      <div key={a.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
-                        <ClubLogo club={a.teams?.clubs ?? {}} size="sm" className="!h-8 !w-8" />
-                        <div className="flex-1">
-                          <div className="font-bold text-xs">{a.teams?.clubs?.name}</div>
+
+                  {/* Teams coached */}
+                  <div className="space-y-1.5 mb-3">
+                    {ss.teams.map((a: any) => (
+                      <div key={a.id} className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30">
+                        <ClubLogo club={a.teams?.clubs ?? {}} size="sm" className="!h-7 !w-7" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-xs truncate">{a.teams?.clubs?.name}</div>
                           <div className="text-[10px] text-muted-foreground">{a.teams?.division} · {a.teams?.age_group}</div>
                         </div>
-                        {a.is_primary && <Badge variant="secondary" className="text-[9px] rounded-full">Primary</Badge>}
+                        {a.is_primary && <Badge variant="secondary" className="text-[9px] rounded-full shrink-0">Primary</Badge>}
                       </div>
                     ))}
                   </div>
+
+                  {/* Season stats grid */}
+                  {ss.played > 0 ? (
+                    <>
+                      <div className="grid grid-cols-4 gap-2 mb-3">
+                        <div className="text-center p-1.5 rounded-lg bg-muted/30">
+                          <div className="text-sm font-black tabular-nums">{ss.played}</div>
+                          <div className="text-[8px] text-muted-foreground font-bold uppercase">Played</div>
+                        </div>
+                        <div className="text-center p-1.5 rounded-lg bg-emerald-500/10">
+                          <div className="text-sm font-black text-emerald-600 tabular-nums">{ss.wins}</div>
+                          <div className="text-[8px] text-emerald-600/70 font-bold uppercase">Won</div>
+                        </div>
+                        <div className="text-center p-1.5 rounded-lg bg-red-500/10">
+                          <div className="text-sm font-black text-red-600 tabular-nums">{ss.losses}</div>
+                          <div className="text-[8px] text-red-600/70 font-bold uppercase">Lost</div>
+                        </div>
+                        <div className="text-center p-1.5 rounded-lg bg-amber-500/10">
+                          <div className="text-sm font-black text-amber-600 tabular-nums">{ss.draws}</div>
+                          <div className="text-[8px] text-amber-600/70 font-bold uppercase">Drew</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
+                          <Target className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <div>
+                            <div className="text-xs font-black tabular-nums">{ss.winRate}%</div>
+                            <div className="text-[8px] text-muted-foreground font-bold uppercase">Win Rate</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
+                          <Hash className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <div>
+                            <div className="text-xs font-black tabular-nums">{ss.competitionPoints}</div>
+                            <div className="text-[8px] text-muted-foreground font-bold uppercase">Points</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
+                          <Trophy className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <div>
+                            <div className="text-xs font-black tabular-nums">
+                              {ss.bestFinish ? getOrdinal(ss.bestFinish) : '–'}
+                            </div>
+                            <div className="text-[8px] text-muted-foreground font-bold uppercase">Finish</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Points breakdown */}
+                      <div className="flex items-center justify-between mt-3 px-1 text-[10px] text-muted-foreground">
+                        <span>PF: <strong className="text-foreground">{ss.pointsFor}</strong></span>
+                        <span>PA: <strong className="text-foreground">{ss.pointsAgainst}</strong></span>
+                        <span>
+                          {ss.sportSlug === 'cricket' ? 'NRR' : '%'}:{' '}
+                          <strong className="text-foreground">
+                            {ss.pointsAgainst > 0 
+                              ? ss.sportSlug === 'cricket'
+                                ? ((ss.pointsFor - ss.pointsAgainst) / Math.max(ss.played, 1)).toFixed(2)
+                                : ((ss.pointsFor / ss.pointsAgainst) * 100).toFixed(1)
+                              : '–'}
+                          </strong>
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-2">No matches played yet</p>
+                  )}
                 </div>
               ))}
             </div>
