@@ -15,8 +15,11 @@ const navItems = [
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, role, signOut } = useAuth();
+  const { notifications, unreadCount, markAsRead, markAllRead } = useNotifications();
 
   // Close menu on route change
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
