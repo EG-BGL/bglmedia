@@ -141,40 +141,40 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile menu - account actions only (bottom nav handles page navigation) */}
+      {/* Mobile menu - condensed */}
       {mobileOpen && (
         <div className="md:hidden border-t border-border/50 bg-card animate-in slide-in-from-top-1 duration-150">
-          <nav className="page-container flex flex-col py-2 gap-0.5">
-              {user ? (
-              <>
+          <nav className="page-container py-1.5">
+            {user ? (
+              <div className="flex flex-wrap gap-1.5 items-center">
                 {(role === 'coach' || role === 'league_admin') && (
-                  <Link to="/coach-hub" className="flex items-center gap-3 px-4 py-3 rounded-xl text-foreground hover:bg-muted font-medium text-sm">
-                    <BarChart3 className="h-4 w-4 opacity-60" /> Coach Hub
+                  <Link to="/coach-hub" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-foreground text-xs font-semibold">
+                    <BarChart3 className="h-3.5 w-3.5 opacity-70" /> Coach Hub
                   </Link>
                 )}
                 {(role === 'coach' || role === 'league_admin') && (
-                  <Link to="/portal" className="flex items-center gap-3 px-4 py-3 rounded-xl text-foreground hover:bg-muted font-medium text-sm">
-                    <ClipboardList className="h-4 w-4 opacity-60" /> Dashboard
+                  <Link to="/portal" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-foreground text-xs font-semibold">
+                    <ClipboardList className="h-3.5 w-3.5 opacity-70" /> Dashboard
                   </Link>
                 )}
                 {role === 'league_admin' && (
-                  <Link to="/admin" className="flex items-center gap-3 px-4 py-3 rounded-xl text-foreground hover:bg-muted font-medium text-sm">
-                    <Shield className="h-4 w-4 opacity-60" /> Admin Panel
+                  <Link to="/admin" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-foreground text-xs font-semibold">
+                    <Shield className="h-3.5 w-3.5 opacity-70" /> Admin
                   </Link>
                 )}
-                <Link to="/profile" className="flex items-center gap-3 px-4 py-3 rounded-xl text-foreground hover:bg-muted font-medium text-sm">
-                  <Settings className="h-4 w-4 opacity-60" /> Account Settings
+                <Link to="/profile" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-foreground text-xs font-semibold">
+                  <Settings className="h-3.5 w-3.5 opacity-70" /> Settings
                 </Link>
                 <button
                   onClick={() => { signOut(); setMobileOpen(false); }}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-destructive hover:bg-destructive/10 font-medium text-sm w-full text-left"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-destructive/10 text-destructive text-xs font-semibold"
                 >
-                  <LogOut className="h-4 w-4" /> Sign Out
+                  <LogOut className="h-3.5 w-3.5" /> Sign Out
                 </button>
-              </>
+              </div>
             ) : (
-              <Link to="/login" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm">
-                <User className="h-4 w-4" /> Sign In
+              <Link to="/login" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary text-primary-foreground font-bold text-xs">
+                <User className="h-3.5 w-3.5" /> Sign In
               </Link>
             )}
           </nav>
