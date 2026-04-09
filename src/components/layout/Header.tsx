@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, LogOut, ClipboardList, Shield, BarChart3, Settings } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, User, LogOut, ClipboardList, Shield, BarChart3, Settings, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/hooks/useNotifications';
 import bglLogo from '@/assets/bgl-logo.jpeg';
 
 const navItems = [
@@ -14,11 +15,14 @@ const navItems = [
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, role, signOut } = useAuth();
+  const { notifications, unreadCount, markAsRead, markAllRead } = useNotifications();
 
   // Close menu on route change
-  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+  useEffect(() => { setMobileOpen(false); setNotifOpen(false); }, [location.pathname]);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -57,7 +61,48 @@ export default function Header() {
             </Button>
           )}
           {user ? (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 relative">
+              {/* Notification Bell */}
+              <div className="relative">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" title="Notifications" onClick={() => setNotifOpen(!notifOpen)}>
+                  <Bell className="h-4 w-4" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Button>
+                {notifOpen && (
+                  <div className="absolute right-0 top-10 w-80 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-2.5 border-b border-border">
+                      <span className="text-sm font-bold">Notifications</span>
+                      {unreadCount > 0 && (
+                        <button onClick={() => markAllRead.mutate()} className="text-xs text-primary font-semibold hover:underline">Mark all read</button>
+                      )}
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-6">No notifications</p>
+                      ) : (
+                        notifications.slice(0, 10).map((n: any) => (
+                          <button
+                            key={n.id}
+                            className={`w-full text-left px-4 py-3 hover:bg-muted/60 border-b border-border/50 last:border-0 transition-colors ${!n.is_read ? 'bg-primary/5' : ''}`}
+                            onClick={() => {
+                              markAsRead.mutate(n.id);
+                              setNotifOpen(false);
+                              if (n.link) navigate(n.link);
+                            }}
+                          >
+                            <p className="text-sm font-semibold">{n.title}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
               {(role === 'coach' || role === 'league_admin') && (
                 <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" title="Coach Hub">
                   <Link to="/coach-hub"><BarChart3 className="h-4 w-4" /></Link>
