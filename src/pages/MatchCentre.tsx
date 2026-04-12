@@ -178,6 +178,8 @@ export default function MatchCentre() {
             statusClass={statusClass}
             isLive={isLive}
             heroRef={heroRef}
+            homeLadder={homeLadder}
+            awayLadder={awayLadder}
           />
         )}
 
