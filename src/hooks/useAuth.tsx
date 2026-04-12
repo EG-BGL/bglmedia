@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     // Then get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
