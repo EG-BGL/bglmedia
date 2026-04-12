@@ -1133,6 +1133,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      recalculate_position_changes: {
+        Args: { p_season_id: string }
+        Returns: undefined
+      }
       update_ladder_from_cricket_result: {
         Args: { p_fixture_id: string }
         Returns: undefined
