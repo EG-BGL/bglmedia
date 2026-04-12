@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useFixture, useLadder } from '@/hooks/useData';
 import { useCricketMatchResults } from '@/hooks/useCricketData';
 import ClubLogo from '@/components/ClubLogo';
-import { ChevronLeft, Sparkles, Loader2, TrendingUp } from 'lucide-react';
+import { ChevronLeft, Sparkles, Loader2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import MatchHero from '@/components/match/MatchHero';
