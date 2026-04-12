@@ -80,6 +80,78 @@ export function useAllResults() {
   });
 }
 
+export function useCoachOfTheWeek(seasonId?: string) {
+  return useQuery({
+    queryKey: ['coach-of-the-week', seasonId],
+    queryFn: async () => {
+      if (!seasonId) return null;
+
+      // Get the latest completed round for this season
+      const { data: results, error: rErr } = await supabase
+        .from('results')
+        .select(`
+          *,
+          fixtures!inner(
+            *,
+            home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)),
+            away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))
+          )
+        `)
+        .eq('status', 'approved')
+        .eq('fixtures.season_id', seasonId)
+        .order('created_at', { ascending: false });
+      if (rErr || !results?.length) return null;
+
+      // Find latest round number
+      const latestRound = Math.max(...results.map((r: any) => r.fixtures.round_number));
+      const roundResults = results.filter((r: any) => r.fixtures.round_number === latestRound);
+
+      // Find the result with the biggest win margin
+      let bestResult: any = null;
+      let bestMargin = 0;
+      let winningTeamId: string | null = null;
+
+      for (const r of roundResults) {
+        const margin = Math.abs((r.home_score ?? 0) - (r.away_score ?? 0));
+        if (margin > bestMargin) {
+          bestMargin = margin;
+          bestResult = r;
+          winningTeamId = (r.home_score ?? 0) >= (r.away_score ?? 0)
+            ? r.fixtures.home_team_id
+            : r.fixtures.away_team_id;
+        }
+      }
+
+      if (!bestResult || !winningTeamId) return null;
+
+      // Get the coach for the winning team
+      const { data: coach } = await supabase
+        .from('coaches_to_teams')
+        .select('*, profiles:user_id(full_name, avatar_url)')
+        .eq('team_id', winningTeamId)
+        .eq('season_id', seasonId)
+        .eq('is_primary', true)
+        .maybeSingle();
+
+      if (!coach) return null;
+
+      const winningClub = winningTeamId === bestResult.fixtures.home_team_id
+        ? bestResult.fixtures.home_team?.clubs
+        : bestResult.fixtures.away_team?.clubs;
+
+      return {
+        coachName: (coach.profiles as any)?.full_name ?? 'Unknown',
+        avatarUrl: (coach.profiles as any)?.avatar_url,
+        club: winningClub,
+        margin: bestMargin,
+        roundNumber: latestRound,
+        result: bestResult,
+      };
+    },
+    enabled: !!seasonId,
+  });
+}
+
 export function useTeams(seasonId?: string) {
   return useQuery({
     queryKey: ['teams', seasonId],
