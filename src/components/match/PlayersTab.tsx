@@ -136,7 +136,6 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
                 className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full transition-colors ${teamFilter === 'away' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
               >{awayClub?.short_name ?? 'Away'}</button>
             </div>
-            </div>
           </div>
           <ScrollArea className="w-full">
             <table className="w-full text-[10px]">
