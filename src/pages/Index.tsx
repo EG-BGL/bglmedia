@@ -320,6 +320,58 @@ export default function Index() {
               </div>
             </section>
           )}
+
+          {/* Coach of the Week */}
+          {coachOfWeek && (
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="section-label flex items-center gap-1.5"><Award className="h-3.5 w-3.5" />Coach of the Week</h2>
+                <Badge variant="secondary" className="rounded-full text-[10px] font-bold bg-secondary/60">Rd {coachOfWeek.roundNumber}</Badge>
+              </div>
+              <div className="match-card p-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-accent/20 to-primary/10 flex items-center justify-center shrink-0 border border-accent/10 overflow-hidden">
+                    {coachOfWeek.avatarUrl ? (
+                      <img src={coachOfWeek.avatarUrl} alt={coachOfWeek.coachName} className="h-full w-full object-cover" />
+                    ) : (
+                      <Award className="h-7 w-7 text-accent" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-black text-base">{coachOfWeek.coachName}</div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <ClubLogo club={coachOfWeek.club ?? {}} size="sm" className="!h-4 !w-4" />
+                      <span className="text-xs text-muted-foreground font-medium">
+                        {coachOfWeek.club?.short_name ?? coachOfWeek.club?.name}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-lg font-black text-accent">+{coachOfWeek.margin}</div>
+                    <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Win Margin</div>
+                  </div>
+                </div>
+                {coachOfWeek.result && (
+                  <Link to={`/match/${coachOfWeek.result.fixture_id}`} className="block mt-3 pt-3 border-t border-border/30">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ClubLogo club={coachOfWeek.result.fixtures?.home_team?.clubs ?? {}} size="sm" className="!h-5 !w-5" />
+                        <span className={`text-xs font-bold ${(coachOfWeek.result.home_score ?? 0) > (coachOfWeek.result.away_score ?? 0) ? '' : 'text-muted-foreground'}`}>
+                          {coachOfWeek.result.fixtures?.home_team?.clubs?.short_name}
+                        </span>
+                        <span className="text-xs font-black tabular-nums">{coachOfWeek.result.home_score} – {coachOfWeek.result.away_score}</span>
+                        <span className={`text-xs font-bold ${(coachOfWeek.result.away_score ?? 0) > (coachOfWeek.result.home_score ?? 0) ? '' : 'text-muted-foreground'}`}>
+                          {coachOfWeek.result.fixtures?.away_team?.clubs?.short_name}
+                        </span>
+                        <ClubLogo club={coachOfWeek.result.fixtures?.away_team?.clubs ?? {}} size="sm" className="!h-5 !w-5" />
+                      </div>
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30" />
+                    </div>
+                  </Link>
+                )}
+              </div>
+            </section>
+          )}
         </div>
 
         {/* News */}
