@@ -331,3 +331,58 @@ export function useMatchTeamStats(fixtureId: string | undefined) {
     enabled: !!fixtureId,
   });
 }
+
+export function useCurrentRoundFixtures(seasonIds?: string[]) {
+  return useQuery({
+    queryKey: ['current-round-fixtures', seasonIds],
+    queryFn: async () => {
+      if (!seasonIds?.length) return [];
+      // Get all fixtures for current seasons
+      const { data: fixtures, error } = await supabase
+        .from('fixtures')
+        .select(`
+          *,
+          home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)),
+          away_team:teams!fixtures_away_team_id_fkey(*, clubs(*)),
+          seasons:seasons!fixtures_season_id_fkey(*, competitions(*, sports(*)))
+        `)
+        .in('season_id', seasonIds)
+        .order('round_number', { ascending: false })
+        .order('scheduled_at');
+      if (error) throw error;
+      if (!fixtures?.length) return [];
+
+      // Find the latest round that has at least one completed game, or the earliest scheduled round
+      const rounds = [...new Set(fixtures.map((f: any) => f.round_number))].sort((a, b) => b - a);
+      let currentRound = rounds[0];
+      for (const round of rounds) {
+        const roundFixtures = fixtures.filter((f: any) => f.round_number === round);
+        const hasCompleted = roundFixtures.some((f: any) => f.status === 'completed');
+        const hasUpcoming = roundFixtures.some((f: any) => f.status === 'scheduled');
+        if (hasCompleted && hasUpcoming) { currentRound = round; break; }
+        if (hasCompleted) { currentRound = round; break; }
+      }
+
+      // Get results for completed fixtures in this round
+      const roundFixtures = fixtures.filter((f: any) => f.round_number === currentRound);
+      const completedIds = roundFixtures.filter((f: any) => f.status === 'completed').map((f: any) => f.id);
+      
+      let results: any[] = [];
+      if (completedIds.length > 0) {
+        const { data } = await supabase
+          .from('results')
+          .select('*')
+          .in('fixture_id', completedIds)
+          .eq('status', 'approved');
+        results = data ?? [];
+      }
+
+      return roundFixtures.map((f: any) => ({
+        ...f,
+        result: results.find((r: any) => r.fixture_id === f.id) ?? null,
+        roundNumber: currentRound,
+      }));
+    },
+    enabled: !!seasonIds?.length,
+  });
+}
