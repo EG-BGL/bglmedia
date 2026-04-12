@@ -27,7 +27,7 @@ export default function BottomNav() {
   const visibleTabs = tabs.filter(tab => !tab.authOnly || (user && isCoachOrAdmin));
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-card/95 backdrop-blur-xl border-t border-border/50 pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-xl border-t border-border/40 pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around h-14">
         {visibleTabs.map((tab) => {
           const Icon = tab.icon;
@@ -47,7 +47,7 @@ export default function BottomNav() {
               }`}
             >
               {isSubmit ? (
-                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center -mt-3 shadow-lg">
+                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center -mt-3 shadow-lg shadow-primary/30">
                   <Icon className="h-4 w-4 text-primary-foreground stroke-[2.5]" />
                 </div>
               ) : (

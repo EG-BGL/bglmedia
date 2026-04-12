@@ -4,91 +4,57 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 220 20% 10%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 220 20% 10%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 10%;
-
-    --primary: 200 65% 45%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 220 14% 94%;
-    --secondary-foreground: 220 20% 10%;
-
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 8% 46%;
-
-    --accent: 153 60% 40%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 200 65% 45%;
-
-    --radius: 0.75rem;
-
-    --sidebar-background: 220 70% 14%;
-    --sidebar-foreground: 220 14% 96%;
-    --sidebar-primary: 153 60% 45%;
-    --sidebar-primary-foreground: 220 70% 14%;
-    --sidebar-accent: 220 50% 22%;
-    --sidebar-accent-foreground: 220 14% 96%;
-    --sidebar-border: 220 40% 22%;
-    --sidebar-ring: 153 60% 45%;
-
-    --sport-dark: 220 70% 14%;
-    --sport-accent: 153 60% 40%;
-    --sport-surface: 220 14% 96%;
-    --sport-win: 153 60% 40%;
-    --sport-loss: 0 60% 55%;
-    --sport-draw: 45 70% 55%;
-
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-  }
-
-  .dark {
-    --background: 224 30% 7%;
+    --background: 222 30% 8%;
     --foreground: 210 20% 93%;
 
-    --card: 224 25% 10%;
+    --card: 222 25% 11%;
     --card-foreground: 210 20% 93%;
 
-    --popover: 224 25% 10%;
+    --popover: 222 25% 11%;
     --popover-foreground: 210 20% 93%;
 
-    --primary: 153 60% 45%;
-    --primary-foreground: 224 30% 7%;
+    --primary: 200 65% 50%;
+    --primary-foreground: 222 30% 8%;
 
-    --secondary: 224 20% 16%;
-    --secondary-foreground: 210 20% 93%;
+    --secondary: 222 20% 16%;
+    --secondary-foreground: 210 20% 90%;
 
-    --muted: 224 20% 14%;
+    --muted: 222 20% 14%;
     --muted-foreground: 215 15% 55%;
 
     --accent: 153 60% 45%;
-    --accent-foreground: 224 30% 7%;
+    --accent-foreground: 222 30% 8%;
 
-    --destructive: 0 62% 30%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 224 15% 18%;
-    --input: 224 15% 18%;
-    --ring: 153 60% 45%;
+    --border: 222 15% 18%;
+    --input: 222 15% 18%;
+    --ring: 200 65% 50%;
 
-    --sport-dark: 224 30% 7%;
+    --radius: 0.75rem;
+
+    --sidebar-background: 222 35% 6%;
+    --sidebar-foreground: 220 14% 96%;
+    --sidebar-primary: 200 65% 50%;
+    --sidebar-primary-foreground: 222 35% 6%;
+    --sidebar-accent: 222 25% 18%;
+    --sidebar-accent-foreground: 220 14% 96%;
+    --sidebar-border: 222 20% 16%;
+    --sidebar-ring: 200 65% 50%;
+
+    --sport-dark: 222 35% 6%;
     --sport-accent: 153 60% 45%;
-    --sport-surface: 224 20% 12%;
+    --sport-surface: 222 20% 12%;
+    --sport-win: 153 60% 45%;
+    --sport-loss: 0 60% 55%;
+    --sport-draw: 45 70% 55%;
+
+    --chart-1: 200 70% 50%;
+    --chart-2: 153 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
@@ -115,7 +81,7 @@
 
 @layer components {
   .sport-gradient {
-    background: linear-gradient(180deg, hsl(var(--sport-dark)) 0%, hsl(220 60% 22%) 100%);
+    background: linear-gradient(135deg, hsl(222 35% 10%) 0%, hsl(200 50% 18%) 100%);
   }
   .sport-glass {
     background: hsl(var(--sport-dark) / 0.85);
@@ -123,7 +89,7 @@
     -webkit-backdrop-filter: blur(16px);
   }
   .score-strip {
-    background: hsl(var(--sport-dark));
+    background: hsl(222 35% 6%);
   }
   .stat-number {
     @apply font-black tabular-nums tracking-tight;
@@ -132,15 +98,18 @@
     @apply text-[11px] font-bold uppercase tracking-widest text-muted-foreground;
   }
   .match-card {
-    @apply bg-card rounded-xl border border-border/60 transition-all duration-200 active:scale-[0.98];
+    @apply bg-card rounded-xl border border-border/50 transition-all duration-200 active:scale-[0.98];
   }
   .match-card:hover {
-    @apply shadow-md border-border;
+    @apply shadow-lg shadow-black/20 border-border;
   }
   .page-section {
     @apply py-5 md:py-8;
   }
   .page-container {
     @apply container mx-auto px-4;
+  }
+  .glow-primary {
+    box-shadow: 0 0 20px -5px hsl(200 65% 50% / 0.3);
   }
 }

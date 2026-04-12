@@ -1,7 +1,7 @@
 import Layout from '@/components/layout/Layout';
 import { useClubs, useLadder, useCurrentSeason } from '@/hooks/useData';
 import { Link } from 'react-router-dom';
-import { MapPin, Trophy, User } from 'lucide-react';
+import { MapPin, Trophy, User, Users, ChevronRight } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 export default function Clubs() {
@@ -9,7 +9,6 @@ export default function Clubs() {
   const { data: season } = useCurrentSeason();
   const { data: ladder } = useLadder(season?.id);
 
-  // Build a map of club stats from ladder
   const clubStats: Record<string, { wins: number; losses: number; percentage: number; position: number }> = {};
   (ladder ?? []).forEach((entry: any, i: number) => {
     const clubId = entry.teams?.clubs?.id;
@@ -26,9 +25,14 @@ export default function Clubs() {
   return (
     <Layout>
       <div className="page-container py-5 space-y-4">
-        <div>
-          <h1 className="text-xl font-black tracking-tight">Teams</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{season?.name ?? '2026'} Season</p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
+            <Users className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-xl font-black tracking-tight">Teams</h1>
+            <p className="text-[11px] text-muted-foreground font-medium">{season?.name ?? '2026'} Season</p>
+          </div>
         </div>
 
         {isLoading ? (
@@ -67,8 +71,8 @@ export default function Clubs() {
                         </div>
                       </div>
                     )}
-                    {/* Colour bar */}
                     <div className="w-1 h-10 rounded-full shrink-0" style={{ background: `linear-gradient(to bottom, ${club.primary_color ?? '#333'}, ${club.secondary_color ?? '#666'})` }} />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors shrink-0" />
                   </div>
                 </Link>
               );

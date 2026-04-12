@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { Lock } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -30,7 +31,7 @@ export default function Login() {
         } else {
           toast.success('Signed in!');
           navigate('/portal');
-          return; // Don't reset loading — page is navigating
+          return;
         }
       }
     } catch (err: any) {
@@ -44,8 +45,8 @@ export default function Login() {
       <div className="flex min-h-[70vh] items-center justify-center px-4 py-12">
         <div className="w-full max-w-sm space-y-6">
           <div className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-black text-sm">SD</span>
+            <div className="mx-auto mb-4 h-12 w-12 rounded-xl bg-primary/15 flex items-center justify-center">
+              <Lock className="h-5 w-5 text-primary" />
             </div>
             <h1 className="text-xl font-black tracking-tight">{isSignUp ? 'Create Account' : 'Sign In'}</h1>
             <p className="text-xs text-muted-foreground mt-1">
@@ -56,13 +57,13 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="email" className="text-xs font-bold">Email</Label>
-              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="coach@example.com" className="mt-1 h-12 rounded-xl" />
+              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="coach@example.com" className="mt-1 h-12 rounded-xl bg-secondary/40 border-border/40" />
             </div>
             <div>
               <Label htmlFor="password" className="text-xs font-bold">Password</Label>
-              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" minLength={6} className="mt-1 h-12 rounded-xl" />
+              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" minLength={6} className="mt-1 h-12 rounded-xl bg-secondary/40 border-border/40" />
             </div>
-            <Button type="submit" className="w-full h-12 rounded-xl font-bold" disabled={loading}>
+            <Button type="submit" className="w-full h-12 rounded-xl font-bold shadow-lg shadow-primary/20" disabled={loading}>
               {loading ? 'Please wait...' : isSignUp ? 'Create Account' : 'Sign In'}
             </Button>
           </form>
