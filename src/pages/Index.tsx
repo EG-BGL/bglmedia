@@ -80,59 +80,100 @@ export default function Index() {
                 All Fixtures <ChevronRight className="h-3 w-3" />
               </Link>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {currentRoundFixtures.map((f: any) => {
-                const isCompleted = f.status === 'completed' && f.result;
-                const sportSlug = f.seasons?.competitions?.sports?.slug;
-                const isCricket = sportSlug === 'cricket';
-                return (
-                  <Link
-                    key={f.id}
-                    to={`/match/${f.id}`}
-                    className="match-card p-3.5"
-                  >
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Badge
-                        variant={isCompleted ? 'default' : 'secondary'}
-                        className={`rounded-full text-[9px] font-bold px-2 py-0 gap-1 ${isCompleted ? 'bg-primary/15 text-primary border-0' : 'border-border/40'}`}
-                      >
-                        {isCompleted ? <CheckCircle className="h-2.5 w-2.5" /> : <Clock className="h-2.5 w-2.5" />}
-                        {isCompleted ? 'Full Time' : 'Upcoming'}
-                      </Badge>
-                      <Badge variant="outline" className="rounded-full text-[9px] font-bold px-2 py-0 border-border/40 text-muted-foreground">
-                        {isCricket ? 'Cricket' : 'AFL'}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" />
-                        <span className={`font-bold text-sm truncate ${isCompleted && (f.result?.home_score ?? 0) > (f.result?.away_score ?? 0) ? '' : isCompleted ? 'text-muted-foreground' : ''}`}>
-                          {f.home_team?.clubs?.short_name}
-                        </span>
+            {/* Completed games */}
+            {currentRoundFixtures.filter((f: any) => f.status === 'completed' && f.result).length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {currentRoundFixtures.filter((f: any) => f.status === 'completed' && f.result).map((f: any) => {
+                  const sportSlug = f.seasons?.competitions?.sports?.slug;
+                  const isCricket = sportSlug === 'cricket';
+                  return (
+                    <Link
+                      key={f.id}
+                      to={`/match/${f.id}`}
+                      className="match-card p-3.5"
+                    >
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Badge
+                          variant="default"
+                          className="rounded-full text-[9px] font-bold px-2 py-0 gap-1 bg-primary/15 text-primary border-0"
+                        >
+                          <CheckCircle className="h-2.5 w-2.5" />
+                          Full Time
+                        </Badge>
+                        <Badge variant="outline" className="rounded-full text-[9px] font-bold px-2 py-0 border-border/40 text-muted-foreground">
+                          {isCricket ? 'Cricket' : 'AFL'}
+                        </Badge>
                       </div>
-                      <div className="text-center shrink-0">
-                        {isCompleted ? (
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" />
+                          <span className={`font-bold text-sm truncate ${(f.result?.home_score ?? 0) > (f.result?.away_score ?? 0) ? '' : 'text-muted-foreground'}`}>
+                            {f.home_team?.clubs?.short_name}
+                          </span>
+                        </div>
+                        <div className="text-center shrink-0">
                           <span className="stat-number text-base">{f.result.home_score} – {f.result.away_score}</span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground font-bold">vs</span>
-                        )}
+                        </div>
+                        <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                          <span className={`font-bold text-sm truncate ${(f.result?.away_score ?? 0) > (f.result?.home_score ?? 0) ? '' : 'text-muted-foreground'}`}>
+                            {f.away_team?.clubs?.short_name}
+                          </span>
+                          <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
-                        <span className={`font-bold text-sm truncate ${isCompleted && (f.result?.away_score ?? 0) > (f.result?.home_score ?? 0) ? '' : isCompleted ? 'text-muted-foreground' : ''}`}>
-                          {f.away_team?.clubs?.short_name}
-                        </span>
-                        <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" />
+                      {f.venue && (
+                        <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground">
+                          <MapPin className="h-2.5 w-2.5" />{f.venue}
+                        </div>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Upcoming games - horizontal scroll tiles */}
+            {currentRoundFixtures.filter((f: any) => f.status !== 'completed' || !f.result).length > 0 && (
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
+                {currentRoundFixtures.filter((f: any) => f.status !== 'completed' || !f.result).map((f: any) => {
+                  const sportSlug = f.seasons?.competitions?.sports?.slug;
+                  const isCricket = sportSlug === 'cricket';
+                  const matchDate = f.scheduled_at ? new Date(f.scheduled_at) : null;
+                  return (
+                    <Link
+                      key={f.id}
+                      to={`/match/${f.id}`}
+                      className="match-card p-3 shrink-0 w-44"
+                    >
+                      <div className="flex items-center gap-1 mb-2">
+                        <Badge variant="secondary" className="rounded-full text-[8px] font-bold px-1.5 py-0 gap-0.5 border-border/40">
+                          <Clock className="h-2 w-2" />
+                          {isCricket ? 'Cricket' : 'AFL'}
+                        </Badge>
                       </div>
-                    </div>
-                    {isCompleted && f.venue && (
-                      <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground">
-                        <MapPin className="h-2.5 w-2.5" />{f.venue}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" className="!h-5 !w-5" />
+                          <span className="font-bold text-xs truncate">{f.home_team?.clubs?.short_name}</span>
+                        </div>
                       </div>
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
+                      <div className="text-[10px] text-muted-foreground font-bold my-1 pl-6">vs</div>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" className="!h-5 !w-5" />
+                          <span className="font-bold text-xs truncate">{f.away_team?.clubs?.short_name}</span>
+                        </div>
+                      </div>
+                      {matchDate && (
+                        <div className="text-[9px] text-muted-foreground mt-2 truncate">
+                          {matchDate.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })}
+                        </div>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </section>
         )}
         {/* Featured Match */}
