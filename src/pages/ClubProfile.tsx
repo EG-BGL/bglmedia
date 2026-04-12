@@ -2,9 +2,10 @@ import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useParams, Link } from 'react-router-dom';
-import { useClub, useTeams, usePlayers, useFixtures, useResults, useLadder, useCurrentSeason } from '@/hooks/useData';
+import { useClub, useTeams, usePlayers, useFixtures, useResults, useLadder, useCurrentSeason, usePlayerSeasonStats } from '@/hooks/useData';
 import { MapPin, Calendar, Users, Trophy, ChevronLeft } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
+import { useMemo, useState } from 'react';
 
 export default function ClubProfile() {
   const { id } = useParams<{ id: string }>();
