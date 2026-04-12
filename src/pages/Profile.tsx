@@ -45,8 +45,6 @@ interface SportProfile {
   history: { season: number; result: string }[];
 }
 
-const coachName = "Kyle Ettridge";
-const coachAvatar = "https://via.placeholder.com/100";
 
 const sportProfiles: Record<SportKey, SportProfile> = {
   afl: {
