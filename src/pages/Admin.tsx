@@ -75,6 +75,7 @@ export default function Admin() {
   const [coachForm, setCoachForm] = useState({ user_id: '', team_id: '', season_id: '', is_primary: true });
   const [showCoachForm, setShowCoachForm] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
+  const [userRoles, setUserRoles] = useState<any[]>([]);
 
   useEffect(() => {
     if (!loading && (!user || role !== 'league_admin')) navigate('/login');
