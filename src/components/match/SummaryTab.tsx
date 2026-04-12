@@ -42,9 +42,51 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
     );
   }
 
-  // Build match leaders from player stats
+  // Deduplicate player stats by last name + team side
+  const homeTeamId = (fixture as any)?.home_team?.id;
+  const dedupedStats = (() => {
+    if (!playerStats?.length) return [];
+    const grouped = new Map<string, any>();
+    for (const stat of playerStats) {
+      const lastName = ((stat as any).players?.last_name ?? '').trim().toUpperCase();
+      const isHome = (stat as any).team_id === homeTeamId;
+      const key = `${lastName}::${isHome ? 'home' : 'away'}`;
+      if (!grouped.has(key)) {
+        grouped.set(key, { ...stat });
+      } else {
+        const existing = grouped.get(key)!;
+        const existingHasJersey = existing.players?.jersey_number != null;
+        const newHasJersey = (stat as any).players?.jersey_number != null;
+        if (newHasJersey && !existingHasJersey) {
+          grouped.set(key, { ...stat,
+            goals: Math.max(existing.goals ?? 0, (stat as any).goals ?? 0),
+            behinds: Math.max(existing.behinds ?? 0, (stat as any).behinds ?? 0),
+            disposals: Math.max(existing.disposals ?? 0, (stat as any).disposals ?? 0),
+            kicks: Math.max(existing.kicks ?? 0, (stat as any).kicks ?? 0),
+            handballs: Math.max(existing.handballs ?? 0, (stat as any).handballs ?? 0),
+            marks: Math.max(existing.marks ?? 0, (stat as any).marks ?? 0),
+            tackles: Math.max(existing.tackles ?? 0, (stat as any).tackles ?? 0),
+            hitouts: Math.max(existing.hitouts ?? 0, (stat as any).hitouts ?? 0),
+            afl_fantasy: Math.max(existing.afl_fantasy ?? 0, (stat as any).afl_fantasy ?? 0),
+          });
+        } else {
+          existing.goals = Math.max(existing.goals ?? 0, (stat as any).goals ?? 0);
+          existing.disposals = Math.max(existing.disposals ?? 0, (stat as any).disposals ?? 0);
+          existing.kicks = Math.max(existing.kicks ?? 0, (stat as any).kicks ?? 0);
+          existing.handballs = Math.max(existing.handballs ?? 0, (stat as any).handballs ?? 0);
+          existing.marks = Math.max(existing.marks ?? 0, (stat as any).marks ?? 0);
+          existing.tackles = Math.max(existing.tackles ?? 0, (stat as any).tackles ?? 0);
+          existing.hitouts = Math.max(existing.hitouts ?? 0, (stat as any).hitouts ?? 0);
+          existing.afl_fantasy = Math.max(existing.afl_fantasy ?? 0, (stat as any).afl_fantasy ?? 0);
+        }
+      }
+    }
+    return Array.from(grouped.values());
+  })();
+
+  // Build match leaders from deduplicated player stats
   const leaders: LeaderStat[] = [];
-  if (playerStats && playerStats.length > 0) {
+  if (dedupedStats.length > 0) {
     const statDefs: { key: string; label: string; icon: React.ReactNode; suffix: string }[] = [
       { key: 'afl_fantasy', label: 'Fantasy', icon: <Zap className="h-3.5 w-3.5" />, suffix: 'pts' },
       { key: 'disposals', label: 'Disposals', icon: <Hand className="h-3.5 w-3.5" />, suffix: 'disp' },
@@ -54,7 +96,7 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
       { key: 'kicks', label: 'Kicks', icon: <Target className="h-3.5 w-3.5" />, suffix: 'kicks' },
     ];
     for (const def of statDefs) {
-      const sorted = [...playerStats].sort((a: any, b: any) => (b[def.key] ?? 0) - (a[def.key] ?? 0));
+      const sorted = [...dedupedStats].sort((a: any, b: any) => (b[def.key] ?? 0) - (a[def.key] ?? 0));
       const top = sorted[0];
       if (top && (top as any)[def.key] > 0) {
         const player = (top as any)?.players;
