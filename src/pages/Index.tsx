@@ -613,7 +613,7 @@ export default function Index() {
                 {(aiNews ?? []).slice(3).map((article: any, i: number) => {
                   const isAfl = (article.sport ?? 'AFL') === 'AFL';
                   return (
-                    <div key={i + 3} className="match-card p-3.5 flex items-start gap-3">
+                    <Link key={i + 3} to={article.fixture_id ? `/match/${article.fixture_id}` : '#'} className="match-card p-3.5 flex items-start gap-3 block">
                       <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 text-lg ${
                         isAfl ? 'bg-blue-500/10' : 'bg-green-500/10'
                       }`}>
@@ -626,7 +626,8 @@ export default function Index() {
                       <Badge variant="outline" className="rounded-full text-[8px] font-bold px-1.5 py-0 border-border/30 text-muted-foreground/60 shrink-0">
                         {article.sport ?? 'AFL'}
                       </Badge>
-                    </div>
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30 shrink-0 mt-0.5" />
+                    </Link>
                   );
                 })}
               </div>
