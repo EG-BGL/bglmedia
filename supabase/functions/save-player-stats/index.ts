@@ -40,6 +40,22 @@ serve(async (req) => {
       });
     }
 
+    // Load ALL roster players for both teams upfront
+    const { data: rosterPlayers } = await supabase
+      .from("players")
+      .select("id, first_name, last_name, team_id, jersey_number")
+      .in("team_id", [fixture.home_team_id, fixture.away_team_id]);
+
+    const roster = rosterPlayers ?? [];
+
+    // Build lookup: normalize last name -> roster players
+    const rosterByLastName = new Map<string, typeof roster>();
+    for (const p of roster) {
+      const key = p.last_name.trim().toLowerCase();
+      if (!rosterByLastName.has(key)) rosterByLastName.set(key, []);
+      rosterByLastName.get(key)!.push(p);
+    }
+
     // Delete existing stats for this fixture to avoid duplicates on re-submission
     await supabase.from("match_player_stats").delete().eq("fixture_id", fixture_id);
 
@@ -53,31 +69,71 @@ serve(async (req) => {
       deduped.set(key, ps);
     }
 
+    // Track which roster player IDs we've already used to prevent double-mapping
+    const usedPlayerIds = new Set<string>();
+
     for (const ps of deduped.values()) {
       const { name, team, goals, behinds, disposals, kicks, handballs, marks, tackles, hitouts, afl_fantasy } = ps;
 
       const teamId = team === "home" ? fixture.home_team_id : fixture.away_team_id;
 
-      // Parse name into first/last
+      // Parse name into last name for matching
       const parts = name.trim().split(/\s+/);
       const lastName = parts.length > 1 ? parts.pop()! : parts[0];
-      const firstName = parts.join(" ") || lastName;
+      const firstInitialOrName = parts.join(" ") || "";
 
-      // Try to find existing player on this team
-      let { data: existingPlayer } = await supabase
-        .from("players")
-        .select("id")
-        .eq("team_id", teamId)
-        .ilike("last_name", lastName)
-        .limit(1)
-        .single();
+      // Find roster player by last name match
+      const normalizedLast = lastName.toLowerCase();
+      const candidates = rosterByLastName.get(normalizedLast) ?? [];
+
+      let matchedPlayer: typeof roster[0] | null = null;
+
+      // 1. Prefer player on the correct team with jersey number (real roster player)
+      for (const c of candidates) {
+        if (c.team_id === teamId && c.jersey_number != null && !usedPlayerIds.has(c.id)) {
+          matchedPlayer = c;
+          break;
+        }
+      }
+
+      // 2. Fall back to any player on the correct team
+      if (!matchedPlayer) {
+        for (const c of candidates) {
+          if (c.team_id === teamId && !usedPlayerIds.has(c.id)) {
+            matchedPlayer = c;
+            break;
+          }
+        }
+      }
+
+      // 3. Fall back to player on either team with jersey number (real roster player)
+      if (!matchedPlayer) {
+        for (const c of candidates) {
+          if (c.jersey_number != null && !usedPlayerIds.has(c.id)) {
+            matchedPlayer = c;
+            break;
+          }
+        }
+      }
+
+      // 4. Fall back to any player with this last name
+      if (!matchedPlayer) {
+        for (const c of candidates) {
+          if (!usedPlayerIds.has(c.id)) {
+            matchedPlayer = c;
+            break;
+          }
+        }
+      }
 
       let playerId: string;
 
-      if (existingPlayer) {
-        playerId = existingPlayer.id;
+      if (matchedPlayer) {
+        playerId = matchedPlayer.id;
+        // Use the matched player's actual team_id for the stats record
       } else {
-        // Create player
+        // No roster match found - create player on the correct team
+        const firstName = firstInitialOrName || lastName;
         const { data: newPlayer, error: createErr } = await supabase
           .from("players")
           .insert({ first_name: firstName, last_name: lastName, team_id: teamId })
@@ -91,14 +147,17 @@ serve(async (req) => {
         playerId = newPlayer.id;
       }
 
-      // Insert match player stats (unique constraint prevents duplicates)
+      usedPlayerIds.add(playerId);
+
+      // Insert match player stats - use the player's actual team
+      const actualTeamId = matchedPlayer?.team_id ?? teamId;
       const { error: statsErr } = await supabase
         .from("match_player_stats")
         .upsert(
           {
             fixture_id,
             player_id: playerId,
-            team_id: teamId,
+            team_id: actualTeamId,
             goals: goals ?? 0,
             behinds: behinds ?? 0,
             disposals: disposals ?? 0,
