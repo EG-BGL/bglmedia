@@ -388,19 +388,15 @@ export default function Profile() {
 
         {/* ═══ Coach Showcase Card ═══ */}
         <div className="match-card overflow-hidden">
-          <div className="relative px-4 pt-4 pb-3 bg-gradient-to-br from-primary/10 via-transparent to-accent/5">
-            <div className="flex items-center gap-3">
-              <img src={coachAvatar} alt={coachName} className="h-14 w-14 rounded-2xl object-cover ring-2 ring-primary/20" />
-              <div className="flex-1 min-w-0">
-                <h2 className="text-base font-black tracking-tight truncate">{coachName}</h2>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-xs font-bold text-muted-foreground">{sp.team}</span>
-                  {sp.dynasty && (
-                    <Badge className="rounded-full text-[8px] font-black px-1.5 py-0 bg-amber-500/15 text-amber-600 border-amber-500/30">
-                      <Flame className="h-2.5 w-2.5 mr-0.5" />Dynasty
-                    </Badge>
-                  )}
-                </div>
+          <div className="relative px-4 pt-3.5 pb-3 bg-gradient-to-br from-primary/10 via-transparent to-accent/5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-bold text-muted-foreground">{sp.team}</span>
+                {sp.dynasty && (
+                  <Badge className="rounded-full text-[8px] font-black px-1.5 py-0 bg-amber-500/15 text-amber-600 border-amber-500/30">
+                    <Flame className="h-2.5 w-2.5 mr-0.5" />Dynasty
+                  </Badge>
+                )}
               </div>
               <div className="text-center shrink-0">
                 <div className="text-2xl font-black text-primary tabular-nums">{sp.premierships}</div>
