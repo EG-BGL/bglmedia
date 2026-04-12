@@ -274,7 +274,7 @@ export function usePlayerOfTheRound(seasonId?: string) {
       // Get top fantasy scorer from that round
       const { data: stats } = await supabase
         .from('match_player_stats')
-        .select('*, players(first_name, last_name, jersey_number, team_id, teams(*, clubs(*)))')
+        .select('*, players(first_name, last_name, jersey_number, photo_url, team_id, teams(*, clubs(*)))')
         .in('fixture_id', roundFixtureIds)
         .order('afl_fantasy', { ascending: false })
         .limit(1);

@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trophy, ChevronRight, MapPin, Newspaper, TrendingUp, ArrowRight, Star, Award, Clock, CheckCircle, Sparkles, Loader2 } from 'lucide-react';
 import { useClubs, useLadder, useCurrentSeason, useNews, usePlayerOfTheRound, useAllCurrentSeasons, useAllResults, useCoachOfTheWeek, useCurrentRoundFixtures } from '@/hooks/useData';
 import ClubLogo from '@/components/ClubLogo';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import bglLogo from '@/assets/bgl-logo.jpeg';
 import aiNewsBg from '@/assets/ai-news-bg.jpg';
 import { useSport } from '@/hooks/useSport';
@@ -281,11 +282,14 @@ export default function Index() {
             </div>
             <div className="match-card p-4">
               <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 flex items-center justify-center shrink-0 border border-primary/10">
-                  <span className="text-2xl font-black text-primary">
+                <Avatar className="h-14 w-14 rounded-2xl shrink-0 border border-primary/10">
+                  {playerOfRound.players?.photo_url && (
+                    <AvatarImage src={playerOfRound.players.photo_url} alt={`${playerOfRound.players?.first_name} ${playerOfRound.players?.last_name}`} className="object-cover" />
+                  )}
+                  <AvatarFallback className="rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 text-2xl font-black text-primary">
                     {playerOfRound.players?.jersey_number ?? '?'}
-                  </span>
-                </div>
+                  </AvatarFallback>
+                </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="font-black text-base">
                     {playerOfRound.players?.first_name} {playerOfRound.players?.last_name}
