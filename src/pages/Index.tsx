@@ -30,24 +30,24 @@ export default function Index() {
     <Layout>
       {/* Scores strip */}
       {latestResults.length > 0 && (
-        <div className="bg-card border-b border-border/50">
+        <div className="score-strip border-b border-border/30">
           <div className="page-container">
             <div className="flex items-center gap-2 py-2 overflow-x-auto scrollbar-hide">
-              <Badge variant="secondary" className="shrink-0 rounded-full text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent mr-1.5 animate-pulse inline-block" />
+              <Badge variant="secondary" className="shrink-0 rounded-full text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 bg-primary/15 text-primary border-0">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary mr-1.5 animate-pulse inline-block" />
                 Scores
               </Badge>
               {latestResults.slice(0, 6).map((r: any) => (
                 <Link
                   key={r.id}
                   to={`/match/${r.fixture_id}`}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-muted/60 transition-colors shrink-0"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-secondary/40 transition-colors shrink-0"
                 >
                   <ClubLogo club={r.fixtures?.home_team?.clubs ?? {}} size="sm" className="!h-5 !w-5" />
                   <span className={`text-xs font-bold tabular-nums ${r.home_score! > r.away_score! ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {r.home_score}
                   </span>
-                  <span className="text-muted-foreground/40 text-[10px]">–</span>
+                  <span className="text-muted-foreground/30 text-[10px]">–</span>
                   <span className={`text-xs font-bold tabular-nums ${r.away_score! > r.home_score! ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {r.away_score}
                   </span>
@@ -72,41 +72,41 @@ export default function Index() {
           const compName = featuredMatch.fixtures?.seasons?.competitions?.short_name || featuredMatch.fixtures?.seasons?.competitions?.name || '';
           return (
           <Link to={`/match/${featuredMatch.fixture_id}`} className="block">
-            <div className="sport-gradient rounded-2xl p-5 md:p-6 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/20" />
+            <div className="sport-gradient rounded-2xl p-5 md:p-6 relative overflow-hidden border border-border/30">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
               <div className="relative">
                 <div className="flex items-center gap-2 mb-1">
-                  <Badge className="bg-accent/20 text-accent border-0 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                  <Badge className="bg-primary/20 text-primary border-0 rounded-full text-[10px] font-bold uppercase tracking-wider">
                     Latest Result
                   </Badge>
-                  <Badge className="bg-white/10 text-white/70 border-0 rounded-full text-[10px] font-medium">
+                  <Badge className="bg-white/5 text-white/50 border-0 rounded-full text-[10px] font-medium">
                     {isCricketMatch ? 'Cricket' : 'AFL'}
                   </Badge>
                 </div>
-                <div className="text-[10px] text-white/40 mb-4">
+                <div className="text-[10px] text-white/30 mb-4">
                   {compName}{compName && seasonName ? ' · ' : ''}{seasonName} · Round {featuredMatch.fixtures?.round_number}
                 </div>
 
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 text-center">
                     <ClubLogo club={featuredMatch.fixtures?.home_team?.clubs ?? {}} size="lg" className="mx-auto !h-14 !w-14 md:!h-16 md:!w-16 mb-2" />
-                    <div className="text-white/80 text-xs font-semibold truncate">{featuredMatch.fixtures?.home_team?.clubs?.short_name}</div>
+                    <div className="text-white/70 text-xs font-semibold truncate">{featuredMatch.fixtures?.home_team?.clubs?.short_name}</div>
                   </div>
                   <div className="text-center shrink-0">
                     {isCricketMatch ? (
                       <div className="text-3xl md:text-4xl font-black text-white tabular-nums tracking-tighter">
                         {featuredMatch.home_score}
-                        <span className="text-white/20 mx-2">v</span>
+                        <span className="text-white/15 mx-2">v</span>
                         {featuredMatch.away_score}
                       </div>
                     ) : (
                       <>
                         <div className="text-4xl md:text-5xl font-black text-white tabular-nums tracking-tighter">
                           {featuredMatch.home_score}
-                          <span className="text-white/20 mx-1.5">–</span>
+                          <span className="text-white/15 mx-1.5">–</span>
                           {featuredMatch.away_score}
                         </div>
-                        <div className="text-white/40 text-[10px] mt-1 tabular-nums">
+                        <div className="text-white/30 text-[10px] mt-1 tabular-nums">
                           {featuredMatch.home_goals}.{featuredMatch.home_behinds} – {featuredMatch.away_goals}.{featuredMatch.away_behinds}
                         </div>
                       </>
@@ -114,15 +114,15 @@ export default function Index() {
                   </div>
                   <div className="flex-1 text-center">
                     <ClubLogo club={featuredMatch.fixtures?.away_team?.clubs ?? {}} size="lg" className="mx-auto !h-14 !w-14 md:!h-16 md:!w-16 mb-2" />
-                    <div className="text-white/80 text-xs font-semibold truncate">{featuredMatch.fixtures?.away_team?.clubs?.short_name}</div>
+                    <div className="text-white/70 text-xs font-semibold truncate">{featuredMatch.fixtures?.away_team?.clubs?.short_name}</div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-center gap-1.5 mt-4 text-white/40 text-[11px]">
+                <div className="flex items-center justify-center gap-1.5 mt-4 text-white/30 text-[11px]">
                   {featuredMatch.fixtures?.venue && <><MapPin className="h-3 w-3" />{featuredMatch.fixtures.venue}</>}
                 </div>
                 <div className="text-center mt-3">
-                  <span className="text-accent text-xs font-bold flex items-center justify-center gap-1">
+                  <span className="text-primary text-xs font-bold flex items-center justify-center gap-1">
                     Match Centre <ArrowRight className="h-3 w-3" />
                   </span>
                 </div>
@@ -137,11 +137,11 @@ export default function Index() {
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="section-label flex items-center gap-1.5"><Star className="h-3.5 w-3.5" />Player of the Round</h2>
-              <Badge variant="secondary" className="rounded-full text-[10px] font-bold">Rd {playerOfRound.round_number}</Badge>
+              <Badge variant="secondary" className="rounded-full text-[10px] font-bold bg-secondary/60">Rd {playerOfRound.round_number}</Badge>
             </div>
             <div className="match-card p-4">
               <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0">
+                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 flex items-center justify-center shrink-0 border border-primary/10">
                   <span className="text-2xl font-black text-primary">
                     {playerOfRound.players?.jersey_number ?? '?'}
                   </span>
@@ -162,7 +162,7 @@ export default function Index() {
                   <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Fantasy</div>
                 </div>
               </div>
-              <div className="grid grid-cols-5 gap-2 mt-4 pt-3 border-t border-border/40">
+              <div className="grid grid-cols-5 gap-2 mt-4 pt-3 border-t border-border/30">
                 {[
                   { label: 'D', value: playerOfRound.disposals },
                   { label: 'K', value: playerOfRound.kicks },
@@ -180,7 +180,7 @@ export default function Index() {
           </section>
         )}
 
-        {/* Recent Matches - All Sports */}
+        {/* Recent Matches */}
         {latestResults.length > 1 && (
           <section>
             <div className="flex items-center justify-between mb-3">
@@ -195,7 +195,7 @@ export default function Index() {
                 return (
                   <Link key={r.id} to={`/match/${r.fixture_id}`} className="block match-card p-3.5">
                     <div className="flex items-center gap-1.5 mb-2">
-                      <Badge variant="outline" className="rounded-full text-[9px] font-bold px-2 py-0">
+                      <Badge variant="outline" className="rounded-full text-[9px] font-bold px-2 py-0 border-border/40 text-muted-foreground">
                         {isCricket ? 'Cricket' : 'AFL'}
                       </Badge>
                       <span className="text-[10px] text-muted-foreground">{compName} · Rd {r.fixtures?.round_number}</span>
@@ -226,7 +226,7 @@ export default function Index() {
           </section>
         )}
 
-        {/* Ladders - Both Sports Side by Side */}
+        {/* Ladders */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {topAflLadder.length > 0 && (
             <section>
@@ -234,10 +234,10 @@ export default function Index() {
                 <h2 className="section-label flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" />AFL Ladder</h2>
                 <Link to="/ladder" className="text-xs font-bold text-primary flex items-center gap-0.5">Full <ChevronRight className="h-3 w-3" /></Link>
               </div>
-              <div className="bg-card rounded-xl border border-border/60 overflow-hidden">
+              <div className="bg-card rounded-xl border border-border/40 overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-border/60 bg-muted/30">
+                    <tr className="border-b border-border/30 bg-secondary/20">
                       <th className="text-left py-2.5 pl-3 pr-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-7"></th>
                       <th className="text-left py-2.5 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Team</th>
                       <th className="text-center py-2.5 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-8">P</th>
@@ -248,9 +248,9 @@ export default function Index() {
                   </thead>
                   <tbody>
                     {topAflLadder.map((entry: any, i: number) => (
-                      <tr key={entry.id} className={`border-b border-border/40 last:border-0 ${i < 4 ? '' : 'opacity-60'}`}>
+                      <tr key={entry.id} className={`border-b border-border/20 last:border-0 ${i < 4 ? '' : 'opacity-50'}`}>
                         <td className="py-2.5 pl-3 pr-1">
-                          <span className={`text-xs font-black ${i < 4 ? 'text-accent' : 'text-muted-foreground'}`}>{i + 1}</span>
+                          <span className={`text-xs font-black ${i < 4 ? 'text-primary' : 'text-muted-foreground'}`}>{i + 1}</span>
                         </td>
                         <td className="py-2.5 px-2">
                           <div className="flex items-center gap-2">
@@ -261,7 +261,7 @@ export default function Index() {
                         <td className="text-center py-2.5 px-2 text-xs tabular-nums">{entry.played}</td>
                         <td className="text-center py-2.5 px-2 text-xs tabular-nums font-bold">{entry.wins}</td>
                         <td className="text-center py-2.5 px-2 text-xs tabular-nums hidden sm:table-cell">{Number(entry.percentage).toFixed(1)}</td>
-                        <td className="text-center py-2.5 px-2 pr-3 text-xs stat-number">{entry.competition_points}</td>
+                        <td className="text-center py-2.5 px-2 pr-3 text-xs stat-number text-primary">{entry.competition_points}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -276,10 +276,10 @@ export default function Index() {
                 <h2 className="section-label flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" />Cricket Ladder</h2>
                 <Link to="/ladder" className="text-xs font-bold text-primary flex items-center gap-0.5">Full <ChevronRight className="h-3 w-3" /></Link>
               </div>
-              <div className="bg-card rounded-xl border border-border/60 overflow-hidden">
+              <div className="bg-card rounded-xl border border-border/40 overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-border/60 bg-muted/30">
+                    <tr className="border-b border-border/30 bg-secondary/20">
                       <th className="text-left py-2.5 pl-3 pr-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-7"></th>
                       <th className="text-left py-2.5 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Team</th>
                       <th className="text-center py-2.5 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-8">P</th>
@@ -295,9 +295,9 @@ export default function Index() {
                       const played = entry.played ?? 0;
                       const nrr = played > 0 && pa > 0 ? (pf / played) - (pa / played) : pf > 0 ? 99.999 : 0;
                       return (
-                        <tr key={entry.id} className={`border-b border-border/40 last:border-0 ${i < 4 ? '' : 'opacity-60'}`}>
+                        <tr key={entry.id} className={`border-b border-border/20 last:border-0 ${i < 4 ? '' : 'opacity-50'}`}>
                           <td className="py-2.5 pl-3 pr-1">
-                            <span className={`text-xs font-black ${i < 4 ? 'text-accent' : 'text-muted-foreground'}`}>{i + 1}</span>
+                            <span className={`text-xs font-black ${i < 4 ? 'text-primary' : 'text-muted-foreground'}`}>{i + 1}</span>
                           </td>
                           <td className="py-2.5 px-2">
                             <div className="flex items-center gap-2">
@@ -307,10 +307,10 @@ export default function Index() {
                           </td>
                           <td className="text-center py-2.5 px-2 text-xs tabular-nums">{played}</td>
                           <td className="text-center py-2.5 px-2 text-xs tabular-nums font-bold">{entry.wins}</td>
-                          <td className={`text-center py-2.5 px-2 text-xs tabular-nums hidden sm:table-cell ${nrr > 0 ? 'text-green-600' : nrr < 0 ? 'text-red-500' : ''}`}>
+                          <td className={`text-center py-2.5 px-2 text-xs tabular-nums hidden sm:table-cell ${nrr > 0 ? 'text-green-400' : nrr < 0 ? 'text-red-400' : ''}`}>
                             {nrr > 0 ? '+' : ''}{nrr.toFixed(2)}
                           </td>
-                          <td className="text-center py-2.5 px-2 pr-3 text-xs stat-number">{entry.competition_points}</td>
+                          <td className="text-center py-2.5 px-2 pr-3 text-xs stat-number text-primary">{entry.competition_points}</td>
                         </tr>
                       );
                     })}

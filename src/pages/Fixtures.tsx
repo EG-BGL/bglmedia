@@ -1,7 +1,7 @@
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin } from 'lucide-react';
+import { MapPin, Calendar } from 'lucide-react';
 import { useFixtures, useResults, useCurrentSeason } from '@/hooks/useData';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -14,7 +14,6 @@ function useCricketInningsForSeason(seasonId?: string, isCricket?: boolean) {
   return useQuery({
     queryKey: ['cricket-innings-season', seasonId],
     queryFn: async () => {
-      // Get all fixture ids for this season, then get innings
       const { data: fixtures } = await supabase
         .from('fixtures')
         .select('id')
@@ -27,7 +26,6 @@ function useCricketInningsForSeason(seasonId?: string, isCricket?: boolean) {
         .in('fixture_id', fixtureIds)
         .order('innings_number');
       if (error) throw error;
-      // Group by fixture_id
       const map: Record<string, any[]> = {};
       (data ?? []).forEach((inn: any) => {
         if (!map[inn.fixture_id]) map[inn.fixture_id] = [];
@@ -49,20 +47,16 @@ function getCricketResultText(innings: any[], homeTeamId: string, awayTeamId: st
   const winnerIsHome = homeRuns > awayRuns;
   const winnerName = winnerIsHome ? homeShort : awayShort;
 
-  // If the team batting second won, margin is in wickets
-  // Determine who batted second (last innings team)
   const sortedInnings = [...innings].sort((a, b) => a.innings_number - b.innings_number);
   const lastInnings = sortedInnings[sortedInnings.length - 1];
   const chasingTeamId = lastInnings.team_id;
   const winnerTeamId = winnerIsHome ? homeTeamId : awayTeamId;
 
   if (winnerTeamId === chasingTeamId) {
-    // Won while chasing → margin in wickets
     const wicketsLost = lastInnings.total_wickets ?? 0;
     const wicketsRemaining = 10 - wicketsLost;
     return `${winnerName} won by ${wicketsRemaining} wkt${wicketsRemaining !== 1 ? 's' : ''}`;
   } else {
-    // Won batting first → margin in runs
     const margin = Math.abs(homeRuns - awayRuns);
     return `${winnerName} won by ${margin} run${margin !== 1 ? 's' : ''}`;
   }
@@ -92,24 +86,29 @@ export default function Fixtures() {
   return (
     <Layout>
       <div className="page-container py-5 space-y-4">
-        <div>
-          <h1 className="text-xl font-black tracking-tight">Fixtures & Results</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Find your fixture</p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
+            <Calendar className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-xl font-black tracking-tight">Fixtures & Results</h1>
+            <p className="text-[11px] text-muted-foreground font-medium">Find your fixture</p>
+          </div>
         </div>
 
-        {/* Sport filter + Round filter */}
-        <div className="flex items-center gap-3">
+        {/* Filters */}
+        <div className="flex items-center gap-2 flex-wrap">
           {sports.length > 1 && (
-            <div className="flex items-center bg-muted/60 rounded-full p-0.5 gap-0.5">
+            <div className="flex items-center bg-secondary/60 rounded-lg p-0.5 gap-0.5">
               {sports.map((sport) => {
                 const active = currentSport?.slug === sport.slug;
                 return (
                   <button
                     key={sport.id}
                     onClick={() => setSport(sport.slug)}
-                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
                       active
-                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
@@ -120,7 +119,7 @@ export default function Fixtures() {
             </div>
           )}
           <Select value={selectedRound} onValueChange={setSelectedRound}>
-            <SelectTrigger className="w-[130px] h-9 rounded-full text-xs font-semibold">
+            <SelectTrigger className="w-[130px] h-8 rounded-lg text-xs font-semibold border-border/40 bg-secondary/40">
               <SelectValue placeholder="Round" />
             </SelectTrigger>
             <SelectContent>
@@ -153,7 +152,6 @@ export default function Fixtures() {
                       ? getCricketResultText(cricketInnings, homeTeamId, awayTeamId, homeShort, awayShort)
                       : null;
 
-                    // Build cricket score strings per team e.g. "125/8" or "245/8 & 180/10"
                     const homeInnings = hasCricketResult ? cricketInnings.filter((i: any) => i.team_id === homeTeamId) : [];
                     const awayInnings = hasCricketResult ? cricketInnings.filter((i: any) => i.team_id === awayTeamId) : [];
                     const formatInningsScore = (inns: any[]) => inns.map((i: any) => `${i.total_runs ?? 0}/${i.total_wickets ?? 0}${i.declared ? 'd' : ''}`).join(' & ');
@@ -190,18 +188,18 @@ export default function Fixtures() {
                           <div className="text-center shrink-0 px-1">
                             {f.status === 'completed' && hasCricketResult ? (
                               <div>
-                                <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">COMPLETED</Badge>
+                                <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive/80 text-destructive-foreground border-0 font-black tracking-wider">COMPLETED</Badge>
                                 {resultText && (
                                   <div className="text-[9px] text-muted-foreground font-semibold mt-0.5 whitespace-nowrap">{resultText}</div>
                                 )}
                               </div>
                             ) : aflResult ? (
                               <div>
-                                <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">FULL TIME</Badge>
+                                <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive/80 text-destructive-foreground border-0 font-black tracking-wider">FULL TIME</Badge>
                                 <div className="text-[9px] text-muted-foreground font-semibold mt-0.5 whitespace-nowrap">{aflResult.text}</div>
                               </div>
                             ) : f.status === 'completed' ? (
-                              <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive text-destructive-foreground border-0 font-black tracking-wider">FT</Badge>
+                              <Badge className="rounded-full text-[9px] px-1.5 py-0 bg-destructive/80 text-destructive-foreground border-0 font-black tracking-wider">FT</Badge>
                             ) : (
                               <div>
                                 <div className="text-[10px] text-muted-foreground">
