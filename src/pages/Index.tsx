@@ -1,11 +1,13 @@
 import Layout from '@/components/layout/Layout';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, ChevronRight, MapPin, Newspaper, TrendingUp, ArrowRight, Star, Award, Clock, CheckCircle } from 'lucide-react';
+import { Trophy, ChevronRight, MapPin, Newspaper, TrendingUp, ArrowRight, Star, Award, Clock, CheckCircle, Sparkles, Loader2 } from 'lucide-react';
 import { useClubs, useLadder, useCurrentSeason, useNews, usePlayerOfTheRound, useAllCurrentSeasons, useAllResults, useCoachOfTheWeek, useCurrentRoundFixtures } from '@/hooks/useData';
 import ClubLogo from '@/components/ClubLogo';
 import bglLogo from '@/assets/bgl-logo.jpeg';
 import { useSport } from '@/hooks/useSport';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Index() {
   const { currentSport } = useSport();
