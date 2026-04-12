@@ -522,32 +522,105 @@ export default function Index() {
         {/* AI Match Reports */}
         {(aiNewsLoading || (aiNews && aiNews.length > 0)) && (
           <section>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="section-label flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5" />AI Match Reports
-              </h2>
-              <Badge variant="secondary" className="rounded-full text-[9px] font-bold bg-primary/10 text-primary border-0 gap-1">
-                <Sparkles className="h-2.5 w-2.5" /> AI Generated
-              </Badge>
+            {/* Hero header with background image */}
+            <div className="relative rounded-2xl overflow-hidden mb-3">
+              <img src={aiNewsBg} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" width={1200} height={600} />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent" />
+              <div className="relative px-5 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-primary/30 backdrop-blur-sm flex items-center justify-center border border-primary/20">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-black text-white tracking-tight">AI Match Reports</h2>
+                    <p className="text-[10px] text-white/50 font-medium">Powered by AI · Auto-generated from results</p>
+                  </div>
+                </div>
+                <Badge className="bg-white/10 backdrop-blur-sm text-white/80 border-white/10 rounded-full text-[9px] font-bold gap-1">
+                  <Sparkles className="h-2.5 w-2.5 text-primary" /> LIVE
+                </Badge>
+              </div>
             </div>
+
             {aiNewsLoading ? (
-              <div className="match-card p-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Generating match reports...
+              <div className="relative rounded-2xl overflow-hidden border border-border/40 bg-card">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
+                <div className="relative p-8 flex flex-col items-center justify-center gap-3">
+                  <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                  <p className="text-sm font-semibold text-muted-foreground">Analysing match data...</p>
+                  <p className="text-[10px] text-muted-foreground/60">Our AI is writing up the latest results</p>
+                </div>
               </div>
             ) : (
-              <div className="space-y-2">
-                {(aiNews ?? []).map((article: any, i: number) => (
-                  <div key={i} className="match-card p-4">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <Badge variant="outline" className="rounded-full text-[9px] font-bold px-2 py-0 border-border/40 text-muted-foreground">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {(aiNews ?? []).slice(0, 3).map((article: any, i: number) => {
+                  const isAfl = (article.sport ?? 'AFL') === 'AFL';
+                  const accentFrom = isAfl ? 'from-blue-600/20' : 'from-green-600/20';
+                  const accentTo = isAfl ? 'to-cyan-500/5' : 'to-emerald-500/5';
+                  const sportIcon = isAfl ? '🏈' : '🏏';
+                  const borderAccent = isAfl ? 'border-l-blue-500' : 'border-l-green-500';
+
+                  return (
+                    <div
+                      key={i}
+                      className={`relative rounded-xl overflow-hidden border border-border/40 bg-card border-l-[3px] ${borderAccent} group hover:border-border/60 transition-all`}
+                    >
+                      <div className={`absolute inset-0 bg-gradient-to-br ${accentFrom} ${accentTo}`} />
+                      <div className="absolute top-3 right-3 text-3xl opacity-10 group-hover:opacity-20 transition-opacity">
+                        {sportIcon}
+                      </div>
+                      <div className="relative p-4">
+                        <div className="flex items-center gap-2 mb-2.5">
+                          <Badge className={`rounded-full text-[9px] font-black px-2 py-0.5 border-0 ${
+                            isAfl
+                              ? 'bg-blue-500/15 text-blue-400'
+                              : 'bg-green-500/15 text-green-400'
+                          }`}>
+                            {article.sport ?? 'AFL'}
+                          </Badge>
+                          <span className="text-[9px] text-muted-foreground/50 font-medium uppercase tracking-wider">Match Report</span>
+                        </div>
+                        <h3 className="font-black text-sm leading-snug mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                          {article.headline}
+                        </h3>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-3">
+                          {article.summary}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-border/20">
+                          <Sparkles className="h-3 w-3 text-primary/50" />
+                          <span className="text-[9px] text-muted-foreground/50 font-medium">AI Generated</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Additional articles in compact list */}
+            {(aiNews ?? []).length > 3 && (
+              <div className="mt-2 space-y-1.5">
+                {(aiNews ?? []).slice(3).map((article: any, i: number) => {
+                  const isAfl = (article.sport ?? 'AFL') === 'AFL';
+                  return (
+                    <div key={i + 3} className="match-card p-3.5 flex items-start gap-3">
+                      <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 text-lg ${
+                        isAfl ? 'bg-blue-500/10' : 'bg-green-500/10'
+                      }`}>
+                        {isAfl ? '🏈' : '🏏'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-xs leading-snug truncate">{article.headline}</h4>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{article.summary}</p>
+                      </div>
+                      <Badge variant="outline" className="rounded-full text-[8px] font-bold px-1.5 py-0 border-border/30 text-muted-foreground/60 shrink-0">
                         {article.sport ?? 'AFL'}
                       </Badge>
                     </div>
-                    <h3 className="font-bold text-sm leading-snug">{article.headline}</h3>
-                    <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{article.summary}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </section>
