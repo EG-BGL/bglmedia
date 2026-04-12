@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSport } from '@/hooks/useSport';
 import { useState, useMemo, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Ladder() {
   const { sports, currentSport, setSport } = useSport();
