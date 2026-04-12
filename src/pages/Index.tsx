@@ -114,8 +114,7 @@ export default function Index() {
                         {isCompleted ? (
                           <span className="stat-number text-base">{f.result.home_score} – {f.result.away_score}</span>
                         ) : (
-                          <span className="text-xs text-muted-foreground font-medium">
-                            {f.scheduled_at ? new Date(f.scheduled_at).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBC'}
+                          <span className="text-xs text-muted-foreground font-bold">vs</span>
                           </span>
                         )}
                       </div>
