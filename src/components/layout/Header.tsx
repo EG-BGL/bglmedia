@@ -30,7 +30,7 @@ export default function Header() {
       <div className="page-container flex items-center justify-between h-14">
         {/* Logo */}
         <Link to="/" className="flex items-center shrink-0 text-lg font-extrabold tracking-tight text-foreground">
-          BGL Media
+          BGLMedia
         </Link>
 
         {/* Desktop nav */}
