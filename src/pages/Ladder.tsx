@@ -7,19 +7,18 @@ import { useSport } from '@/hooks/useSport';
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Trophy, ChevronRight } from 'lucide-react';
 
 export default function Ladder() {
   const { sports, currentSport, setSport } = useSport();
   const { data: allSeasons } = useSeasons();
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>('');
 
-  // Filter seasons by current sport
   const seasons = useMemo(() => {
     if (!allSeasons || !currentSport) return [];
     return allSeasons.filter((s: any) => s.competitions?.sport_id === currentSport.id);
   }, [allSeasons, currentSport]);
 
-  // Auto-select current season when sport changes
   useEffect(() => {
     const current = seasons.find((s: any) => s.is_current);
     if (current) {
@@ -35,7 +34,6 @@ export default function Ladder() {
   const selectedSeason = seasons.find((s: any) => s.id === selectedSeasonId);
   const { data: ladder, isLoading } = useLadder(selectedSeasonId || undefined);
 
-  // Fetch coaches for the selected season
   const { data: coaches } = useQuery({
     queryKey: ['coaches-for-season', selectedSeasonId],
     queryFn: async () => {
@@ -49,7 +47,6 @@ export default function Ladder() {
     enabled: !!selectedSeasonId,
   });
 
-  // Build a map of team_id -> coach name
   const coachMap = useMemo(() => {
     const map: Record<string, string> = {};
     if (!coaches) return map;
@@ -62,25 +59,50 @@ export default function Ladder() {
     return map;
   }, [coaches]);
 
+  const statColumns = isCricket
+    ? [
+        { key: 'played', label: 'P', width: 'w-9' },
+        { key: 'wld', label: 'W-L-D', width: 'w-16' },
+        { key: 'rf', label: 'RF', width: 'w-10' },
+        { key: 'ra', label: 'RA', width: 'w-10' },
+        { key: 'nrr', label: 'NRR', width: 'w-14' },
+        { key: 'pts', label: 'PTS', width: 'w-10' },
+      ]
+    : [
+        { key: 'wld', label: 'W-L-D', width: 'w-16' },
+        { key: 'pf', label: 'PF', width: 'w-10' },
+        { key: 'pa', label: 'PA', width: 'w-10' },
+        { key: 'pct', label: '%', width: 'w-12' },
+        { key: 'pts', label: 'PTS', width: 'w-10' },
+      ];
+
   return (
     <Layout>
-      <div className="page-container py-5 space-y-4">
-        <div>
-          <h1 className="text-xl font-black tracking-tight">Ladder</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{selectedSeason?.name ?? ''} Season Standings</p>
+      <div className="page-container py-5 space-y-5">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Trophy className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-black tracking-tight">Ladder</h1>
+              <p className="text-[11px] text-muted-foreground font-medium">{selectedSeason?.name ?? ''} Season Standings</p>
+            </div>
+          </div>
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           {sports.length > 1 && (
-            <div className="flex items-center bg-muted/60 rounded-full p-0.5 gap-0.5">
+            <div className="flex items-center bg-muted/60 rounded-lg p-0.5 gap-0.5">
               {sports.map((sport) => {
                 const active = currentSport?.slug === sport.slug;
                 return (
                   <button
                     key={sport.id}
                     onClick={() => setSport(sport.slug)}
-                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
                       active
                         ? 'bg-primary text-primary-foreground shadow-sm'
                         : 'text-muted-foreground hover:text-foreground'
@@ -94,7 +116,7 @@ export default function Ladder() {
           )}
           {seasons.length > 0 && (
             <Select value={selectedSeasonId} onValueChange={setSelectedSeasonId}>
-              <SelectTrigger className="w-[160px] h-9 rounded-full text-xs font-semibold">
+              <SelectTrigger className="w-[180px] h-8 rounded-lg text-xs font-semibold border-border/60 bg-card">
                 <SelectValue placeholder="Season" />
               </SelectTrigger>
               <SelectContent>
@@ -113,103 +135,104 @@ export default function Ladder() {
         ) : (ladder ?? []).length === 0 ? (
           <div className="py-16 text-center text-sm text-muted-foreground">No ladder data yet.</div>
         ) : (
-          <div className="space-y-2">
-            {isCricket && (
-              <div className="match-card p-2.5 hidden sm:flex items-center gap-3 text-[9px] text-muted-foreground uppercase font-bold">
-                <div className="w-7 shrink-0" />
-                <div className="w-8 shrink-0" />
-                <div className="flex-1 min-w-0">Team</div>
-                <div className="flex items-center gap-3 shrink-0 tabular-nums">
-                  <div className="w-10 text-center">P</div>
-                  <div className="w-14 text-center">W-L-D</div>
-                  <div className="w-10 text-center">RF</div>
-                  <div className="w-10 text-center">RA</div>
-                  <div className="w-12 text-center">NRR</div>
-                  <div className="w-10 text-center">Pts</div>
-                </div>
+          <div className="bg-card rounded-xl border border-border/60 overflow-hidden">
+            {/* Table Header */}
+            <div className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-muted/40 border-b border-border/40">
+              <div className="w-7 shrink-0" />
+              <div className="w-9 shrink-0" />
+              <div className="flex-1 min-w-0 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Team</div>
+              <div className="flex items-center shrink-0">
+                {statColumns.map((col) => (
+                  <div key={col.key} className={`${col.width} text-center text-[10px] font-bold uppercase tracking-wider text-muted-foreground`}>
+                    {col.label}
+                  </div>
+                ))}
               </div>
-            )}
-            {!isCricket && (
-              <div className="match-card p-2.5 hidden sm:flex items-center gap-3 text-[9px] text-muted-foreground uppercase font-bold">
-                <div className="w-7 shrink-0" />
-                <div className="w-8 shrink-0" />
-                <div className="flex-1 min-w-0">Team</div>
-                <div className="flex items-center gap-3 shrink-0 tabular-nums">
-                  <div className="w-14 text-center">W-L-D</div>
-                  <div className="w-10 text-center">PF</div>
-                  <div className="w-10 text-center">PA</div>
-                  <div className="w-10 text-center">%</div>
-                  <div className="w-10 text-center">Pts</div>
-                </div>
-              </div>
-            )}
+              <div className="w-5 shrink-0" />
+            </div>
+
+            {/* Rows */}
             {(ladder ?? []).map((entry: any, i: number) => {
               const club = entry.teams?.clubs;
               const teamId = entry.teams?.id;
               const coachName = teamId ? coachMap[teamId] : undefined;
               const isTop4 = i < 4;
+              const isFirst = i === 0;
               const pf = entry.points_for ?? 0;
               const pa = entry.points_against ?? 0;
               const played = entry.played ?? 0;
               const nrr = played > 0 && pa > 0 ? (pf / played) - (pa / played) : pf > 0 ? 99.999 : 0;
+              const isLast = i === (ladder ?? []).length - 1;
+
+              const renderStatValue = (col: typeof statColumns[0]) => {
+                switch (col.key) {
+                  case 'played': return <span className="font-semibold">{played}</span>;
+                  case 'wld': return <span className="font-bold">{entry.wins ?? 0}-{entry.losses ?? 0}-{entry.draws ?? 0}</span>;
+                  case 'rf': return <span className="font-semibold">{pf}</span>;
+                  case 'ra': return <span className="font-semibold">{pa}</span>;
+                  case 'nrr': return <span className={`font-semibold ${nrr > 0 ? 'text-green-600' : nrr < 0 ? 'text-red-500' : ''}`}>{nrr > 0 ? '+' : ''}{nrr.toFixed(3)}</span>;
+                  case 'pf': return <span className="font-semibold">{entry.points_for ?? 0}</span>;
+                  case 'pa': return <span className="font-semibold">{entry.points_against ?? 0}</span>;
+                  case 'pct': return <span className="font-semibold">{Number(entry.percentage ?? 0).toFixed(1)}</span>;
+                  case 'pts': return <span className="font-black text-primary">{entry.competition_points ?? 0}</span>;
+                  default: return null;
+                }
+              };
+
               return (
                 <Link key={entry.id} to={`/clubs/${club?.id}`}>
-                  <div className={`match-card p-3.5 flex items-center gap-3 ${isTop4 ? 'border-l-2 border-l-primary' : ''}`}>
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
-                      isTop4 ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                  <div
+                    className={`flex items-center gap-2 px-4 py-3 transition-colors hover:bg-muted/30 group ${
+                      !isLast ? 'border-b border-border/30' : ''
+                    } ${isTop4 ? 'border-l-[3px] border-l-primary' : 'border-l-[3px] border-l-transparent'}`}
+                  >
+                    {/* Rank */}
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+                      isFirst
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : isTop4
+                          ? 'bg-primary/10 text-primary'
+                          : 'bg-muted/60 text-muted-foreground'
                     }`}>
                       {i + 1}
                     </div>
-                    <ClubLogo club={club ?? {}} size="sm" className="!h-8 !w-8" />
+
+                    {/* Logo */}
+                    <ClubLogo club={club ?? {}} size="sm" className="!h-9 !w-9 shrink-0" />
+
+                    {/* Team info */}
                     <div className="flex-1 min-w-0">
-                      <span className="font-bold text-sm block truncate">{club?.name}</span>
-                      {coachName && <span className="text-[10px] text-muted-foreground block truncate">{coachName}</span>}
-                      <span className="text-[10px] text-muted-foreground sm:hidden">{played} played · {entry.wins ?? 0}W {entry.losses ?? 0}L{isCricket ? ` · NRR ${nrr > 0 ? '+' : ''}${nrr.toFixed(3)}` : ''}</span>
+                      <span className="font-bold text-sm block truncate leading-tight">{club?.name}</span>
+                      {coachName && (
+                        <span className="text-[10px] text-muted-foreground block truncate leading-tight mt-0.5">{coachName}</span>
+                      )}
+                      {/* Mobile compact stats */}
+                      <div className="flex items-center gap-2 mt-1 sm:hidden">
+                        <span className="text-[10px] font-bold text-foreground/80">{entry.wins ?? 0}W {entry.losses ?? 0}L {entry.draws ?? 0}D</span>
+                        <span className="text-[10px] text-muted-foreground">·</span>
+                        <span className="text-[10px] font-black text-primary">{entry.competition_points ?? 0} pts</span>
+                        {isCricket && (
+                          <>
+                            <span className="text-[10px] text-muted-foreground">·</span>
+                            <span className={`text-[10px] font-semibold ${nrr > 0 ? 'text-green-600' : nrr < 0 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                              NRR {nrr > 0 ? '+' : ''}{nrr.toFixed(3)}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    {isCricket ? (
-                      <div className="flex items-center gap-3 shrink-0 text-xs tabular-nums">
-                        <div className="w-10 text-center hidden sm:block">
-                          <div className="font-semibold">{played}</div>
+
+                    {/* Desktop stats */}
+                    <div className="hidden sm:flex items-center shrink-0 text-xs tabular-nums">
+                      {statColumns.map((col) => (
+                        <div key={col.key} className={`${col.width} text-center`}>
+                          {renderStatValue(col)}
                         </div>
-                        <div className="text-center">
-                          <div className="text-[9px] text-muted-foreground uppercase font-bold sm:hidden">W-L-D</div>
-                          <div className="font-bold hidden sm:block w-14 text-center">{entry.wins ?? 0}-{entry.losses ?? 0}-{entry.draws ?? 0}</div>
-                        </div>
-                        <div className="w-10 text-center hidden sm:block">
-                          <div className="font-semibold">{pf}</div>
-                        </div>
-                        <div className="w-10 text-center hidden sm:block">
-                          <div className="font-semibold">{pa}</div>
-                        </div>
-                        <div className="w-12 text-center hidden sm:block">
-                          <div className={`font-semibold ${nrr > 0 ? 'text-green-600' : nrr < 0 ? 'text-red-500' : ''}`}>{nrr > 0 ? '+' : ''}{nrr.toFixed(3)}</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-[9px] text-muted-foreground uppercase font-bold sm:hidden">Pts</div>
-                          <div className="font-black text-sm text-primary w-10 text-center">{entry.competition_points ?? 0}</div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-3 shrink-0 text-xs tabular-nums">
-                        <div className="text-center">
-                          <div className="text-[9px] text-muted-foreground uppercase font-bold sm:hidden">W-L-D</div>
-                          <div className="font-bold w-14 text-center">{entry.wins ?? 0}-{entry.losses ?? 0}-{entry.draws ?? 0}</div>
-                        </div>
-                        <div className="w-10 text-center hidden sm:block">
-                          <div className="font-semibold">{entry.points_for ?? 0}</div>
-                        </div>
-                        <div className="w-10 text-center hidden sm:block">
-                          <div className="font-semibold">{entry.points_against ?? 0}</div>
-                        </div>
-                        <div className="text-center hidden sm:block">
-                          <div className="font-semibold w-10 text-center">{Number(entry.percentage ?? 0).toFixed(1)}</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-[9px] text-muted-foreground uppercase font-bold sm:hidden">Pts</div>
-                          <div className="font-black text-sm text-primary w-10 text-center">{entry.competition_points ?? 0}</div>
-                        </div>
-                      </div>
-                    )}
+                      ))}
+                    </div>
+
+                    {/* Chevron */}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors shrink-0" />
                   </div>
                 </Link>
               );
@@ -217,10 +240,11 @@ export default function Ladder() {
           </div>
         )}
 
-        <div className="flex items-center gap-3 text-[10px] text-muted-foreground pt-2">
+        {/* Legend */}
+        <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-0.5 bg-primary rounded-full" />
-            <span>Finals qualifying</span>
+            <div className="w-3 h-3 rounded bg-primary/15 border-l-[3px] border-l-primary" />
+            <span className="font-medium">Finals qualifying</span>
           </div>
         </div>
       </div>
