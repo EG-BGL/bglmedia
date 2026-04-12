@@ -17,8 +17,10 @@ export default function ClubProfile() {
   const { data: ladder } = useLadder(season?.id);
 
   const clubTeams = allTeams?.filter(t => t.club_id === id) ?? [];
+  const clubTeamIds = useMemo(() => clubTeams.map(t => t.id), [clubTeams]);
   const firstTeam = clubTeams[0];
   const { data: players } = usePlayers(firstTeam?.id);
+  const { data: seasonStats } = usePlayerSeasonStats(clubTeamIds, season?.id);
 
   const clubFixtures = fixtures?.filter((f: any) =>
     f.home_team?.clubs?.id === id || f.away_team?.clubs?.id === id
