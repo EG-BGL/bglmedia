@@ -173,10 +173,15 @@ export default function Profile() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from('profiles').select('full_name, avatar_url').eq('id', user.id).single()
-      .then(({ data }) => {
+    supabase.from('profiles').select('full_name, avatar_url, first_name, last_name, facebook_name, birth_year, gamertag').eq('id', user.id).single()
+      .then(({ data }: any) => {
         if (data?.full_name) setFullName(data.full_name);
         if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+        if (data?.first_name) setFirstName(data.first_name);
+        if (data?.last_name) setLastName(data.last_name);
+        if (data?.facebook_name) setFacebookName(data.facebook_name);
+        if (data?.birth_year) setBirthYear(String(data.birth_year));
+        if (data?.gamertag) setGamertag(data.gamertag);
       });
     loadCoachData();
   }, [user]);
