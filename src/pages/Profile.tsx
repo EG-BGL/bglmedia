@@ -27,6 +27,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
   const [saving, setSaving] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [coachStats, setCoachStats] = useState<CoachStats | null>(null);
 
   useEffect(() => {
