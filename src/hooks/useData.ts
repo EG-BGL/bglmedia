@@ -235,6 +235,67 @@ export function usePlayers(teamId?: string) {
   });
 }
 
+export function usePlayerSeasonStats(teamIds: string[], seasonId?: string) {
+  return useQuery({
+    queryKey: ['player-season-stats', teamIds, seasonId],
+    queryFn: async () => {
+      if (!seasonId || teamIds.length === 0) return [];
+
+      // Get all fixtures for this season involving these teams
+      const { data: fixtures, error: fErr } = await supabase
+        .from('fixtures')
+        .select('id')
+        .eq('season_id', seasonId)
+        .or(teamIds.map(id => `home_team_id.eq.${id},away_team_id.eq.${id}`).join(','));
+      if (fErr) throw fErr;
+      if (!fixtures?.length) return [];
+
+      const fixtureIds = fixtures.map(f => f.id);
+
+      // Get all player stats for those fixtures belonging to these teams
+      const { data: stats, error: sErr } = await supabase
+        .from('match_player_stats')
+        .select('*, players(id, first_name, last_name, jersey_number, position, photo_url)')
+        .in('fixture_id', fixtureIds)
+        .in('team_id', teamIds);
+      if (sErr) throw sErr;
+
+      // Aggregate per player
+      const map = new Map<string, any>();
+      for (const s of stats ?? []) {
+        const pid = s.player_id;
+        if (!map.has(pid)) {
+          map.set(pid, {
+            player: s.players,
+            games: 0,
+            goals: 0,
+            behinds: 0,
+            disposals: 0,
+            kicks: 0,
+            handballs: 0,
+            marks: 0,
+            tackles: 0,
+            afl_fantasy: 0,
+          });
+        }
+        const agg = map.get(pid)!;
+        agg.games += 1;
+        agg.goals += s.goals ?? 0;
+        agg.behinds += s.behinds ?? 0;
+        agg.disposals += s.disposals ?? 0;
+        agg.kicks += s.kicks ?? 0;
+        agg.handballs += s.handballs ?? 0;
+        agg.marks += s.marks ?? 0;
+        agg.tackles += s.tackles ?? 0;
+        agg.afl_fantasy += s.afl_fantasy ?? 0;
+      }
+
+      return Array.from(map.values()).sort((a, b) => b.afl_fantasy - a.afl_fantasy);
+    },
+    enabled: !!seasonId && teamIds.length > 0,
+  });
+}
+
 export function useMatchPlayerStats(fixtureId?: string) {
   return useQuery({
     queryKey: ['match-player-stats', fixtureId],

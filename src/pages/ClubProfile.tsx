@@ -2,9 +2,10 @@ import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useParams, Link } from 'react-router-dom';
-import { useClub, useTeams, usePlayers, useFixtures, useResults, useLadder, useCurrentSeason } from '@/hooks/useData';
+import { useClub, useTeams, usePlayers, useFixtures, useResults, useLadder, useCurrentSeason, usePlayerSeasonStats } from '@/hooks/useData';
 import { MapPin, Calendar, Users, Trophy, ChevronLeft } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
+import { useMemo, useState } from 'react';
 
 export default function ClubProfile() {
   const { id } = useParams<{ id: string }>();
@@ -16,8 +17,10 @@ export default function ClubProfile() {
   const { data: ladder } = useLadder(season?.id);
 
   const clubTeams = allTeams?.filter(t => t.club_id === id) ?? [];
+  const clubTeamIds = useMemo(() => clubTeams.map(t => t.id), [clubTeams]);
   const firstTeam = clubTeams[0];
   const { data: players } = usePlayers(firstTeam?.id);
+  const { data: seasonStats } = usePlayerSeasonStats(clubTeamIds, season?.id);
 
   const clubFixtures = fixtures?.filter((f: any) =>
     f.home_team?.clubs?.id === id || f.away_team?.clubs?.id === id
@@ -151,7 +154,46 @@ export default function ClubProfile() {
           </TabsContent>
 
           <TabsContent value="squad">
-            {players && players.length > 0 ? (
+            {seasonStats && seasonStats.length > 0 ? (
+              <div className="bg-card rounded-xl border border-border/60 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border/60 bg-muted/30">
+                        <th className="text-left py-2.5 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-8">#</th>
+                        <th className="text-left py-2.5 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Player</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">GP</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">G</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">B</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">D</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">K</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">HB</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">M</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">T</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">AF</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {seasonStats.map((s: any) => (
+                        <tr key={s.player?.id} className="border-b border-border/30 last:border-0">
+                          <td className="py-2 px-2 font-black text-xs text-muted-foreground">{s.player?.jersey_number ?? '-'}</td>
+                          <td className="py-2 px-2 font-semibold text-xs whitespace-nowrap">{s.player?.first_name} {s.player?.last_name}</td>
+                          <td className="py-2 px-1.5 text-center text-xs text-muted-foreground">{s.games}</td>
+                          <td className="py-2 px-1.5 text-center text-xs font-bold">{s.goals}</td>
+                          <td className="py-2 px-1.5 text-center text-xs text-muted-foreground">{s.behinds}</td>
+                          <td className="py-2 px-1.5 text-center text-xs font-bold">{s.disposals}</td>
+                          <td className="py-2 px-1.5 text-center text-xs text-muted-foreground">{s.kicks}</td>
+                          <td className="py-2 px-1.5 text-center text-xs text-muted-foreground">{s.handballs}</td>
+                          <td className="py-2 px-1.5 text-center text-xs text-muted-foreground">{s.marks}</td>
+                          <td className="py-2 px-1.5 text-center text-xs text-muted-foreground">{s.tackles}</td>
+                          <td className="py-2 px-1.5 text-center text-xs font-bold">{s.afl_fantasy}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : players && players.length > 0 ? (
               <div className="bg-card rounded-xl border border-border/60 overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
