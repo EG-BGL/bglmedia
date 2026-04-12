@@ -26,6 +26,11 @@ export default function MatchCentre() {
   const [activeTab, setActiveTab] = useState<string>('Summary');
   const [showStickyScore, setShowStickyScore] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
+  const [prediction, setPrediction] = useState<string | null>(null);
+  const [predictionLoading, setPredictionLoading] = useState(false);
+
+  const seasonId = fixture?.season_id;
+  const { data: ladderData } = useLadder(seasonId);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
