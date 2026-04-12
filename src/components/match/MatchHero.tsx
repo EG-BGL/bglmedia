@@ -39,7 +39,9 @@ function calcOdds(homeLadder: any, awayLadder: any) {
   };
 }
 
-export default function MatchHero({ fixture, result, homeClub, awayClub, matchDate, homeWon, awayWon, isDraw, statusLabel, statusClass, isLive, heroRef }: MatchHeroProps) {
+export default function MatchHero({ fixture, result, homeClub, awayClub, matchDate, homeWon, awayWon, isDraw, statusLabel, statusClass, isLive, heroRef, homeLadder, awayLadder }: MatchHeroProps) {
+  const odds = calcOdds(homeLadder, awayLadder);
+  const homeFav = odds.home < odds.away;
   const isCompleted = fixture.status === 'completed' && result;
 
   return (
