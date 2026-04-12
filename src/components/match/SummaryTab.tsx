@@ -22,6 +22,7 @@ interface LeaderStat {
   value: number;
   club: any;
   suffix: string;
+  photoUrl: string | null;
 }
 
 function getClubForTeam(teamId: string, fixture: any, homeClub: any, awayClub: any) {
