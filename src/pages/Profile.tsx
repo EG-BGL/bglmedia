@@ -39,6 +39,7 @@ interface SportProfile {
   efficiency: number;
   form: string[];
   streak: string;
+  teamsCoached: { name: string; division: string; seasons: string }[];
   seasons: { year: number; premier?: boolean }[];
   achievements: { icon: string; label: string }[];
   history: { season: number; result: string }[];
