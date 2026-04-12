@@ -40,7 +40,7 @@ export default function Index() {
           <img src={bglLogo} alt="BGL Media" className="h-12 w-12 rounded-xl shadow-md" />
           <div>
             <h1 className="text-xl font-extrabold tracking-tight text-foreground">Welcome to BGL Media</h1>
-            <p className="text-sm text-muted-foreground">Your home for local league scores, stats & more</p>
+            <p className="text-sm text-muted-foreground">The home of Aussie sports gaming</p>
           </div>
         </div>
       </div>
