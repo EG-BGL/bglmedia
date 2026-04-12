@@ -39,6 +39,7 @@ interface SportProfile {
   efficiency: number;
   form: string[];
   streak: string;
+  teamsCoached: { name: string; division: string; seasons: string }[];
   seasons: { year: number; premier?: boolean }[];
   achievements: { icon: string; label: string }[];
   history: { season: number; result: string }[];
@@ -78,6 +79,10 @@ const sportProfiles: Record<SportKey, SportProfile> = {
       { icon: "🔥", label: "Dynasty Coach" },
       { icon: "🔁", label: "Back-to-Back" },
     ],
+    teamsCoached: [
+      { name: "Rebellion", division: "Senior", seasons: "S1–S6" },
+      { name: "Rebellion Reserves", division: "Reserves", seasons: "S2–S4" },
+    ],
     history: [
       { season: 3, result: "🏆 Premiers" },
       { season: 4, result: "Prelim Final" },
@@ -112,6 +117,9 @@ const sportProfiles: Record<SportKey, SportProfile> = {
       { icon: "🏆", label: "1x Premiership" },
       { icon: "💯", label: "300+ Team Score" },
       { icon: "🎯", label: "Best NRR" },
+    ],
+    teamsCoached: [
+      { name: "Rebellion CC", division: "A Grade", seasons: "S3–S6" },
     ],
     history: [
       { season: 3, result: "Semi Final" },
@@ -406,6 +414,21 @@ export default function Profile() {
             <QuickStat value={sp.gfRecord} label="GF Record" />
             <QuickStat value={`${sp.finalsWin}%`} label="Finals %" />
           </div>
+          {/* Teams Coached */}
+          {sp.teamsCoached.length > 0 && (
+            <div className="px-4 py-2.5 border-t border-border/50 space-y-1.5">
+              <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Teams Coached</div>
+              {sp.teamsCoached.map((t, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold">{t.name}</span>
+                    <Badge variant="outline" className="rounded text-[8px] px-1.5 py-0">{t.division}</Badge>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground font-bold">{t.seasons}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Trophy Timeline */}
