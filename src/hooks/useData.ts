@@ -241,7 +241,7 @@ export function useMatchPlayerStats(fixtureId?: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('match_player_stats')
-        .select('*, players(first_name, last_name, jersey_number)')
+        .select('*, players(first_name, last_name, jersey_number, photo_url)')
         .eq('fixture_id', fixtureId!)
         .order('afl_fantasy', { ascending: false });
       if (error) throw error;
