@@ -19,7 +19,6 @@ const STAT_COLS = [
   { key: 'handballs', label: 'H' },
   { key: 'marks', label: 'M' },
   { key: 'tackles', label: 'T' },
-  { key: 'hitouts', label: 'HO' },
 ] as const;
 
 export default function PlayersTab({ fixture, result, homeClub, awayClub }: PlayersTabProps) {
