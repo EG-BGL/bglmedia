@@ -35,6 +35,33 @@ export default function Ladder() {
   const selectedSeason = seasons.find((s: any) => s.id === selectedSeasonId);
   const { data: ladder, isLoading } = useLadder(selectedSeasonId || undefined);
 
+  // Fetch coaches for the selected season
+  const { data: coaches } = useQuery({
+    queryKey: ['coaches-for-season', selectedSeasonId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('coaches_to_teams')
+        .select('team_id, is_primary, profiles:user_id(full_name)')
+        .eq('season_id', selectedSeasonId);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedSeasonId,
+  });
+
+  // Build a map of team_id -> coach name
+  const coachMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (!coaches) return map;
+    for (const c of coaches) {
+      const name = (c.profiles as any)?.full_name;
+      if (name && (!map[c.team_id] || c.is_primary)) {
+        map[c.team_id] = name;
+      }
+    }
+    return map;
+  }, [coaches]);
+
   return (
     <Layout>
       <div className="page-container py-5 space-y-4">
