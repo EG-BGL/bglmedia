@@ -414,6 +414,21 @@ export default function Profile() {
             <QuickStat value={sp.gfRecord} label="GF Record" />
             <QuickStat value={`${sp.finalsWin}%`} label="Finals %" />
           </div>
+          {/* Teams Coached */}
+          {sp.teamsCoached.length > 0 && (
+            <div className="px-4 py-2.5 border-t border-border/50 space-y-1.5">
+              <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Teams Coached</div>
+              {sp.teamsCoached.map((t, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold">{t.name}</span>
+                    <Badge variant="outline" className="rounded text-[8px] px-1.5 py-0">{t.division}</Badge>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground font-bold">{t.seasons}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Trophy Timeline */}
