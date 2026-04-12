@@ -146,6 +146,7 @@ export default function Ladder() {
               const club = entry.teams?.clubs;
               const teamId = entry.teams?.id;
               const coachName = teamId ? coachMap[teamId] : undefined;
+              const posChange = entry.position_change ?? 0;
               const isTop4 = i < 4;
               const isFirst = i === 0;
               const pf = entry.points_for ?? 0;
