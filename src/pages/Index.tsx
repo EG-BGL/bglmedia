@@ -21,7 +21,12 @@ export default function Index() {
   const { data: aflLadder } = useLadder(aflSeason?.id);
   const { data: cricketLadder } = useLadder(cricketSeason?.id);
 
+  const currentSeasonIds = allCurrentSeasons?.map((s: any) => s.id).filter(Boolean) ?? [];
+  const { data: currentRoundFixtures } = useCurrentRoundFixtures(currentSeasonIds.length > 0 ? currentSeasonIds : undefined);
+
   const latestResults = allResults?.slice(0, 10) ?? [];
+  const featuredMatch = latestResults[0];
+  const currentRound = currentRoundFixtures?.[0]?.roundNumber;
   const featuredMatch = latestResults[0];
 
   const topAflLadder = (aflLadder ?? []).slice(0, 8);
