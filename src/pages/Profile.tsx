@@ -286,9 +286,17 @@ export default function Profile() {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase.from('profiles').update({ full_name: fullName }).eq('id', user.id);
+    const updatedName = `${firstName} ${lastName}`.trim() || fullName;
+    const { error } = await supabase.from('profiles').update({
+      full_name: updatedName,
+      first_name: firstName,
+      last_name: lastName,
+      facebook_name: facebookName || null,
+      birth_year: birthYear ? parseInt(birthYear) : null,
+      gamertag: gamertag || null,
+    } as any).eq('id', user.id);
     if (error) toast.error('Failed to save');
-    else { toast.success('Profile updated'); setEditOpen(false); }
+    else { setFullName(updatedName); toast.success('Profile updated'); setEditOpen(false); }
     setSaving(false);
   };
 
