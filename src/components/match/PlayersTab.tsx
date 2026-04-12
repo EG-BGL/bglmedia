@@ -105,15 +105,12 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
     } else if (teamFilter === 'away') {
       filtered = filtered.filter((s: any) => s.team_id === awayTeamId);
     }
-    if (filter === 'goalkickers') {
-      filtered = filtered.filter((s: any) => (s.goals ?? 0) > 0);
-    }
     return filtered.sort((a: any, b: any) => {
       const av = getStatValue(a, sortKey);
       const bv = getStatValue(b, sortKey);
       return sortDir === 'desc' ? bv - av : av - bv;
     });
-  }, [deduplicatedStats, sortKey, sortDir, filter, teamFilter, homeTeamId, awayTeamId]);
+  }, [deduplicatedStats, sortKey, sortDir, teamFilter, homeTeamId, awayTeamId]);
 
   const hasStats = combinedStats.length > 0;
 
@@ -138,15 +135,7 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
                 onClick={() => setTeamFilter('away')}
                 className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full transition-colors ${teamFilter === 'away' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
               >{awayClub?.short_name ?? 'Away'}</button>
-              <span className="w-px bg-border/50 mx-0.5" />
-              <button
-                onClick={() => setFilter('all')}
-                className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full transition-colors ${filter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
-              >All</button>
-              <button
-                onClick={() => { setFilter('goalkickers'); setSortKey('goals_behinds'); setSortDir('desc'); }}
-                className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full transition-colors ${filter === 'goalkickers' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
-              >Goalkickers</button>
+            </div>
             </div>
           </div>
           <ScrollArea className="w-full">
