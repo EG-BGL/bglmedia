@@ -116,12 +116,13 @@ export default function Profile() {
           <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0">
             <User className="h-7 w-7 text-primary" />
           </div>
-          <div>
-            <h1 className="text-xl font-black tracking-tight">{fullName || 'Your Profile'}</h1>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-black tracking-tight truncate">{fullName || 'Your Profile'}</h1>
             <div className="flex items-center gap-2 mt-0.5">
               <Badge variant="secondary" className="rounded-full text-[10px] font-bold capitalize">
                 <Shield className="h-3 w-3 mr-1" />{roleLabel}
               </Badge>
+              <span className="text-[10px] text-muted-foreground truncate">{user?.email}</span>
             </div>
           </div>
         </div>
