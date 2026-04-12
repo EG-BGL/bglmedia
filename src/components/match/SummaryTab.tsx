@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import ClubLogo from '@/components/ClubLogo';
 import { Trophy, Info, Zap, Target, Hand, Shield, ArrowUpCircle } from 'lucide-react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMatchPlayerStats } from '@/hooks/useData';
 
 interface SummaryTabProps {
