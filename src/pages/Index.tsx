@@ -34,6 +34,19 @@ export default function Index() {
   const topAflLadder = (aflLadder ?? []).slice(0, 8);
   const topCricketLadder = (cricketLadder ?? []).slice(0, 8);
 
+  // AI-generated match news
+  const { data: aiNews, isLoading: aiNewsLoading } = useQuery({
+    queryKey: ['ai-match-news', latestResults.map((r: any) => r.id).join(',')],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('generate-match-news');
+      if (error) throw error;
+      return data?.articles ?? [];
+    },
+    enabled: latestResults.length > 0,
+    staleTime: 5 * 60 * 1000, // cache for 5 minutes
+    refetchOnWindowFocus: false,
+  });
+
   return (
     <Layout>
       {/* Welcome section */}
