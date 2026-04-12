@@ -109,6 +109,7 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
           value: (top as any)[def.key],
           club: getClubForTeam((top as any).team_id, fixture, homeClub, awayClub),
           suffix: def.suffix,
+          photoUrl: player?.photo_url ?? null,
         });
       }
     }
