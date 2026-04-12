@@ -94,7 +94,7 @@ export default function Profile() {
     setSaving(true);
     const { error } = await supabase.from('profiles').update({ full_name: fullName }).eq('id', user.id);
     if (error) toast.error('Failed to save');
-    else toast.success('Profile updated');
+    else { toast.success('Profile updated'); setEditOpen(false); }
     setSaving(false);
   };
 
