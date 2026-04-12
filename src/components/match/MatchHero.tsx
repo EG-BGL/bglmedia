@@ -15,6 +15,28 @@ interface MatchHeroProps {
   statusClass: string;
   isLive: boolean;
   heroRef: React.RefObject<HTMLDivElement>;
+  homeLadder?: any;
+  awayLadder?: any;
+}
+
+function calcOdds(homeLadder: any, awayLadder: any) {
+  const homeWins = homeLadder?.wins ?? 0;
+  const homeDraws = homeLadder?.draws ?? 0;
+  const homePct = homeLadder?.percentage ?? 100;
+  const awayWins = awayLadder?.wins ?? 0;
+  const awayDraws = awayLadder?.draws ?? 0;
+  const awayPct = awayLadder?.percentage ?? 100;
+  const homeStrength = (homeWins * 3 + homeDraws) * (homePct / 100) + 1;
+  const awayStrength = (awayWins * 3 + awayDraws) * (awayPct / 100) + 1;
+  const total = homeStrength + awayStrength;
+  const homeProb = homeStrength / total;
+  const awayProb = awayStrength / total;
+  const drawProb = 0.08;
+  const margin = 1.08;
+  return {
+    home: Math.max(1.1, (1 / (homeProb * (1 - drawProb / 2))) * margin),
+    away: Math.max(1.1, (1 / (awayProb * (1 - drawProb / 2))) * margin),
+  };
 }
 
 export default function MatchHero({ fixture, result, homeClub, awayClub, matchDate, homeWon, awayWon, isDraw, statusLabel, statusClass, isLive, heroRef }: MatchHeroProps) {
