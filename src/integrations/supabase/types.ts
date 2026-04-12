@@ -789,6 +789,7 @@ export type Database = {
           is_active: boolean | null
           jersey_number: number | null
           last_name: string
+          photo_url: string | null
           position: string | null
           team_id: string
           updated_at: string
@@ -800,6 +801,7 @@ export type Database = {
           is_active?: boolean | null
           jersey_number?: number | null
           last_name: string
+          photo_url?: string | null
           position?: string | null
           team_id: string
           updated_at?: string
@@ -811,6 +813,7 @@ export type Database = {
           is_active?: boolean | null
           jersey_number?: number | null
           last_name?: string
+          photo_url?: string | null
           position?: string | null
           team_id?: string
           updated_at?: string
