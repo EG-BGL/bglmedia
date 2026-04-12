@@ -145,6 +145,8 @@ export default function Ladder() {
             )}
             {(ladder ?? []).map((entry: any, i: number) => {
               const club = entry.teams?.clubs;
+              const teamId = entry.teams?.id;
+              const coachName = teamId ? coachMap[teamId] : undefined;
               const isTop4 = i < 4;
               const pf = entry.points_for ?? 0;
               const pa = entry.points_against ?? 0;
@@ -161,7 +163,7 @@ export default function Ladder() {
                     <ClubLogo club={club ?? {}} size="sm" className="!h-8 !w-8" />
                     <div className="flex-1 min-w-0">
                       <span className="font-bold text-sm block truncate">{club?.name}</span>
-                      {club?.coach && <span className="text-[10px] text-muted-foreground block truncate">{club.coach}</span>}
+                      {coachName && <span className="text-[10px] text-muted-foreground block truncate">{coachName}</span>}
                       <span className="text-[10px] text-muted-foreground sm:hidden">{played} played · {entry.wins ?? 0}W {entry.losses ?? 0}L{isCricket ? ` · NRR ${nrr > 0 ? '+' : ''}${nrr.toFixed(3)}` : ''}</span>
                     </div>
                     {isCricket ? (
