@@ -146,7 +146,7 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
                 <th className="text-center py-1.5 font-bold text-muted-foreground">Q2</th>
                 <th className="text-center py-1.5 font-bold text-muted-foreground">Q3</th>
                 <th className="text-center py-1.5 font-bold text-muted-foreground">Q4</th>
-                <th className="text-center py-1.5 font-black text-foreground">Total</th>
+                <th className="text-center py-1.5 font-black text-foreground">FINAL</th>
               </tr>
             </thead>
             <tbody>
