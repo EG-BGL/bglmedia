@@ -200,6 +200,9 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
                       <span className="text-[9px] font-bold uppercase tracking-wider">{leader.label}</span>
                     </div>
                     <Avatar className="h-9 w-9">
+                      {leader.photoUrl && (
+                        <AvatarImage src={leader.photoUrl} alt={leader.playerName} className="object-cover" />
+                      )}
                       <AvatarFallback
                         className="text-[10px] font-black"
                         style={{
