@@ -15,42 +15,110 @@ import {
 } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
-// Hardcoded showcase coach data
-const coach = {
-  name: "Kyle Ettridge",
-  team: "Rebellion",
-  avatar: "https://via.placeholder.com/100",
-  premierships: 3,
-  winRate: 68,
-  games: 120,
-  dynasty: true,
-  dynastyStart: 3,
-  dynastyEnd: 6,
-  trophies: [{ season: 3 }, { season: 5 }, { season: 6 }],
-  seasons: [
-    { year: 1 }, { year: 2 }, { year: 3, premier: true },
-    { year: 4 }, { year: 5, premier: true }, { year: 6, premier: true },
-  ],
-  finalsWin: 65,
-  gfRecord: "3-1",
-  closeGames: 70,
-  avgFor: 85,
-  style: "Attacking",
-  defence: 7,
-  adaptability: "High",
-  efficiency: 64,
-  form: ["W", "W", "L", "W", "W"],
-  streak: "3 Wins",
-  achievements: [
-    { icon: "🏆", label: "3x Premiership" },
-    { icon: "🔥", label: "Dynasty Coach" },
-    { icon: "🔁", label: "Back-to-Back" },
-  ],
-  history: [
-    { season: 3, result: "🏆 Premiers" },
-    { season: 4, result: "Prelim Final" },
-    { season: 5, result: "🏆 Premiers" },
-  ],
+// Hardcoded multi-sport showcase coach data
+type SportKey = 'afl' | 'cricket';
+
+interface SportProfile {
+  sport: SportKey;
+  icon: string;
+  label: string;
+  team: string;
+  premierships: number;
+  premLabel: string;
+  winRate: number;
+  games: number;
+  dynasty: boolean;
+  finalsWin: number;
+  gfRecord: string;
+  closeGames: number;
+  avgFor: number;
+  avgForLabel: string;
+  style: string;
+  defence: number;
+  adaptability: string;
+  efficiency: number;
+  form: string[];
+  streak: string;
+  seasons: { year: number; premier?: boolean }[];
+  achievements: { icon: string; label: string }[];
+  history: { season: number; result: string }[];
+}
+
+const coachName = "Kyle Ettridge";
+const coachAvatar = "https://via.placeholder.com/100";
+
+const sportProfiles: Record<SportKey, SportProfile> = {
+  afl: {
+    sport: 'afl',
+    icon: '🏈',
+    label: 'AFL',
+    team: "Rebellion",
+    premierships: 3,
+    premLabel: 'Flags',
+    winRate: 68,
+    games: 120,
+    dynasty: true,
+    finalsWin: 65,
+    gfRecord: "3-1",
+    closeGames: 70,
+    avgFor: 85,
+    avgForLabel: 'Avg Score',
+    style: "Attacking",
+    defence: 7,
+    adaptability: "High",
+    efficiency: 64,
+    form: ["W", "W", "L", "W", "W"],
+    streak: "3 Wins",
+    seasons: [
+      { year: 1 }, { year: 2 }, { year: 3, premier: true },
+      { year: 4 }, { year: 5, premier: true }, { year: 6, premier: true },
+    ],
+    achievements: [
+      { icon: "🏆", label: "3x Premiership" },
+      { icon: "🔥", label: "Dynasty Coach" },
+      { icon: "🔁", label: "Back-to-Back" },
+    ],
+    history: [
+      { season: 3, result: "🏆 Premiers" },
+      { season: 4, result: "Prelim Final" },
+      { season: 5, result: "🏆 Premiers" },
+    ],
+  },
+  cricket: {
+    sport: 'cricket',
+    icon: '🏏',
+    label: 'Cricket',
+    team: "Rebellion CC",
+    premierships: 1,
+    premLabel: 'Titles',
+    winRate: 58,
+    games: 42,
+    dynasty: false,
+    finalsWin: 50,
+    gfRecord: "1-2",
+    closeGames: 55,
+    avgFor: 165,
+    avgForLabel: 'Avg Runs',
+    style: "Balanced",
+    defence: 6,
+    adaptability: "Medium",
+    efficiency: 52,
+    form: ["W", "L", "W", "W", "L"],
+    streak: "1 Loss",
+    seasons: [
+      { year: 3 }, { year: 4, premier: true }, { year: 5 }, { year: 6 },
+    ],
+    achievements: [
+      { icon: "🏆", label: "1x Premiership" },
+      { icon: "💯", label: "300+ Team Score" },
+      { icon: "🎯", label: "Best NRR" },
+    ],
+    history: [
+      { season: 3, result: "Semi Final" },
+      { season: 4, result: "🏆 Premiers" },
+      { season: 5, result: "Prelim Final" },
+    ],
+  },
 };
 
 interface SeasonStats {
