@@ -7,7 +7,7 @@ const tabs = [
   { label: 'Fixtures', path: '/fixtures', icon: Calendar },
   { label: 'Submit', path: '/portal/submit', icon: ClipboardList, authOnly: true },
   { label: 'Ladder', path: '/ladder', icon: Trophy },
-  { label: 'Clubs', path: '/clubs', icon: Users },
+  
   { label: 'Profile', path: '/profile', icon: User },
 ];
 
