@@ -323,7 +323,7 @@ export default function Index() {
             </section>
           )}
 
-          {topCricketLadder.length > 0 && (
+          {cricketSeason && topCricketLadder.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="section-label flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" />Cricket Ladder</h2>
