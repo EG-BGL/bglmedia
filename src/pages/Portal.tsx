@@ -15,6 +15,7 @@ export default function Portal() {
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
+    if (!loading && user && !user.email_confirmed_at) navigate('/login');
   }, [user, loading, navigate]);
 
   useEffect(() => {
