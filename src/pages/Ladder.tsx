@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSport } from '@/hooks/useSport';
 import { useState, useMemo, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Ladder() {
   const { sports, currentSport, setSport } = useSport();
@@ -32,6 +34,33 @@ export default function Ladder() {
   const isCricket = currentSport?.slug === 'cricket';
   const selectedSeason = seasons.find((s: any) => s.id === selectedSeasonId);
   const { data: ladder, isLoading } = useLadder(selectedSeasonId || undefined);
+
+  // Fetch coaches for the selected season
+  const { data: coaches } = useQuery({
+    queryKey: ['coaches-for-season', selectedSeasonId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('coaches_to_teams')
+        .select('team_id, is_primary, profiles:user_id(full_name)')
+        .eq('season_id', selectedSeasonId);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedSeasonId,
+  });
+
+  // Build a map of team_id -> coach name
+  const coachMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (!coaches) return map;
+    for (const c of coaches) {
+      const name = (c.profiles as any)?.full_name;
+      if (name && (!map[c.team_id] || c.is_primary)) {
+        map[c.team_id] = name;
+      }
+    }
+    return map;
+  }, [coaches]);
 
   return (
     <Layout>
@@ -116,6 +145,8 @@ export default function Ladder() {
             )}
             {(ladder ?? []).map((entry: any, i: number) => {
               const club = entry.teams?.clubs;
+              const teamId = entry.teams?.id;
+              const coachName = teamId ? coachMap[teamId] : undefined;
               const isTop4 = i < 4;
               const pf = entry.points_for ?? 0;
               const pa = entry.points_against ?? 0;
@@ -132,7 +163,7 @@ export default function Ladder() {
                     <ClubLogo club={club ?? {}} size="sm" className="!h-8 !w-8" />
                     <div className="flex-1 min-w-0">
                       <span className="font-bold text-sm block truncate">{club?.name}</span>
-                      {club?.coach && <span className="text-[10px] text-muted-foreground block truncate">{club.coach}</span>}
+                      {coachName && <span className="text-[10px] text-muted-foreground block truncate">{coachName}</span>}
                       <span className="text-[10px] text-muted-foreground sm:hidden">{played} played · {entry.wins ?? 0}W {entry.losses ?? 0}L{isCricket ? ` · NRR ${nrr > 0 ? '+' : ''}${nrr.toFixed(3)}` : ''}</span>
                     </div>
                     {isCricket ? (
