@@ -229,10 +229,13 @@ export default function Index() {
 
         {/* Ladders */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {topAflLadder.length > 0 && (
+          {aflSeason && topAflLadder.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="section-label flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" />AFL Ladder</h2>
+                <div>
+                  <h2 className="section-label flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" />AFL Ladder</h2>
+                  <span className="text-[10px] text-muted-foreground font-medium">{aflSeason.name}</span>
+                </div>
                 <Link to="/ladder" className="text-xs font-bold text-primary flex items-center gap-0.5">Full <ChevronRight className="h-3 w-3" /></Link>
               </div>
               <div className="bg-card rounded-xl border border-border/40 overflow-hidden">
@@ -274,7 +277,10 @@ export default function Index() {
           {cricketSeason && topCricketLadder.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="section-label flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" />Cricket Ladder</h2>
+                <div>
+                  <h2 className="section-label flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" />Cricket Ladder</h2>
+                  <span className="text-[10px] text-muted-foreground font-medium">{cricketSeason?.name}</span>
+                </div>
                 <Link to="/ladder" className="text-xs font-bold text-primary flex items-center gap-0.5">Full <ChevronRight className="h-3 w-3" /></Link>
               </div>
               <div className="bg-card rounded-xl border border-border/40 overflow-hidden">
