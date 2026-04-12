@@ -1,11 +1,12 @@
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { useParams, Link } from 'react-router-dom';
-import { useFixture } from '@/hooks/useData';
+import { useFixture, useLadder } from '@/hooks/useData';
 import { useCricketMatchResults } from '@/hooks/useCricketData';
 import ClubLogo from '@/components/ClubLogo';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Sparkles, Loader2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import MatchHero from '@/components/match/MatchHero';
 import SummaryTab from '@/components/match/SummaryTab';
 import PlayersTab from '@/components/match/PlayersTab';
@@ -25,6 +26,11 @@ export default function MatchCentre() {
   const [activeTab, setActiveTab] = useState<string>('Summary');
   const [showStickyScore, setShowStickyScore] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
+  const [prediction, setPrediction] = useState<string | null>(null);
+  const [predictionLoading, setPredictionLoading] = useState(false);
+
+  const seasonId = fixture?.season_id;
+  const { data: ladderData } = useLadder(seasonId);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -38,12 +44,55 @@ export default function MatchCentre() {
   const result = (fixture as any)?.results?.[0];
   const homeClub = (fixture as any)?.home_team?.clubs;
   const awayClub = (fixture as any)?.away_team?.clubs;
+  const homeTeamId = (fixture as any)?.home_team?.id;
+  const awayTeamId = (fixture as any)?.away_team?.id;
   const matchDate = fixture?.scheduled_at ? new Date(fixture.scheduled_at) : null;
 
-  // Detect cricket match: has match_format or has cricket innings data
+  // Detect cricket match
   const isCricket = !!(fixture?.match_format && ['T20', 'One-Day', 'Multi-Day'].includes(fixture.match_format)) || (cricketInnings && cricketInnings.length > 0);
 
   const TABS = isCricket ? CRICKET_TABS : AFL_TABS;
+
+  // Ladder entries for both teams
+  const homeLadder = ladderData?.find((e: any) => e.team_id === homeTeamId);
+  const awayLadder = ladderData?.find((e: any) => e.team_id === awayTeamId);
+
+  // AI Prediction
+  useEffect(() => {
+    if (!fixture || !homeClub || !awayClub) return;
+    setPredictionLoading(true);
+    const fetchPrediction = async () => {
+      try {
+        const body: any = {
+          homeTeam: homeClub.short_name || homeClub.name,
+          awayTeam: awayClub.short_name || awayClub.name,
+          isCricket: !!isCricket,
+          matchFormat: fixture.match_format || null,
+        };
+        if (homeLadder) body.homeLadder = homeLadder;
+        if (awayLadder) body.awayLadder = awayLadder;
+        if (result) {
+          body.result = {
+            homeScore: result.home_score,
+            awayScore: result.away_score,
+            homeGoals: result.home_goals,
+            homeBehinds: result.home_behinds,
+            awayGoals: result.away_goals,
+            awayBehinds: result.away_behinds,
+          };
+        }
+        const { data, error } = await supabase.functions.invoke('match-prediction', { body });
+        if (error) throw error;
+        setPrediction(data?.prediction ?? null);
+      } catch (err) {
+        console.error('Prediction error:', err);
+        setPrediction(null);
+      } finally {
+        setPredictionLoading(false);
+      }
+    };
+    fetchPrediction();
+  }, [fixture?.id, homeLadder?.id, awayLadder?.id, result?.id]);
 
   if (isLoading) return <Layout><div className="page-container py-16 text-center text-sm text-muted-foreground">Loading match...</div></Layout>;
   if (!fixture) return <Layout><div className="page-container py-16 text-center text-sm text-muted-foreground">Match not found.</div></Layout>;
@@ -147,6 +196,28 @@ export default function MatchCentre() {
               {tab}
             </button>
           ))}
+        </div>
+
+        {/* AI Prediction */}
+        <div className="match-card p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary/20 to-accent/10 flex items-center justify-center">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+            </div>
+            <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+              {result ? 'AI Match Analysis' : 'AI Prediction'}
+            </h3>
+          </div>
+          {predictionLoading ? (
+            <div className="flex items-center gap-2 py-2">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <span className="text-xs text-muted-foreground">Generating {result ? 'analysis' : 'prediction'}...</span>
+            </div>
+          ) : prediction ? (
+            <p className="text-sm leading-relaxed">{prediction}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">Prediction unavailable.</p>
+          )}
         </div>
 
         {/* Tab Content */}
