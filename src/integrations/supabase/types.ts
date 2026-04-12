@@ -828,27 +828,42 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          birth_year: number | null
           created_at: string
+          facebook_name: string | null
+          first_name: string | null
           full_name: string | null
+          gamertag: string | null
           id: string
+          last_name: string | null
           role: string | null
           team_id: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          birth_year?: number | null
           created_at?: string
+          facebook_name?: string | null
+          first_name?: string | null
           full_name?: string | null
+          gamertag?: string | null
           id: string
+          last_name?: string | null
           role?: string | null
           team_id?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          birth_year?: number | null
           created_at?: string
+          facebook_name?: string | null
+          first_name?: string | null
           full_name?: string | null
+          gamertag?: string | null
           id?: string
+          last_name?: string | null
           role?: string | null
           team_id?: string | null
           updated_at?: string

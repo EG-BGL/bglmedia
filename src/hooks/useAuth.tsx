@@ -9,7 +9,7 @@ interface AuthContextType {
   role: AppRole | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, metadata?: { first_name?: string; last_name?: string; facebook_name?: string; birth_year?: number; gamertag?: string }) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -78,12 +78,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error ? new Error(error.message) : null };
   };
 
-  const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+  const signUp = async (email: string, password: string, metadata?: { first_name?: string; last_name?: string; facebook_name?: string; birth_year?: number; gamertag?: string }) => {
+    const { error, data } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: window.location.origin }
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: metadata ? { full_name: `${metadata.first_name ?? ''} ${metadata.last_name ?? ''}`.trim(), ...metadata } : undefined,
+      }
     });
+    // Update profile with extra fields after signup
+    if (!error && data?.user && metadata) {
+      await supabase.from('profiles').update({
+        full_name: `${metadata.first_name ?? ''} ${metadata.last_name ?? ''}`.trim(),
+        first_name: metadata.first_name,
+        last_name: metadata.last_name,
+        facebook_name: metadata.facebook_name,
+        birth_year: metadata.birth_year,
+        gamertag: metadata.gamertag,
+      } as any).eq('id', data.user.id);
+    }
     return { error: error ? new Error(error.message) : null };
   };
 

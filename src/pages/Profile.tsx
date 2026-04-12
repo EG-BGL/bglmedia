@@ -150,6 +150,11 @@ export default function Profile() {
   const { user, role, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [facebookName, setFacebookName] = useState('');
+  const [birthYear, setBirthYear] = useState('');
+  const [gamertag, setGamertag] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -168,10 +173,15 @@ export default function Profile() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from('profiles').select('full_name, avatar_url').eq('id', user.id).single()
-      .then(({ data }) => {
+    supabase.from('profiles').select('full_name, avatar_url, first_name, last_name, facebook_name, birth_year, gamertag').eq('id', user.id).single()
+      .then(({ data }: any) => {
         if (data?.full_name) setFullName(data.full_name);
         if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+        if (data?.first_name) setFirstName(data.first_name);
+        if (data?.last_name) setLastName(data.last_name);
+        if (data?.facebook_name) setFacebookName(data.facebook_name);
+        if (data?.birth_year) setBirthYear(String(data.birth_year));
+        if (data?.gamertag) setGamertag(data.gamertag);
       });
     loadCoachData();
   }, [user]);
@@ -276,9 +286,17 @@ export default function Profile() {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase.from('profiles').update({ full_name: fullName }).eq('id', user.id);
+    const updatedName = `${firstName} ${lastName}`.trim() || fullName;
+    const { error } = await supabase.from('profiles').update({
+      full_name: updatedName,
+      first_name: firstName,
+      last_name: lastName,
+      facebook_name: facebookName || null,
+      birth_year: birthYear ? parseInt(birthYear) : null,
+      gamertag: gamertag || null,
+    } as any).eq('id', user.id);
     if (error) toast.error('Failed to save');
-    else { toast.success('Profile updated'); setEditOpen(false); }
+    else { setFullName(updatedName); toast.success('Profile updated'); setEditOpen(false); }
     setSaving(false);
   };
 
@@ -333,7 +351,7 @@ export default function Profile() {
               </DialogTrigger>
               <DialogContent className="max-w-sm">
                 <DialogHeader><DialogTitle className="text-base font-black">Edit Profile</DialogTitle></DialogHeader>
-                <div className="space-y-3 pt-2">
+                <div className="space-y-3 pt-2 max-h-[70vh] overflow-y-auto">
                   <div className="flex items-center gap-3">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt="Profile" className="h-12 w-12 rounded-xl object-cover" />
@@ -347,9 +365,29 @@ export default function Profile() {
                       <Camera className="h-3.5 w-3.5" />{uploading ? 'Uploading...' : 'Change Photo'}
                     </Button>
                   </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs font-bold text-muted-foreground">First Name</Label>
+                      <Input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="First name" className="mt-1" />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-bold text-muted-foreground">Last Name</Label>
+                      <Input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Last name" className="mt-1" />
+                    </div>
+                  </div>
                   <div>
-                    <Label className="text-xs font-bold text-muted-foreground">Full Name</Label>
-                    <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Enter your name" className="mt-1" />
+                    <Label className="text-xs font-bold text-muted-foreground">Facebook Name</Label>
+                    <Input value={facebookName} onChange={e => setFacebookName(e.target.value)} placeholder="Your Facebook name" className="mt-1" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs font-bold text-muted-foreground">Birth Year</Label>
+                      <Input type="number" min="1940" max={new Date().getFullYear()} value={birthYear} onChange={e => setBirthYear(e.target.value)} placeholder="1990" className="mt-1" />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-bold text-muted-foreground">PSN / Gamertag / Steam</Label>
+                      <Input value={gamertag} onChange={e => setGamertag(e.target.value)} placeholder="YourTag123" className="mt-1" />
+                    </div>
                   </div>
                   <div>
                     <Label className="text-xs font-bold text-muted-foreground">Email</Label>
