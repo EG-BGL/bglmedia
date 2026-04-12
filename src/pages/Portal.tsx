@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { ClipboardList, Shield, ChevronRight, CircleDot } from 'lucide-react';
+import { ClipboardList, Shield, ChevronRight, CircleDot, LayoutDashboard } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 export default function Portal() {
@@ -28,34 +28,39 @@ export default function Portal() {
   return (
     <Layout>
       <div className="page-container py-5 space-y-5">
-        <div>
-          <h1 className="text-xl font-black tracking-tight">
-            {role === 'league_admin' ? 'Admin' : 'Coach'} Dashboard
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{user?.email}</p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
+            <LayoutDashboard className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-xl font-black tracking-tight">
+              {role === 'league_admin' ? 'Admin' : 'Coach'} Dashboard
+            </h1>
+            <p className="text-[11px] text-muted-foreground font-medium">{user?.email}</p>
+          </div>
         </div>
 
         {/* Quick actions */}
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
           {(role === 'coach' || role === 'league_admin') && (
-            <Link to="/portal/submit" className="match-card p-4 flex flex-col items-center gap-2 text-center">
-              <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <Link to="/portal/submit" className="match-card p-4 flex flex-col items-center gap-2 text-center group">
+              <div className="h-12 w-12 rounded-2xl bg-primary/15 flex items-center justify-center group-hover:bg-primary/25 transition-colors">
                 <ClipboardList className="h-6 w-6 text-primary" />
               </div>
               <span className="font-bold text-sm">Submit AFL</span>
             </Link>
           )}
           {(role === 'coach' || role === 'league_admin') && (
-            <Link to="/portal/submit-cricket" className="match-card p-4 flex flex-col items-center gap-2 text-center">
-              <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <Link to="/portal/submit-cricket" className="match-card p-4 flex flex-col items-center gap-2 text-center group">
+              <div className="h-12 w-12 rounded-2xl bg-primary/15 flex items-center justify-center group-hover:bg-primary/25 transition-colors">
                 <CircleDot className="h-6 w-6 text-primary" />
               </div>
               <span className="font-bold text-sm">Submit Cricket</span>
             </Link>
           )}
           {role === 'league_admin' && (
-            <Link to="/admin" className="match-card p-4 flex flex-col items-center gap-2 text-center">
-              <div className="h-12 w-12 rounded-2xl bg-accent/10 flex items-center justify-center">
+            <Link to="/admin" className="match-card p-4 flex flex-col items-center gap-2 text-center group">
+              <div className="h-12 w-12 rounded-2xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
                 <Shield className="h-6 w-6 text-accent" />
               </div>
               <span className="font-bold text-sm">Admin Panel</span>
@@ -75,7 +80,7 @@ export default function Portal() {
                     <div className="font-bold text-sm">{a.teams?.clubs?.name}</div>
                     <div className="text-[10px] text-muted-foreground">{a.teams?.division} • {a.teams?.seasons?.name}</div>
                   </div>
-                  {a.is_primary && <Badge variant="secondary" className="text-[9px] rounded-full">Primary</Badge>}
+                  {a.is_primary && <Badge variant="secondary" className="text-[9px] rounded-full bg-secondary/60">Primary</Badge>}
                 </div>
               ))}
             </div>
@@ -101,7 +106,7 @@ export default function Portal() {
                   </div>
                   <Badge
                     variant={s.status === 'approved' ? 'default' : s.status === 'rejected' ? 'destructive' : 'secondary'}
-                    className="rounded-full text-[9px] capitalize shrink-0"
+                    className={`rounded-full text-[9px] capitalize shrink-0 ${s.status === 'approved' ? 'bg-accent text-accent-foreground' : s.status === 'rejected' ? '' : 'bg-secondary/60'}`}
                   >
                     {s.status}
                   </Badge>
