@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trophy, ChevronRight, MapPin, Newspaper, TrendingUp, ArrowRight, Star, Award, Clock, CheckCircle } from 'lucide-react';
 import { useClubs, useLadder, useCurrentSeason, useNews, usePlayerOfTheRound, useAllCurrentSeasons, useAllResults, useCoachOfTheWeek, useCurrentRoundFixtures } from '@/hooks/useData';
 import ClubLogo from '@/components/ClubLogo';
+import bglLogo from '@/assets/bgl-logo.jpeg';
 import { useSport } from '@/hooks/useSport';
 
 export default function Index() {
@@ -33,6 +34,17 @@ export default function Index() {
 
   return (
     <Layout>
+      {/* Welcome section */}
+      <div className="page-container py-6">
+        <div className="flex items-center gap-4">
+          <img src={bglLogo} alt="BGL Media" className="h-12 w-12 rounded-xl shadow-md" />
+          <div>
+            <h1 className="text-xl font-extrabold tracking-tight text-foreground">Welcome to BGL Media</h1>
+            <p className="text-sm text-muted-foreground">Your home for local league scores, stats & more</p>
+          </div>
+        </div>
+      </div>
+
       {/* Scores strip */}
       {latestResults.length > 0 && (
         <div className="score-strip border-b border-border/30">
