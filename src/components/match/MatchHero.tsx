@@ -15,9 +15,33 @@ interface MatchHeroProps {
   statusClass: string;
   isLive: boolean;
   heroRef: React.RefObject<HTMLDivElement>;
+  homeLadder?: any;
+  awayLadder?: any;
 }
 
-export default function MatchHero({ fixture, result, homeClub, awayClub, matchDate, homeWon, awayWon, isDraw, statusLabel, statusClass, isLive, heroRef }: MatchHeroProps) {
+function calcOdds(homeLadder: any, awayLadder: any) {
+  const homeWins = homeLadder?.wins ?? 0;
+  const homeDraws = homeLadder?.draws ?? 0;
+  const homePct = homeLadder?.percentage ?? 100;
+  const awayWins = awayLadder?.wins ?? 0;
+  const awayDraws = awayLadder?.draws ?? 0;
+  const awayPct = awayLadder?.percentage ?? 100;
+  const homeStrength = (homeWins * 3 + homeDraws) * (homePct / 100) + 1;
+  const awayStrength = (awayWins * 3 + awayDraws) * (awayPct / 100) + 1;
+  const total = homeStrength + awayStrength;
+  const homeProb = homeStrength / total;
+  const awayProb = awayStrength / total;
+  const drawProb = 0.08;
+  const margin = 1.08;
+  return {
+    home: Math.max(1.1, (1 / (homeProb * (1 - drawProb / 2))) * margin),
+    away: Math.max(1.1, (1 / (awayProb * (1 - drawProb / 2))) * margin),
+  };
+}
+
+export default function MatchHero({ fixture, result, homeClub, awayClub, matchDate, homeWon, awayWon, isDraw, statusLabel, statusClass, isLive, heroRef, homeLadder, awayLadder }: MatchHeroProps) {
+  const odds = calcOdds(homeLadder, awayLadder);
+  const homeFav = odds.home < odds.away;
   const isCompleted = fixture.status === 'completed' && result;
 
   return (
@@ -31,11 +55,12 @@ export default function MatchHero({ fixture, result, homeClub, awayClub, matchDa
 
       <div className="px-4 py-6">
         <div className="flex items-center justify-between">
-          <div className="flex flex-col items-center gap-2 flex-1">
+          <div className="flex flex-col items-center gap-1.5 flex-1">
             <ClubLogo club={homeClub ?? {}} size="lg" className="!h-14 !w-14 md:!h-16 md:!w-16" />
             <span className={`text-xs font-bold text-center leading-tight ${isCompleted && !homeWon && !isDraw ? 'text-muted-foreground' : ''}`}>
               {homeClub?.short_name}
             </span>
+            <span className={`text-base font-black tabular-nums ${homeFav ? 'text-primary' : 'text-muted-foreground'}`}>${odds.home.toFixed(2)}</span>
             {homeWon && <Badge variant="secondary" className="text-[9px] rounded-full px-2 py-0 font-black bg-primary/10 text-primary border-0">WIN</Badge>}
           </div>
 
@@ -54,11 +79,12 @@ export default function MatchHero({ fixture, result, homeClub, awayClub, matchDa
             )}
           </div>
 
-          <div className="flex flex-col items-center gap-2 flex-1">
+          <div className="flex flex-col items-center gap-1.5 flex-1">
             <ClubLogo club={awayClub ?? {}} size="lg" className="!h-14 !w-14 md:!h-16 md:!w-16" />
             <span className={`text-xs font-bold text-center leading-tight ${isCompleted && !awayWon && !isDraw ? 'text-muted-foreground' : ''}`}>
               {awayClub?.short_name}
             </span>
+            <span className={`text-base font-black tabular-nums ${!homeFav ? 'text-primary' : 'text-muted-foreground'}`}>${odds.away.toFixed(2)}</span>
             {awayWon && <Badge variant="secondary" className="text-[9px] rounded-full px-2 py-0 font-black bg-primary/10 text-primary border-0">WIN</Badge>}
           </div>
         </div>

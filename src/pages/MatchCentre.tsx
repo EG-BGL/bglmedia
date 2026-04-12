@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useFixture, useLadder } from '@/hooks/useData';
 import { useCricketMatchResults } from '@/hooks/useCricketData';
 import ClubLogo from '@/components/ClubLogo';
-import { ChevronLeft, Sparkles, Loader2, TrendingUp } from 'lucide-react';
+import { ChevronLeft, Sparkles, Loader2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import MatchHero from '@/components/match/MatchHero';
@@ -178,6 +178,8 @@ export default function MatchCentre() {
             statusClass={statusClass}
             isLive={isLive}
             heroRef={heroRef}
+            homeLadder={homeLadder}
+            awayLadder={awayLadder}
           />
         )}
 
@@ -220,65 +222,6 @@ export default function MatchCentre() {
           )}
         </div>
 
-        {/* Betting Odds */}
-        {homeClub && awayClub && (
-          <div className="match-card p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-accent/20 to-primary/10 flex items-center justify-center">
-                <TrendingUp className="h-3.5 w-3.5 text-accent-foreground" />
-              </div>
-              <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Betting Odds</h3>
-              <Badge variant="secondary" className="text-[9px] font-bold rounded-full px-2 py-0 border-0 bg-muted text-muted-foreground">Based on season stats</Badge>
-            </div>
-            {(() => {
-              const homeWins = homeLadder?.wins ?? 0;
-              const homeLosses = homeLadder?.losses ?? 0;
-              const homeDraws = homeLadder?.draws ?? 0;
-              const homePct = homeLadder?.percentage ?? 100;
-              const awayWins = awayLadder?.wins ?? 0;
-              const awayLosses = awayLadder?.losses ?? 0;
-              const awayDraws = awayLadder?.draws ?? 0;
-              const awayPct = awayLadder?.percentage ?? 100;
-
-              // Calculate implied probability from win rate + percentage
-              const homeStrength = (homeWins * 3 + homeDraws) * (homePct / 100) + 1;
-              const awayStrength = (awayWins * 3 + awayDraws) * (awayPct / 100) + 1;
-              const total = homeStrength + awayStrength;
-              const homeProb = homeStrength / total;
-              const awayProb = awayStrength / total;
-              const drawProb = 0.08; // small draw margin
-
-              // Convert to decimal odds (with margin)
-              const margin = 1.08;
-              const homeOdds = Math.max(1.1, (1 / (homeProb * (1 - drawProb / 2))) * margin);
-              const awayOdds = Math.max(1.1, (1 / (awayProb * (1 - drawProb / 2))) * margin);
-              const drawOdds = Math.max(5.0, (1 / drawProb) * margin);
-
-              const favourite = homeOdds < awayOdds ? 'home' : awayOdds < homeOdds ? 'away' : null;
-
-              return (
-                <div className="grid grid-cols-3 gap-2">
-                  <div className={`rounded-xl p-3 text-center transition-all ${favourite === 'home' ? 'bg-primary/10 ring-1 ring-primary/30' : 'bg-muted/50'}`}>
-                    <ClubLogo club={homeClub} size="sm" className="!h-8 !w-8 mx-auto mb-1.5" />
-                    <p className="text-[10px] font-bold text-muted-foreground mb-0.5">{homeClub.short_name}</p>
-                    <p className="text-xl font-black tabular-nums text-foreground">${homeOdds.toFixed(2)}</p>
-                    {favourite === 'home' && <span className="text-[9px] font-bold text-primary uppercase">Favourite</span>}
-                  </div>
-                  <div className="rounded-xl bg-muted/30 p-3 text-center flex flex-col items-center justify-center">
-                    <p className="text-[10px] font-bold text-muted-foreground mb-0.5">Draw</p>
-                    <p className="text-xl font-black tabular-nums text-foreground">${drawOdds.toFixed(2)}</p>
-                  </div>
-                  <div className={`rounded-xl p-3 text-center transition-all ${favourite === 'away' ? 'bg-primary/10 ring-1 ring-primary/30' : 'bg-muted/50'}`}>
-                    <ClubLogo club={awayClub} size="sm" className="!h-8 !w-8 mx-auto mb-1.5" />
-                    <p className="text-[10px] font-bold text-muted-foreground mb-0.5">{awayClub.short_name}</p>
-                    <p className="text-xl font-black tabular-nums text-foreground">${awayOdds.toFixed(2)}</p>
-                    {favourite === 'away' && <span className="text-[9px] font-bold text-primary uppercase">Favourite</span>}
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-        )}
 
         {/* Tab Content */}
         {isCricket ? (
