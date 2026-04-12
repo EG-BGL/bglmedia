@@ -177,14 +177,31 @@ export default function Ladder() {
                       !isLast ? 'border-b border-border/20' : ''
                     } ${isTop4 ? 'border-l-[3px] border-l-primary' : 'border-l-[3px] border-l-transparent'}`}
                   >
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
-                      isFirst
-                        ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
-                        : isTop4
-                          ? 'bg-primary/15 text-primary'
-                          : 'bg-secondary/60 text-muted-foreground'
-                    }`}>
-                      {i + 1}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+                        isFirst
+                          ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
+                          : isTop4
+                            ? 'bg-primary/15 text-primary'
+                            : 'bg-secondary/60 text-muted-foreground'
+                      }`}>
+                        {i + 1}
+                      </div>
+                      {posChange > 0 && (
+                        <div className="flex items-center gap-0.5" title={`Up ${posChange}`}>
+                          <TrendingUp className="h-3.5 w-3.5 text-green-400" />
+                          <span className="text-[10px] font-bold text-green-400">{posChange}</span>
+                        </div>
+                      )}
+                      {posChange < 0 && (
+                        <div className="flex items-center gap-0.5" title={`Down ${Math.abs(posChange)}`}>
+                          <TrendingDown className="h-3.5 w-3.5 text-red-400" />
+                          <span className="text-[10px] font-bold text-red-400">{Math.abs(posChange)}</span>
+                        </div>
+                      )}
+                      {posChange === 0 && (
+                        <Minus className="h-3 w-3 text-muted-foreground/30 shrink-0" />
+                      )}
                     </div>
                     <ClubLogo club={club ?? {}} size="sm" className="!h-9 !w-9 shrink-0" />
                     <div className="flex-1 min-w-0">
