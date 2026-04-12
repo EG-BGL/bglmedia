@@ -194,7 +194,6 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
                       <td className="text-center py-1.5 px-1.5">{s.handballs ?? 0}</td>
                       <td className="text-center py-1.5 px-1.5">{s.marks ?? 0}</td>
                       <td className="text-center py-1.5 px-1.5">{s.tackles ?? 0}</td>
-                      <td className="text-center py-1.5 px-1.5">{s.hitouts ?? 0}</td>
                     </tr>
                   );
                 })}
