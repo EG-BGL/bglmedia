@@ -115,7 +115,6 @@ export default function Index() {
                           <span className="stat-number text-base">{f.result.home_score} – {f.result.away_score}</span>
                         ) : (
                           <span className="text-xs text-muted-foreground font-bold">vs</span>
-                          </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
