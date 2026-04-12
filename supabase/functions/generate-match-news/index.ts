@@ -41,7 +41,8 @@ serve(async (req) => {
       });
     }
 
-    // Build match summaries for the AI
+    // Build match summaries for the AI, keeping fixture_id for linking
+    const fixtureIds = results.map((r: any) => r.fixtures?.id);
     const matchSummaries = results.map((r: any) => {
       const f = r.fixtures;
       const home = f.home_team?.clubs?.name ?? "Home";
