@@ -1,11 +1,13 @@
 import Layout from '@/components/layout/Layout';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, ChevronRight, MapPin, Newspaper, TrendingUp, ArrowRight, Star, Award, Clock, CheckCircle } from 'lucide-react';
+import { Trophy, ChevronRight, MapPin, Newspaper, TrendingUp, ArrowRight, Star, Award, Clock, CheckCircle, Sparkles, Loader2 } from 'lucide-react';
 import { useClubs, useLadder, useCurrentSeason, useNews, usePlayerOfTheRound, useAllCurrentSeasons, useAllResults, useCoachOfTheWeek, useCurrentRoundFixtures } from '@/hooks/useData';
 import ClubLogo from '@/components/ClubLogo';
 import bglLogo from '@/assets/bgl-logo.jpeg';
 import { useSport } from '@/hooks/useSport';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Index() {
   const { currentSport } = useSport();
@@ -31,6 +33,19 @@ export default function Index() {
 
   const topAflLadder = (aflLadder ?? []).slice(0, 8);
   const topCricketLadder = (cricketLadder ?? []).slice(0, 8);
+
+  // AI-generated match news
+  const { data: aiNews, isLoading: aiNewsLoading } = useQuery({
+    queryKey: ['ai-match-news', latestResults.map((r: any) => r.id).join(',')],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('generate-match-news');
+      if (error) throw error;
+      return data?.articles ?? [];
+    },
+    enabled: latestResults.length > 0,
+    staleTime: 5 * 60 * 1000, // cache for 5 minutes
+    refetchOnWindowFocus: false,
+  });
 
   return (
     <Layout>
@@ -502,6 +517,40 @@ export default function Index() {
             </section>
           )}
         </div>
+
+        {/* AI Match Reports */}
+        {(aiNewsLoading || (aiNews && aiNews.length > 0)) && (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="section-label flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5" />AI Match Reports
+              </h2>
+              <Badge variant="secondary" className="rounded-full text-[9px] font-bold bg-primary/10 text-primary border-0 gap-1">
+                <Sparkles className="h-2.5 w-2.5" /> AI Generated
+              </Badge>
+            </div>
+            {aiNewsLoading ? (
+              <div className="match-card p-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Generating match reports...
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {(aiNews ?? []).map((article: any, i: number) => (
+                  <div key={i} className="match-card p-4">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <Badge variant="outline" className="rounded-full text-[9px] font-bold px-2 py-0 border-border/40 text-muted-foreground">
+                        {article.sport ?? 'AFL'}
+                      </Badge>
+                    </div>
+                    <h3 className="font-bold text-sm leading-snug">{article.headline}</h3>
+                    <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{article.summary}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* News */}
         {(news ?? []).length > 0 && (
