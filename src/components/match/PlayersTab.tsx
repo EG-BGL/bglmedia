@@ -2,6 +2,7 @@ import { BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
 import { useMatchPlayerStats } from '@/hooks/useData';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useMemo, useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface PlayersTabProps {
   fixture: any;
@@ -45,9 +46,61 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
     return s[key] ?? 0;
   };
 
-  const combinedStats = useMemo(() => {
+  // Deduplicate stats: group by normalized last name, merge stats, prefer player with jersey_number
+  const deduplicatedStats = useMemo(() => {
     if (!allStats?.length) return [];
-    let filtered = [...allStats];
+
+    const grouped = new Map<string, any>();
+
+    for (const stat of allStats) {
+      const lastName = (stat.players?.last_name ?? '').trim().toUpperCase();
+      // Determine which logical team this player belongs to (home or away)
+      // by checking their team_id against fixture teams
+      const isHome = stat.team_id === homeTeamId;
+      const key = `${lastName}::${isHome ? 'home' : 'away'}`;
+
+      if (!grouped.has(key)) {
+        grouped.set(key, { ...stat });
+      } else {
+        const existing = grouped.get(key)!;
+        // Prefer the record that has a jersey number (real roster player)
+        const existingHasJersey = existing.players?.jersey_number != null;
+        const newHasJersey = stat.players?.jersey_number != null;
+
+        if (newHasJersey && !existingHasJersey) {
+          // Use the new record's player info but merge stats (take max/non-zero)
+          grouped.set(key, {
+            ...stat,
+            goals: Math.max(existing.goals ?? 0, stat.goals ?? 0),
+            behinds: Math.max(existing.behinds ?? 0, stat.behinds ?? 0),
+            disposals: Math.max(existing.disposals ?? 0, stat.disposals ?? 0),
+            kicks: Math.max(existing.kicks ?? 0, stat.kicks ?? 0),
+            handballs: Math.max(existing.handballs ?? 0, stat.handballs ?? 0),
+            marks: Math.max(existing.marks ?? 0, stat.marks ?? 0),
+            tackles: Math.max(existing.tackles ?? 0, stat.tackles ?? 0),
+            hitouts: Math.max(existing.hitouts ?? 0, stat.hitouts ?? 0),
+            afl_fantasy: Math.max(existing.afl_fantasy ?? 0, stat.afl_fantasy ?? 0),
+          });
+        } else {
+          // Keep existing but merge in non-zero stats from duplicate
+          existing.goals = Math.max(existing.goals ?? 0, stat.goals ?? 0);
+          existing.behinds = Math.max(existing.behinds ?? 0, stat.behinds ?? 0);
+          existing.disposals = Math.max(existing.disposals ?? 0, stat.disposals ?? 0);
+          existing.kicks = Math.max(existing.kicks ?? 0, stat.kicks ?? 0);
+          existing.handballs = Math.max(existing.handballs ?? 0, stat.handballs ?? 0);
+          existing.marks = Math.max(existing.marks ?? 0, stat.marks ?? 0);
+          existing.tackles = Math.max(existing.tackles ?? 0, stat.tackles ?? 0);
+          existing.hitouts = Math.max(existing.hitouts ?? 0, stat.hitouts ?? 0);
+          existing.afl_fantasy = Math.max(existing.afl_fantasy ?? 0, stat.afl_fantasy ?? 0);
+        }
+      }
+    }
+
+    return Array.from(grouped.values());
+  }, [allStats, homeTeamId]);
+
+  const combinedStats = useMemo(() => {
+    let filtered = [...deduplicatedStats];
     if (filter === 'goalkickers') {
       filtered = filtered.filter((s: any) => (s.goals ?? 0) > 0);
     }
@@ -56,7 +109,7 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
       const bv = getStatValue(b, sortKey);
       return sortDir === 'desc' ? bv - av : av - bv;
     });
-  }, [allStats, sortKey, sortDir, filter]);
+  }, [deduplicatedStats, sortKey, sortDir, filter]);
 
   const hasStats = combinedStats.length > 0;
 
@@ -107,20 +160,30 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
                   const club = getClub(s.team_id);
                   const isHome = s.team_id === homeTeamId;
                   const primaryColor = club?.primary_color || (isHome ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))');
+                  const playerPhoto = s.players?.photo_url;
                   return (
-                    <tr key={s.id} className={i % 2 === 0 ? 'bg-muted/20' : ''}>
+                    <tr key={`${s.player_id}-${i}`} className={i % 2 === 0 ? 'bg-muted/20' : ''}>
                       <td className="py-1.5 px-2 sticky left-0 z-10" style={{ backgroundColor: i % 2 === 0 ? 'hsl(var(--muted) / 0.2)' : 'hsl(var(--card))' }}>
                         <div className="flex items-center gap-1.5">
-                          {s.players?.jersey_number != null && (
+                          {s.players?.jersey_number != null ? (
                             <span
                               className="w-5 h-5 rounded text-[8px] font-black flex items-center justify-center shrink-0 text-white"
                               style={{ backgroundColor: primaryColor }}
                             >
                               {s.players.jersey_number}
                             </span>
+                          ) : (
+                            <span
+                              className="w-5 h-5 rounded text-[8px] font-black flex items-center justify-center shrink-0"
+                              style={{ backgroundColor: primaryColor, opacity: 0.3, color: 'white' }}
+                            >
+                              –
+                            </span>
                           )}
                           <div className="min-w-0">
-                            <span className="font-bold text-[10px] truncate block">{s.players?.first_name?.[0]}. {s.players?.last_name}</span>
+                            <span className="font-bold text-[10px] truncate block">
+                              {s.players?.first_name?.[0]}. {s.players?.last_name}
+                            </span>
                             <span className="text-[8px] text-muted-foreground truncate block">{club?.short_name}</span>
                           </div>
                         </div>
