@@ -1,8 +1,8 @@
 import Layout from '@/components/layout/Layout';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, ChevronRight, MapPin, Newspaper, TrendingUp, ArrowRight, Star, Award } from 'lucide-react';
-import { useClubs, useLadder, useCurrentSeason, useNews, usePlayerOfTheRound, useAllCurrentSeasons, useAllResults, useCoachOfTheWeek } from '@/hooks/useData';
+import { Trophy, ChevronRight, MapPin, Newspaper, TrendingUp, ArrowRight, Star, Award, Clock, CheckCircle } from 'lucide-react';
+import { useClubs, useLadder, useCurrentSeason, useNews, usePlayerOfTheRound, useAllCurrentSeasons, useAllResults, useCoachOfTheWeek, useCurrentRoundFixtures } from '@/hooks/useData';
 import ClubLogo from '@/components/ClubLogo';
 import { useSport } from '@/hooks/useSport';
 
@@ -21,8 +21,12 @@ export default function Index() {
   const { data: aflLadder } = useLadder(aflSeason?.id);
   const { data: cricketLadder } = useLadder(cricketSeason?.id);
 
+  const currentSeasonIds = allCurrentSeasons?.map((s: any) => s.id).filter(Boolean) ?? [];
+  const { data: currentRoundFixtures } = useCurrentRoundFixtures(currentSeasonIds.length > 0 ? currentSeasonIds : undefined);
+
   const latestResults = allResults?.slice(0, 10) ?? [];
   const featuredMatch = latestResults[0];
+  const currentRound = currentRoundFixtures?.[0]?.roundNumber;
 
   const topAflLadder = (aflLadder ?? []).slice(0, 8);
   const topCricketLadder = (cricketLadder ?? []).slice(0, 8);
@@ -65,6 +69,74 @@ export default function Index() {
 
       <div className="page-container space-y-6 py-5">
 
+        {/* Current Round */}
+        {currentRoundFixtures && currentRoundFixtures.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="section-label flex items-center gap-1.5">
+                <Trophy className="h-3.5 w-3.5" />Round {currentRound}
+              </h2>
+              <Link to="/fixtures" className="text-xs font-bold text-primary flex items-center gap-0.5">
+                All Fixtures <ChevronRight className="h-3 w-3" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {currentRoundFixtures.map((f: any) => {
+                const isCompleted = f.status === 'completed' && f.result;
+                const sportSlug = f.seasons?.competitions?.sports?.slug;
+                const isCricket = sportSlug === 'cricket';
+                return (
+                  <Link
+                    key={f.id}
+                    to={isCompleted ? `/match/${f.id}` : '#'}
+                    className={`match-card p-3.5 ${isCompleted ? '' : 'pointer-events-none'}`}
+                  >
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Badge
+                        variant={isCompleted ? 'default' : 'secondary'}
+                        className={`rounded-full text-[9px] font-bold px-2 py-0 gap-1 ${isCompleted ? 'bg-primary/15 text-primary border-0' : 'border-border/40'}`}
+                      >
+                        {isCompleted ? <CheckCircle className="h-2.5 w-2.5" /> : <Clock className="h-2.5 w-2.5" />}
+                        {isCompleted ? 'Full Time' : 'Upcoming'}
+                      </Badge>
+                      <Badge variant="outline" className="rounded-full text-[9px] font-bold px-2 py-0 border-border/40 text-muted-foreground">
+                        {isCricket ? 'Cricket' : 'AFL'}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <ClubLogo club={f.home_team?.clubs ?? {}} size="sm" />
+                        <span className={`font-bold text-sm truncate ${isCompleted && (f.result?.home_score ?? 0) > (f.result?.away_score ?? 0) ? '' : isCompleted ? 'text-muted-foreground' : ''}`}>
+                          {f.home_team?.clubs?.short_name}
+                        </span>
+                      </div>
+                      <div className="text-center shrink-0">
+                        {isCompleted ? (
+                          <span className="stat-number text-base">{f.result.home_score} – {f.result.away_score}</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground font-medium">
+                            {f.scheduled_at ? new Date(f.scheduled_at).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBC'}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                        <span className={`font-bold text-sm truncate ${isCompleted && (f.result?.away_score ?? 0) > (f.result?.home_score ?? 0) ? '' : isCompleted ? 'text-muted-foreground' : ''}`}>
+                          {f.away_team?.clubs?.short_name}
+                        </span>
+                        <ClubLogo club={f.away_team?.clubs ?? {}} size="sm" />
+                      </div>
+                    </div>
+                    {isCompleted && f.venue && (
+                      <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground">
+                        <MapPin className="h-2.5 w-2.5" />{f.venue}
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
         {/* Featured Match */}
         {featuredMatch && (() => {
           const sportSlug = featuredMatch.fixtures?.seasons?.competitions?.sports?.slug;
