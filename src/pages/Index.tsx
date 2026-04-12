@@ -88,8 +88,8 @@ export default function Index() {
                 return (
                   <Link
                     key={f.id}
-                    to={isCompleted ? `/match/${f.id}` : '#'}
-                    className={`match-card p-3.5 ${isCompleted ? '' : 'pointer-events-none'}`}
+                    to={`/match/${f.id}`}
+                    className="match-card p-3.5"
                   >
                     <div className="flex items-center gap-1.5 mb-2">
                       <Badge
