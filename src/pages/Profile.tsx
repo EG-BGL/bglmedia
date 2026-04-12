@@ -150,6 +150,11 @@ export default function Profile() {
   const { user, role, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [facebookName, setFacebookName] = useState('');
+  const [birthYear, setBirthYear] = useState('');
+  const [gamertag, setGamertag] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
