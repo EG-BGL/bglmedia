@@ -866,6 +866,10 @@ export default function Admin() {
                 toast.success(`Removed from ${sportSlug.toUpperCase()}`); loadData();
               };
 
+              const aflClubs = clubs.filter((c: any) => clubSportMap[c.id]?.has('afl'));
+              const cricketClubs = clubs.filter((c: any) => clubSportMap[c.id]?.has('cricket'));
+              const unenrolledClubs = clubs.filter((c: any) => !clubSportMap[c.id] || clubSportMap[c.id].size === 0);
+
               const renderClub = (c: any) => {
                 const enrolled = clubSportMap[c.id] ?? new Set();
                 return (
