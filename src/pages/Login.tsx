@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { Lock } from 'lucide-react';
+import { Lock, Mail } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -21,6 +21,8 @@ export default function Login() {
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
+  const [showVerification, setShowVerification] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -34,7 +36,7 @@ export default function Login() {
           gamertag: gamertag || undefined,
         });
         if (error) toast.error(error.message);
-        else toast.success('Check your email to confirm.');
+        else setShowVerification(true);
       } else {
         const { error } = await signIn(email, password);
         if (error) {
@@ -50,6 +52,27 @@ export default function Login() {
     }
     setLoading(false);
   };
+
+  if (showVerification) {
+    return (
+      <Layout>
+        <div className="flex min-h-[70vh] items-center justify-center px-4 py-12">
+          <div className="w-full max-w-sm space-y-6 text-center">
+            <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/15 flex items-center justify-center">
+              <Mail className="h-7 w-7 text-primary" />
+            </div>
+            <h1 className="text-xl font-black tracking-tight">Check Your Email</h1>
+            <p className="text-sm text-muted-foreground">
+              We've sent a verification link to <span className="font-semibold text-foreground">{email}</span>. Please check your inbox and click the link to verify your account before signing in.
+            </p>
+            <Button variant="outline" className="w-full h-12 rounded-xl font-bold" onClick={() => { setShowVerification(false); setIsSignUp(false); }}>
+              Back to Sign In
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
