@@ -29,8 +29,8 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border/40">
       <div className="page-container flex items-center justify-between h-14">
         {/* Logo */}
-        <Link to="/" className="flex items-center shrink-0">
-          <img src={bglLogo} alt="BGLMedia" className="h-8 w-auto rounded" />
+        <Link to="/" className="flex items-center shrink-0 text-lg font-extrabold tracking-tight text-foreground">
+          BGL Media
         </Link>
 
         {/* Desktop nav */}
