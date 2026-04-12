@@ -30,7 +30,7 @@ export default function Footer() {
             <div className="mb-3">
               <img src={bglLogo} alt="BGLMedia" className="h-8 w-auto rounded" />
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">BGLMedia. Your local community football competition.</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">BGLMedia. The home of Aussie gaming</p>
           </div>
         </div>
         <div className="border-t border-border/20 mt-6 pt-4 text-center text-xs text-muted-foreground/60">
