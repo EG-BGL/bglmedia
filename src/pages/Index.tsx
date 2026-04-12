@@ -27,7 +27,6 @@ export default function Index() {
   const latestResults = allResults?.slice(0, 10) ?? [];
   const featuredMatch = latestResults[0];
   const currentRound = currentRoundFixtures?.[0]?.roundNumber;
-  const featuredMatch = latestResults[0];
 
   const topAflLadder = (aflLadder ?? []).slice(0, 8);
   const topCricketLadder = (cricketLadder ?? []).slice(0, 8);
