@@ -828,6 +828,8 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          banned_at: string | null
+          banned_reason: string | null
           birth_year: number | null
           created_at: string
           facebook_name: string | null
@@ -835,6 +837,7 @@ export type Database = {
           full_name: string | null
           gamertag: string | null
           id: string
+          is_banned: boolean
           last_name: string | null
           role: string | null
           team_id: string | null
@@ -842,6 +845,8 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          banned_at?: string | null
+          banned_reason?: string | null
           birth_year?: number | null
           created_at?: string
           facebook_name?: string | null
@@ -849,6 +854,7 @@ export type Database = {
           full_name?: string | null
           gamertag?: string | null
           id: string
+          is_banned?: boolean
           last_name?: string | null
           role?: string | null
           team_id?: string | null
@@ -856,6 +862,8 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          banned_at?: string | null
+          banned_reason?: string | null
           birth_year?: number | null
           created_at?: string
           facebook_name?: string | null
@@ -863,6 +871,7 @@ export type Database = {
           full_name?: string | null
           gamertag?: string | null
           id?: string
+          is_banned?: boolean
           last_name?: string | null
           role?: string | null
           team_id?: string | null

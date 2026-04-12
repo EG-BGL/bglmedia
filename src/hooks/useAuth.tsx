@@ -29,13 +29,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Use setTimeout to avoid blocking the auth state change
           setTimeout(async () => {
+            // Check if user is banned
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('is_banned')
+              .eq('id', session.user.id)
+              .maybeSingle();
+            if (profile?.is_banned) {
+              await supabase.auth.signOut();
+              setRole(null);
+              setLoading(false);
+              return;
+            }
             const { data } = await supabase
               .from('user_roles')
               .select('role')
               .eq('user_id', session.user.id);
-            // Prioritize: league_admin > club_admin > coach > public
             const roles = (data ?? []).map((d: any) => d.role);
             const priority: AppRole[] = ['league_admin', 'club_admin', 'coach', 'public'];
             const topRole = priority.find(r => roles.includes(r)) ?? null;
@@ -50,10 +60,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     // Then get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_banned')
+          .eq('id', session.user.id)
+          .maybeSingle();
+        if (profile?.is_banned) {
+          await supabase.auth.signOut();
+          setSession(null);
+          setUser(null);
+          setRole(null);
+          setLoading(false);
+          return;
+        }
         supabase
           .from('user_roles')
           .select('role')

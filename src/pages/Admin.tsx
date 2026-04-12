@@ -11,7 +11,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Check, X, Shield, Plus, Pencil, Trash2, Upload, Image, Calendar, Newspaper, FileText, Users, Clock, AlertTriangle, CircleDot, Trophy, UserCheck } from 'lucide-react';
+import { Check, X, Shield, Plus, Pencil, Trash2, Upload, Image, Calendar, Newspaper, FileText, Users, Clock, AlertTriangle, CircleDot, Trophy, UserCheck, Ban, UserX, Search } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 interface ClubForm {
@@ -74,6 +74,7 @@ export default function Admin() {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [coachForm, setCoachForm] = useState({ user_id: '', team_id: '', season_id: '', is_primary: true });
   const [showCoachForm, setShowCoachForm] = useState(false);
+  const [memberSearch, setMemberSearch] = useState('');
 
   useEffect(() => {
     if (!loading && (!user || role !== 'league_admin')) navigate('/login');
@@ -392,6 +393,7 @@ export default function Admin() {
               <TabsTrigger value="coaches" className="rounded-full text-[10px] font-bold px-3"><UserCheck className="h-3 w-3 mr-1" />Coaches</TabsTrigger>
               <TabsTrigger value="pending" className="rounded-full text-[10px] font-bold px-3"><Clock className="h-3 w-3 mr-1" />Pending</TabsTrigger>
               <TabsTrigger value="news" className="rounded-full text-[10px] font-bold px-3"><Newspaper className="h-3 w-3 mr-1" />News</TabsTrigger>
+              <TabsTrigger value="members" className="rounded-full text-[10px] font-bold px-3"><Shield className="h-3 w-3 mr-1" />Members</TabsTrigger>
               <TabsTrigger value="audit" className="rounded-full text-[10px] font-bold px-3"><FileText className="h-3 w-3 mr-1" />Audit</TabsTrigger>
             </TabsList>
           </div>
@@ -1158,7 +1160,131 @@ export default function Admin() {
             })()}
           </TabsContent>
 
-          {/* ── Audit Tab ── */}
+          {/* ── Members Tab ── */}
+          <TabsContent value="members" className="mt-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name, email, gamertag..."
+                  value={memberSearch}
+                  onChange={e => setMemberSearch(e.target.value)}
+                  className="pl-9 h-10 rounded-xl bg-secondary/40 border-border/40 text-xs"
+                />
+              </div>
+            </div>
+            <div className="match-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-border/60 bg-muted/30">
+                      <th className="text-left py-2.5 px-3 font-bold text-muted-foreground">Name</th>
+                      <th className="text-left py-2.5 px-3 font-bold text-muted-foreground">Gamertag</th>
+                      <th className="text-left py-2.5 px-3 font-bold text-muted-foreground">Facebook</th>
+                      <th className="text-left py-2.5 px-3 font-bold text-muted-foreground">Role</th>
+                      <th className="text-left py-2.5 px-3 font-bold text-muted-foreground">Status</th>
+                      <th className="text-right py-2.5 px-3 font-bold text-muted-foreground">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {profiles
+                      .filter((p: any) => {
+                        if (!memberSearch.trim()) return true;
+                        const q = memberSearch.toLowerCase();
+                        return (
+                          (p.full_name ?? '').toLowerCase().includes(q) ||
+                          (p.first_name ?? '').toLowerCase().includes(q) ||
+                          (p.last_name ?? '').toLowerCase().includes(q) ||
+                          (p.gamertag ?? '').toLowerCase().includes(q) ||
+                          (p.facebook_name ?? '').toLowerCase().includes(q)
+                        );
+                      })
+                      .map((p: any) => (
+                        <tr key={p.id} className={`border-b border-border/30 last:border-0 ${p.is_banned ? 'opacity-60 bg-destructive/5' : ''}`}>
+                          <td className="py-2.5 px-3">
+                            <div className="font-medium">{p.full_name || `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim() || 'Unnamed'}</div>
+                            {p.birth_year && <div className="text-[10px] text-muted-foreground">Born {p.birth_year}</div>}
+                          </td>
+                          <td className="py-2.5 px-3 text-muted-foreground">{p.gamertag || '—'}</td>
+                          <td className="py-2.5 px-3 text-muted-foreground">{p.facebook_name || '—'}</td>
+                          <td className="py-2.5 px-3">
+                            <Badge variant="outline" className="text-[10px] rounded-full">{p.role ?? 'member'}</Badge>
+                          </td>
+                          <td className="py-2.5 px-3">
+                            {p.is_banned ? (
+                              <Badge variant="destructive" className="text-[10px] rounded-full gap-1"><Ban className="h-2.5 w-2.5" />Banned</Badge>
+                            ) : (
+                              <Badge variant="secondary" className="text-[10px] rounded-full">Active</Badge>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              {p.id !== user?.id && (
+                                <>
+                                  {p.is_banned ? (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 text-[10px] rounded-full gap-1 font-bold"
+                                      onClick={async () => {
+                                        const { error } = await supabase.from('profiles').update({ is_banned: false, banned_at: null, banned_reason: null } as any).eq('id', p.id);
+                                        if (error) { toast.error(error.message); return; }
+                                        await supabase.from('audit_logs').insert({ table_name: 'profiles', record_id: p.id, action: 'unbanned', performed_by: user!.id });
+                                        toast.success('Member unbanned.'); loadData();
+                                      }}
+                                    >
+                                      <Check className="h-3 w-3" /> Unban
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 text-[10px] rounded-full gap-1 font-bold text-destructive"
+                                      onClick={async () => {
+                                        const reason = prompt('Reason for banning (optional):');
+                                        if (reason === null) return;
+                                        const { error } = await supabase.from('profiles').update({ is_banned: true, banned_at: new Date().toISOString(), banned_reason: reason || null } as any).eq('id', p.id);
+                                        if (error) { toast.error(error.message); return; }
+                                        await supabase.from('audit_logs').insert({ table_name: 'profiles', record_id: p.id, action: 'banned', performed_by: user!.id, new_data: { reason } as any });
+                                        toast.success('Member banned.'); loadData();
+                                      }}
+                                    >
+                                      <Ban className="h-3 w-3" /> Ban
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 text-[10px] rounded-full gap-1 font-bold text-destructive"
+                                    onClick={async () => {
+                                      if (!confirm(`Remove this member (${p.full_name || 'Unnamed'})? This will delete their profile and role assignments.`)) return;
+                                      await supabase.from('user_roles').delete().eq('user_id', p.id);
+                                      await supabase.from('coaches_to_teams').delete().eq('user_id', p.id);
+                                      const { error } = await supabase.from('profiles').delete().eq('id', p.id);
+                                      if (error) { toast.error(error.message); return; }
+                                      await supabase.from('audit_logs').insert({ table_name: 'profiles', record_id: p.id, action: 'removed', performed_by: user!.id });
+                                      toast.success('Member removed.'); loadData();
+                                    }}
+                                  >
+                                    <UserX className="h-3 w-3" /> Remove
+                                  </Button>
+                                </>
+                              )}
+                              {p.id === user?.id && <span className="text-[10px] text-muted-foreground italic">You</span>}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+              {profiles.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No members found.</div>}
+            </div>
+            <div className="text-[10px] text-muted-foreground">
+              <strong>Note:</strong> Banning prevents a member from accessing the site. Removing deletes their profile and role assignments permanently.
+            </div>
+          </TabsContent>
+
           <TabsContent value="audit" className="mt-4">
             {auditLogs.length === 0 ? (
               <div className="match-card p-8 text-center text-sm text-muted-foreground">No audit logs yet.</div>
