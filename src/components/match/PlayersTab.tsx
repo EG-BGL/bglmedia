@@ -101,6 +101,11 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
 
   const combinedStats = useMemo(() => {
     let filtered = [...deduplicatedStats];
+    if (teamFilter === 'home') {
+      filtered = filtered.filter((s: any) => s.team_id === homeTeamId);
+    } else if (teamFilter === 'away') {
+      filtered = filtered.filter((s: any) => s.team_id === awayTeamId);
+    }
     if (filter === 'goalkickers') {
       filtered = filtered.filter((s: any) => (s.goals ?? 0) > 0);
     }
@@ -109,7 +114,7 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
       const bv = getStatValue(b, sortKey);
       return sortDir === 'desc' ? bv - av : av - bv;
     });
-  }, [deduplicatedStats, sortKey, sortDir, filter]);
+  }, [deduplicatedStats, sortKey, sortDir, filter, teamFilter, homeTeamId, awayTeamId]);
 
   const hasStats = combinedStats.length > 0;
 
