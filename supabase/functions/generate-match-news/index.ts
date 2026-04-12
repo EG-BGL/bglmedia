@@ -41,7 +41,8 @@ serve(async (req) => {
       });
     }
 
-    // Build match summaries for the AI
+    // Build match summaries for the AI, keeping fixture_id for linking
+    const fixtureIds = results.map((r: any) => r.fixtures?.id);
     const matchSummaries = results.map((r: any) => {
       const f = r.fixtures;
       const home = f.home_team?.clubs?.name ?? "Home";
@@ -119,7 +120,12 @@ Return a JSON object with an "articles" array containing one article per match. 
     let articles;
     try {
       const parsed = JSON.parse(content);
-      articles = parsed.articles ?? parsed;
+      const rawArticles = parsed.articles ?? parsed;
+      // Attach fixture_id to each article by index
+      articles = (Array.isArray(rawArticles) ? rawArticles : []).map((a: any, idx: number) => ({
+        ...a,
+        fixture_id: fixtureIds[idx] ?? null,
+      }));
     } catch {
       articles = [];
     }
