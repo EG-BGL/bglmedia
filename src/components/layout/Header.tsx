@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, User, LogOut, ClipboardList, Shield, BarChart3, Settings, Bell } from 'lucide-react';
+import { Menu, X, User, LogOut, ClipboardList, Shield, Settings, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -103,11 +103,6 @@ export default function Header() {
                   </div>
                 )}
               </div>
-              {(role === 'coach' || role === 'league_admin') && (
-                <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" title="Coach Hub">
-                  <Link to="/coach-hub"><BarChart3 className="h-4 w-4" /></Link>
-                </Button>
-              )}
               {role === 'league_admin' && (
                 <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full">
                   <Link to="/admin"><Shield className="h-4 w-4" /></Link>
@@ -147,11 +142,6 @@ export default function Header() {
           <nav className="page-container py-1.5">
             {user ? (
               <div className="flex flex-wrap gap-1.5 items-center">
-                {(role === 'coach' || role === 'league_admin') && (
-                  <Link to="/coach-hub" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-foreground text-xs font-semibold">
-                    <BarChart3 className="h-3.5 w-3.5 opacity-70" /> Coach Hub
-                  </Link>
-                )}
                 {(role === 'coach' || role === 'league_admin') && (
                   <Link to="/portal" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-foreground text-xs font-semibold">
                     <ClipboardList className="h-3.5 w-3.5 opacity-70" /> Dashboard
