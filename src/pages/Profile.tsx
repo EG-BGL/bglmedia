@@ -363,16 +363,31 @@ export default function Profile() {
           </div>
         </div>
 
+        {/* ═══ Sport Switcher ═══ */}
+        <div className="flex gap-1 p-0.5 rounded-full bg-muted/60 w-fit">
+          {(['afl', 'cricket'] as SportKey[]).map((s) => (
+            <button
+              key={s}
+              onClick={() => setActiveSport(s)}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-bold transition-all ${
+                activeSport === s ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+              }`}
+            >
+              {sportProfiles[s].icon} {sportProfiles[s].label}
+            </button>
+          ))}
+        </div>
+
         {/* ═══ Coach Showcase Card ═══ */}
         <div className="match-card overflow-hidden">
           <div className="relative px-4 pt-4 pb-3 bg-gradient-to-br from-primary/10 via-transparent to-accent/5">
             <div className="flex items-center gap-3">
-              <img src={coach.avatar} alt={coach.name} className="h-14 w-14 rounded-2xl object-cover ring-2 ring-primary/20" />
+              <img src={coachAvatar} alt={coachName} className="h-14 w-14 rounded-2xl object-cover ring-2 ring-primary/20" />
               <div className="flex-1 min-w-0">
-                <h2 className="text-base font-black tracking-tight truncate">{coach.name}</h2>
+                <h2 className="text-base font-black tracking-tight truncate">{coachName}</h2>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-xs font-bold text-muted-foreground">{coach.team}</span>
-                  {coach.dynasty && (
+                  <span className="text-xs font-bold text-muted-foreground">{sp.team}</span>
+                  {sp.dynasty && (
                     <Badge className="rounded-full text-[8px] font-black px-1.5 py-0 bg-amber-500/15 text-amber-600 border-amber-500/30">
                       <Flame className="h-2.5 w-2.5 mr-0.5" />Dynasty
                     </Badge>
@@ -380,24 +395,26 @@ export default function Profile() {
                 </div>
               </div>
               <div className="text-center shrink-0">
-                <div className="text-2xl font-black text-primary tabular-nums">{coach.premierships}</div>
-                <div className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">Flags</div>
+                <div className="text-2xl font-black text-primary tabular-nums">{sp.premierships}</div>
+                <div className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">{sp.premLabel}</div>
               </div>
             </div>
           </div>
           <div className="grid grid-cols-4 divide-x divide-border border-t border-border/50 px-1 py-2.5">
-            <QuickStat value={coach.games} label="Games" />
-            <QuickStat value={`${coach.winRate}%`} label="Win Rate" className="text-emerald-600" />
-            <QuickStat value={coach.gfRecord} label="GF Record" />
-            <QuickStat value={`${coach.finalsWin}%`} label="Finals %" />
+            <QuickStat value={sp.games} label={activeSport === 'cricket' ? 'Matches' : 'Games'} />
+            <QuickStat value={`${sp.winRate}%`} label="Win Rate" className="text-emerald-600" />
+            <QuickStat value={sp.gfRecord} label="GF Record" />
+            <QuickStat value={`${sp.finalsWin}%`} label="Finals %" />
           </div>
         </div>
 
         {/* Trophy Timeline */}
         <div className="match-card p-3.5">
-          <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-2.5">Season Timeline</div>
+          <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-2.5">
+            {sp.icon} Season Timeline
+          </div>
           <div className="flex items-center gap-1">
-            {coach.seasons.map((s) => (
+            {sp.seasons.map((s) => (
               <div key={s.year} className="flex-1 flex flex-col items-center gap-1">
                 <div className={`h-8 w-full rounded-md flex items-center justify-center text-xs font-black transition-all ${
                   s.premier ? 'bg-amber-500/20 text-amber-600 ring-1 ring-amber-500/40' : 'bg-muted/60 text-muted-foreground'
@@ -412,7 +429,7 @@ export default function Profile() {
 
         {/* Achievements */}
         <div className="flex gap-1.5">
-          {coach.achievements.map((a, i) => (
+          {sp.achievements.map((a, i) => (
             <div key={i} className="match-card flex-1 p-2.5 text-center">
               <div className="text-lg">{a.icon}</div>
               <div className="text-[9px] font-bold text-muted-foreground mt-0.5 leading-tight">{a.label}</div>
@@ -425,28 +442,28 @@ export default function Profile() {
           <div className="match-card p-3.5 space-y-2.5">
             <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Style Profile</div>
             <div className="space-y-2">
-              <StyleRow icon={<Swords className="h-3 w-3" />} label="Style" value={coach.style} />
-              <StyleRow icon={<Shield className="h-3 w-3" />} label="Defence" value={`${coach.defence}/10`} />
-              <StyleRow icon={<Zap className="h-3 w-3" />} label="Adapt." value={coach.adaptability} />
-              <StyleRow icon={<Target className="h-3 w-3" />} label="Efficiency" value={`${coach.efficiency}%`} />
+              <StyleRow icon={<Swords className="h-3 w-3" />} label="Style" value={sp.style} />
+              <StyleRow icon={<Shield className="h-3 w-3" />} label="Defence" value={`${sp.defence}/10`} />
+              <StyleRow icon={<Zap className="h-3 w-3" />} label="Adapt." value={sp.adaptability} />
+              <StyleRow icon={<Target className="h-3 w-3" />} label="Efficiency" value={`${sp.efficiency}%`} />
             </div>
           </div>
           <div className="match-card p-3.5 space-y-2.5">
             <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Current Form</div>
             <div className="flex items-center gap-1 justify-center">
-              {coach.form.map((f, i) => (
+              {sp.form.map((f, i) => (
                 <span key={i} className={`h-7 w-7 rounded-md flex items-center justify-center text-[10px] font-black ${
                   f === 'W' ? 'bg-emerald-500/15 text-emerald-600' : 'bg-red-500/15 text-red-500'
                 }`}>{f}</span>
               ))}
             </div>
             <div className="text-center">
-              <div className="text-sm font-black text-foreground">{coach.streak}</div>
+              <div className="text-sm font-black text-foreground">{sp.streak}</div>
               <div className="text-[8px] text-muted-foreground font-bold uppercase">Current Streak</div>
             </div>
             <div className="space-y-1.5 pt-1 border-t border-border/40">
-              <MiniStat label="Close Games" value={`${coach.closeGames}%`} />
-              <MiniStat label="Avg Score For" value={`${coach.avgFor}`} />
+              <MiniStat label="Close Games" value={`${sp.closeGames}%`} />
+              <MiniStat label={sp.avgForLabel} value={`${sp.avgFor}`} />
             </div>
           </div>
         </div>
@@ -455,7 +472,7 @@ export default function Profile() {
         <div className="match-card p-3.5">
           <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Finals History</div>
           <div className="space-y-1.5">
-            {coach.history.map((h, i) => (
+            {sp.history.map((h, i) => (
               <div key={i} className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/30">
                 <span className="text-[10px] font-bold text-muted-foreground">Season {h.season}</span>
                 <span className={`text-xs font-black ${h.result.includes('🏆') ? 'text-amber-600' : 'text-foreground'}`}>{h.result}</span>
