@@ -87,7 +87,7 @@ export default function Admin() {
   }, [role]);
 
   const loadData = async () => {
-    const [{ data: pendingResults }, { data: logs }, { data: clubData }, { data: newsData }, { data: seasonData }, { data: teamData }, { data: fixtureData }, { data: compData }, { data: sportData }, { data: allSeasonData }, { data: coachData }, { data: profileData }] = await Promise.all([
+    const [{ data: pendingResults }, { data: logs }, { data: clubData }, { data: newsData }, { data: seasonData }, { data: teamData }, { data: fixtureData }, { data: compData }, { data: sportData }, { data: allSeasonData }, { data: coachData }, { data: profileData }, { data: roleData }] = await Promise.all([
       supabase.from('results').select(`*, fixtures(*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*)))`).in('status', ['submitted', 'draft']).order('created_at', { ascending: false }),
       supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(50),
       supabase.from('clubs').select('*').order('name'),
@@ -100,6 +100,7 @@ export default function Admin() {
       supabase.from('seasons').select('*, competitions(*, sports(*))').order('year', { ascending: false }),
       supabase.from('coaches_to_teams').select('*, teams(*, clubs(*), seasons(*, competitions(*, sports(*))))').order('created_at', { ascending: false }),
       supabase.from('profiles').select('*').order('full_name'),
+      supabase.from('user_roles').select('*'),
     ]);
     setPending(pendingResults ?? []);
     setAuditLogs(logs ?? []);
@@ -113,6 +114,7 @@ export default function Admin() {
     setAllSeasons(allSeasonData ?? []);
     setCoachAssignments(coachData ?? []);
     setProfiles(profileData ?? []);
+    setUserRoles(roleData ?? []);
   };
 
   // ── Result actions ──
