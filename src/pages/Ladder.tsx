@@ -7,7 +7,7 @@ import { useSport } from '@/hooks/useSport';
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Trophy, ChevronRight } from 'lucide-react';
+import { Trophy, ChevronRight, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 export default function Ladder() {
   const { sports, currentSport, setSport } = useSport();
