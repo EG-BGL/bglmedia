@@ -494,6 +494,7 @@ export type Database = {
           played: number | null
           points_against: number | null
           points_for: number | null
+          position_change: number | null
           season_id: string
           team_id: string
           updated_at: string
@@ -509,6 +510,7 @@ export type Database = {
           played?: number | null
           points_against?: number | null
           points_for?: number | null
+          position_change?: number | null
           season_id: string
           team_id: string
           updated_at?: string
@@ -524,6 +526,7 @@ export type Database = {
           played?: number | null
           points_against?: number | null
           points_for?: number | null
+          position_change?: number | null
           season_id?: string
           team_id?: string
           updated_at?: string
@@ -1129,6 +1132,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      recalculate_position_changes: {
+        Args: { p_season_id: string }
+        Returns: undefined
       }
       update_ladder_from_cricket_result: {
         Args: { p_fixture_id: string }

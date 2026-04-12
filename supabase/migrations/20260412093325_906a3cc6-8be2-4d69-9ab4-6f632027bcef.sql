@@ -1,0 +1,1 @@
+ALTER TABLE public.ladder_entries ADD COLUMN position_change integer DEFAULT 0;
