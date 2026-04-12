@@ -75,6 +75,7 @@ export default function Admin() {
   const [coachForm, setCoachForm] = useState({ user_id: '', team_id: '', season_id: '', is_primary: true });
   const [showCoachForm, setShowCoachForm] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
+  const [userRoles, setUserRoles] = useState<any[]>([]);
 
   useEffect(() => {
     if (!loading && (!user || role !== 'league_admin')) navigate('/login');
@@ -86,7 +87,7 @@ export default function Admin() {
   }, [role]);
 
   const loadData = async () => {
-    const [{ data: pendingResults }, { data: logs }, { data: clubData }, { data: newsData }, { data: seasonData }, { data: teamData }, { data: fixtureData }, { data: compData }, { data: sportData }, { data: allSeasonData }, { data: coachData }, { data: profileData }] = await Promise.all([
+    const [{ data: pendingResults }, { data: logs }, { data: clubData }, { data: newsData }, { data: seasonData }, { data: teamData }, { data: fixtureData }, { data: compData }, { data: sportData }, { data: allSeasonData }, { data: coachData }, { data: profileData }, { data: roleData }] = await Promise.all([
       supabase.from('results').select(`*, fixtures(*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*)))`).in('status', ['submitted', 'draft']).order('created_at', { ascending: false }),
       supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(50),
       supabase.from('clubs').select('*').order('name'),
@@ -99,6 +100,7 @@ export default function Admin() {
       supabase.from('seasons').select('*, competitions(*, sports(*))').order('year', { ascending: false }),
       supabase.from('coaches_to_teams').select('*, teams(*, clubs(*), seasons(*, competitions(*, sports(*))))').order('created_at', { ascending: false }),
       supabase.from('profiles').select('*').order('full_name'),
+      supabase.from('user_roles').select('*'),
     ]);
     setPending(pendingResults ?? []);
     setAuditLogs(logs ?? []);
@@ -112,6 +114,7 @@ export default function Admin() {
     setAllSeasons(allSeasonData ?? []);
     setCoachAssignments(coachData ?? []);
     setProfiles(profileData ?? []);
+    setUserRoles(roleData ?? []);
   };
 
   // ── Result actions ──
@@ -1208,7 +1211,41 @@ export default function Admin() {
                           <td className="py-2.5 px-3 text-muted-foreground">{p.gamertag || '—'}</td>
                           <td className="py-2.5 px-3 text-muted-foreground">{p.facebook_name || '—'}</td>
                           <td className="py-2.5 px-3">
-                            <Badge variant="outline" className="text-[10px] rounded-full">{p.role ?? 'member'}</Badge>
+                            <Select
+                              value={userRoles.find((r: any) => r.user_id === p.id)?.role ?? 'none'}
+                              onValueChange={async (newRole) => {
+                                if (p.id === user?.id) { toast.error("You can't change your own role"); return; }
+                                if (newRole === 'none') {
+                                  // Remove role
+                                  const { error } = await supabase.from('user_roles').delete().eq('user_id', p.id);
+                                  if (error) { toast.error(error.message); return; }
+                                } else {
+                                  // Upsert role
+                                  const existing = userRoles.find((r: any) => r.user_id === p.id);
+                                  if (existing) {
+                                    const { error } = await supabase.from('user_roles').update({ role: newRole } as any).eq('id', existing.id);
+                                    if (error) { toast.error(error.message); return; }
+                                  } else {
+                                    const { error } = await supabase.from('user_roles').insert({ user_id: p.id, role: newRole } as any);
+                                    if (error) { toast.error(error.message); return; }
+                                  }
+                                }
+                                await supabase.from('audit_logs').insert({ table_name: 'user_roles', record_id: p.id, action: 'role_changed', performed_by: user!.id, new_data: { role: newRole } as any });
+                                toast.success(`Role updated to ${newRole === 'none' ? 'none' : newRole}`);
+                                loadData();
+                              }}
+                            >
+                              <SelectTrigger className="h-7 w-[130px] text-[10px] rounded-full border-border/50">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">No role</SelectItem>
+                                <SelectItem value="league_admin">League Admin</SelectItem>
+                                <SelectItem value="club_admin">Club Admin</SelectItem>
+                                <SelectItem value="coach">Coach</SelectItem>
+                                <SelectItem value="public">Public</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </td>
                           <td className="py-2.5 px-3">
                             {p.is_banned ? (
