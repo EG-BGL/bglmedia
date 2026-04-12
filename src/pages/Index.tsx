@@ -562,10 +562,13 @@ export default function Index() {
                   const sportIcon = isAfl ? '🏈' : '🏏';
                   const borderAccent = isAfl ? 'border-l-blue-500' : 'border-l-green-500';
 
+                  const linkTo = article.fixture_id ? `/match/${article.fixture_id}` : '#';
+
                   return (
-                    <div
+                    <Link
                       key={i}
-                      className={`relative rounded-xl overflow-hidden border border-border/40 bg-card border-l-[3px] ${borderAccent} group hover:border-border/60 transition-all`}
+                      to={linkTo}
+                      className={`relative rounded-xl overflow-hidden border border-border/40 bg-card border-l-[3px] ${borderAccent} group hover:border-border/60 transition-all block`}
                     >
                       <div className={`absolute inset-0 bg-gradient-to-br ${accentFrom} ${accentTo}`} />
                       <div className="absolute top-3 right-3 text-3xl opacity-10 group-hover:opacity-20 transition-opacity">
@@ -588,12 +591,17 @@ export default function Index() {
                         <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-3">
                           {article.summary}
                         </p>
-                        <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-border/20">
-                          <Sparkles className="h-3 w-3 text-primary/50" />
-                          <span className="text-[9px] text-muted-foreground/50 font-medium">AI Generated</span>
+                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/20">
+                          <div className="flex items-center gap-1.5">
+                            <Sparkles className="h-3 w-3 text-primary/50" />
+                            <span className="text-[9px] text-muted-foreground/50 font-medium">AI Generated</span>
+                          </div>
+                          <span className="text-[9px] font-bold text-primary flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            Match Centre <ChevronRight className="h-3 w-3" />
+                          </span>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
