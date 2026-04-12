@@ -1,7 +1,7 @@
 import Layout from '@/components/layout/Layout';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { ChevronLeft, User, Mail, Shield, LogOut, Save, TrendingUp, ChevronRight, Pencil } from 'lucide-react';
+import { ChevronLeft, User, Mail, Shield, LogOut, Save, TrendingUp, ChevronRight, Pencil, Camera } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 interface CoachStats {
@@ -26,9 +26,12 @@ export default function Profile() {
   const { user, role, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [coachStats, setCoachStats] = useState<CoachStats | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
@@ -36,8 +39,11 @@ export default function Profile() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from('profiles').select('full_name').eq('id', user.id).single()
-      .then(({ data }) => { if (data?.full_name) setFullName(data.full_name); });
+    supabase.from('profiles').select('full_name, avatar_url').eq('id', user.id).single()
+      .then(({ data }) => {
+        if (data?.full_name) setFullName(data.full_name);
+        if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+      });
     loadCoachStats();
   }, [user]);
 
@@ -89,6 +95,52 @@ export default function Profile() {
     });
   }
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be under 5MB');
+      return;
+    }
+
+    setUploading(true);
+    const ext = file.name.split('.').pop();
+    const filePath = `${user.id}/avatar.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      toast.error('Upload failed');
+      setUploading(false);
+      return;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    const url = `${publicUrl}?t=${Date.now()}`;
+
+    const { error: updateError } = await supabase.from('profiles')
+      .update({ avatar_url: url } as any)
+      .eq('id', user.id);
+
+    if (updateError) {
+      toast.error('Failed to save avatar');
+    } else {
+      setAvatarUrl(url);
+      toast.success('Profile photo updated');
+    }
+    setUploading(false);
+  };
+
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
@@ -115,9 +167,40 @@ export default function Profile() {
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0">
-            <User className="h-7 w-7 text-primary" />
+          {/* Avatar with upload */}
+          <div className="relative shrink-0 group">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt="Profile"
+                className="h-14 w-14 rounded-2xl object-cover"
+              />
+            ) : (
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                <User className="h-7 w-7 text-primary" />
+              </div>
+            )}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="absolute inset-0 rounded-2xl bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100"
+            >
+              <Camera className="h-4 w-4 text-white" />
+            </button>
+            {uploading && (
+              <div className="absolute inset-0 rounded-2xl bg-black/50 flex items-center justify-center">
+                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
           </div>
+
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-black tracking-tight truncate">{fullName || 'Your Profile'}</h1>
             <div className="flex items-center gap-2 mt-0.5">
@@ -139,6 +222,26 @@ export default function Profile() {
                   <DialogTitle className="text-base font-black">Edit Profile</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3 pt-2">
+                  {/* Avatar upload in dialog */}
+                  <div className="flex items-center gap-3">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Profile" className="h-12 w-12 rounded-xl object-cover" />
+                    ) : (
+                      <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                        <User className="h-6 w-6 text-primary" />
+                      </div>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full text-xs font-bold gap-1.5"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                    >
+                      <Camera className="h-3.5 w-3.5" />
+                      {uploading ? 'Uploading...' : 'Change Photo'}
+                    </Button>
+                  </div>
                   <div>
                     <Label className="text-xs font-bold text-muted-foreground">Full Name</Label>
                     <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Enter your name" className="mt-1" />
