@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { ChevronLeft, User, Mail, Shield, LogOut, Save, TrendingUp, ChevronRight } from 'lucide-react';
+import { ChevronLeft, User, Mail, Shield, LogOut, Save, TrendingUp, ChevronRight, Pencil } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 interface CoachStats {
