@@ -44,12 +44,55 @@ export default function MatchCentre() {
   const result = (fixture as any)?.results?.[0];
   const homeClub = (fixture as any)?.home_team?.clubs;
   const awayClub = (fixture as any)?.away_team?.clubs;
+  const homeTeamId = (fixture as any)?.home_team?.id;
+  const awayTeamId = (fixture as any)?.away_team?.id;
   const matchDate = fixture?.scheduled_at ? new Date(fixture.scheduled_at) : null;
 
-  // Detect cricket match: has match_format or has cricket innings data
+  // Detect cricket match
   const isCricket = !!(fixture?.match_format && ['T20', 'One-Day', 'Multi-Day'].includes(fixture.match_format)) || (cricketInnings && cricketInnings.length > 0);
 
   const TABS = isCricket ? CRICKET_TABS : AFL_TABS;
+
+  // Ladder entries for both teams
+  const homeLadder = ladderData?.find((e: any) => e.team_id === homeTeamId);
+  const awayLadder = ladderData?.find((e: any) => e.team_id === awayTeamId);
+
+  // AI Prediction
+  useEffect(() => {
+    if (!fixture || !homeClub || !awayClub) return;
+    setPredictionLoading(true);
+    const fetchPrediction = async () => {
+      try {
+        const body: any = {
+          homeTeam: homeClub.short_name || homeClub.name,
+          awayTeam: awayClub.short_name || awayClub.name,
+          isCricket: !!isCricket,
+          matchFormat: fixture.match_format || null,
+        };
+        if (homeLadder) body.homeLadder = homeLadder;
+        if (awayLadder) body.awayLadder = awayLadder;
+        if (result) {
+          body.result = {
+            homeScore: result.home_score,
+            awayScore: result.away_score,
+            homeGoals: result.home_goals,
+            homeBehinds: result.home_behinds,
+            awayGoals: result.away_goals,
+            awayBehinds: result.away_behinds,
+          };
+        }
+        const { data, error } = await supabase.functions.invoke('match-prediction', { body });
+        if (error) throw error;
+        setPrediction(data?.prediction ?? null);
+      } catch (err) {
+        console.error('Prediction error:', err);
+        setPrediction(null);
+      } finally {
+        setPredictionLoading(false);
+      }
+    };
+    fetchPrediction();
+  }, [fixture?.id, homeLadder?.id, awayLadder?.id, result?.id]);
 
   if (isLoading) return <Layout><div className="page-container py-16 text-center text-sm text-muted-foreground">Loading match...</div></Layout>;
   if (!fixture) return <Layout><div className="page-container py-16 text-center text-sm text-muted-foreground">Match not found.</div></Layout>;
