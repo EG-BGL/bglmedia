@@ -69,20 +69,21 @@ export default function SubmitResult() {
     if (!user) return;
 
     const loadFixtures = async () => {
-      if (role === 'league_admin') {
-        // Admins can submit for any match
-        const { data } = await supabase.from('fixtures').select('*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))').order('round_number');
+      // Get the coach's assigned team IDs (for both coaches and admins acting as coaches)
+      const { data: teams } = await supabase.from('coaches_to_teams').select('team_id, season_id').eq('user_id', user.id);
+      const teamIds = teams?.map(t => t.team_id) ?? [];
+      const seasonIds = [...new Set(teams?.map(t => t.season_id) ?? [])];
+
+      if (role === 'league_admin' && teamIds.length === 0) {
+        // Admin with no coach assignments — show all fixtures
+        const { data } = await supabase.from('fixtures').select('*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))').in('status', ['scheduled', 'in_progress']).order('round_number');
         setFixtures(data ?? []);
-        // Set all team IDs so admin can submit as any team
         const ids = new Set<string>();
         (data ?? []).forEach((f: any) => { ids.add(f.home_team_id); ids.add(f.away_team_id); });
         setCoachTeamIds(Array.from(ids));
-      } else {
-        const { data: teams } = await supabase.from('coaches_to_teams').select('team_id').eq('user_id', user.id);
-        if (!teams?.length) return;
-        const teamIds = teams.map(t => t.team_id);
+      } else if (teamIds.length > 0) {
         setCoachTeamIds(teamIds);
-        const { data } = await supabase.from('fixtures').select('*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))').or(teamIds.map(id => `home_team_id.eq.${id},away_team_id.eq.${id}`).join(',')).order('round_number');
+        const { data } = await supabase.from('fixtures').select('*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))').or(teamIds.map(id => `home_team_id.eq.${id},away_team_id.eq.${id}`).join(',')).in('status', ['scheduled', 'in_progress']).order('round_number');
         setFixtures(data ?? []);
       }
     };
