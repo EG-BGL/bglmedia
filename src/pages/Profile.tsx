@@ -152,7 +152,9 @@ export default function Profile() {
   const [allTimeStats, setAllTimeStats] = useState({ totalSeasons: 0, totalMatches: 0, wins: 0, losses: 0, draws: 0, winRate: '0' });
   const [recentResults, setRecentResults] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [activeSport, setActiveSport] = useState<SportKey>('afl');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const sp = sportProfiles[activeSport];
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
