@@ -518,6 +518,40 @@ export default function Index() {
           )}
         </div>
 
+        {/* AI Match Reports */}
+        {(aiNewsLoading || (aiNews && aiNews.length > 0)) && (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="section-label flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5" />AI Match Reports
+              </h2>
+              <Badge variant="secondary" className="rounded-full text-[9px] font-bold bg-primary/10 text-primary border-0 gap-1">
+                <Sparkles className="h-2.5 w-2.5" /> AI Generated
+              </Badge>
+            </div>
+            {aiNewsLoading ? (
+              <div className="match-card p-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Generating match reports...
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {(aiNews ?? []).map((article: any, i: number) => (
+                  <div key={i} className="match-card p-4">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <Badge variant="outline" className="rounded-full text-[9px] font-bold px-2 py-0 border-border/40 text-muted-foreground">
+                        {article.sport ?? 'AFL'}
+                      </Badge>
+                    </div>
+                    <h3 className="font-bold text-sm leading-snug">{article.headline}</h3>
+                    <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{article.summary}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
         {/* News */}
         {(news ?? []).length > 0 && (
           <section>
