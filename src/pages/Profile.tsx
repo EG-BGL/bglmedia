@@ -79,6 +79,10 @@ const sportProfiles: Record<SportKey, SportProfile> = {
       { icon: "🔥", label: "Dynasty Coach" },
       { icon: "🔁", label: "Back-to-Back" },
     ],
+    teamsCoached: [
+      { name: "Rebellion", division: "Senior", seasons: "S1–S6" },
+      { name: "Rebellion Reserves", division: "Reserves", seasons: "S2–S4" },
+    ],
     history: [
       { season: 3, result: "🏆 Premiers" },
       { season: 4, result: "Prelim Final" },
