@@ -118,6 +118,9 @@ const sportProfiles: Record<SportKey, SportProfile> = {
       { icon: "💯", label: "300+ Team Score" },
       { icon: "🎯", label: "Best NRR" },
     ],
+    teamsCoached: [
+      { name: "Rebellion CC", division: "A Grade", seasons: "S3–S6" },
+    ],
     history: [
       { season: 3, result: "Semi Final" },
       { season: 4, result: "🏆 Premiers" },
