@@ -5,6 +5,7 @@ import { Trophy, ChevronRight, MapPin, Newspaper, TrendingUp, ArrowRight, Star, 
 import { useClubs, useLadder, useCurrentSeason, useNews, usePlayerOfTheRound, useAllCurrentSeasons, useAllResults, useCoachOfTheWeek, useCurrentRoundFixtures } from '@/hooks/useData';
 import ClubLogo from '@/components/ClubLogo';
 import bglLogo from '@/assets/bgl-logo.jpeg';
+import aiNewsBg from '@/assets/ai-news-bg.jpg';
 import { useSport } from '@/hooks/useSport';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
