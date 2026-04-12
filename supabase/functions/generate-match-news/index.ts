@@ -120,7 +120,12 @@ Return a JSON object with an "articles" array containing one article per match. 
     let articles;
     try {
       const parsed = JSON.parse(content);
-      articles = parsed.articles ?? parsed;
+      const rawArticles = parsed.articles ?? parsed;
+      // Attach fixture_id to each article by index
+      articles = (Array.isArray(rawArticles) ? rawArticles : []).map((a: any, idx: number) => ({
+        ...a,
+        fixture_id: fixtureIds[idx] ?? null,
+      }));
     } catch {
       articles = [];
     }
