@@ -79,11 +79,12 @@ export default function MatchHero({ fixture, result, homeClub, awayClub, matchDa
             )}
           </div>
 
-          <div className="flex flex-col items-center gap-2 flex-1">
+          <div className="flex flex-col items-center gap-1.5 flex-1">
             <ClubLogo club={awayClub ?? {}} size="lg" className="!h-14 !w-14 md:!h-16 md:!w-16" />
             <span className={`text-xs font-bold text-center leading-tight ${isCompleted && !awayWon && !isDraw ? 'text-muted-foreground' : ''}`}>
               {awayClub?.short_name}
             </span>
+            <span className={`text-base font-black tabular-nums ${!homeFav ? 'text-primary' : 'text-muted-foreground'}`}>${odds.away.toFixed(2)}</span>
             {awayWon && <Badge variant="secondary" className="text-[9px] rounded-full px-2 py-0 font-black bg-primary/10 text-primary border-0">WIN</Badge>}
           </div>
         </div>
