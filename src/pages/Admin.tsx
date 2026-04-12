@@ -851,11 +851,24 @@ export default function Admin() {
                 toast.success(`Added to ${sportSlug.toUpperCase()}!`); loadData();
               };
 
-              const aflClubs = clubs.filter((c: any) => clubSportMap[c.id]?.has('afl'));
-              const cricketClubs = clubs.filter((c: any) => clubSportMap[c.id]?.has('cricket'));
-              const unenrolledClubs = clubs.filter((c: any) => !clubSportMap[c.id] || clubSportMap[c.id].size === 0);
+              const handleRemoveFromSport = async (clubId: string, sportSlug: string) => {
+                if (!confirm(`Remove this club from ${sportSlug.toUpperCase()}? This will delete the team entry and may affect fixtures/stats.`)) return;
+                const sport = sports.find((s: any) => s.slug === sportSlug);
+                if (!sport) return;
+                const clubTeams = teams.filter((t: any) => {
+                  const comp = competitions.find((c: any) => c.id === t.competition_id);
+                  return t.club_id === clubId && comp?.sport_id === sport.id;
+                });
+                for (const t of clubTeams) {
+                  const { error } = await supabase.from('teams').delete().eq('id', t.id);
+                  if (error) { toast.error(error.message); return; }
+                }
+                toast.success(`Removed from ${sportSlug.toUpperCase()}`); loadData();
+              };
 
-              const renderClub = (c: any) => (
+              const renderClub = (c: any) => {
+                const enrolled = clubSportMap[c.id] ?? new Set();
+                return (
                 <div key={c.id} className="match-card p-3.5 flex items-center gap-3">
                   <ClubLogo club={c} size="md" className="!h-11 !w-11" />
                   <div className="flex-1 min-w-0">
@@ -865,14 +878,33 @@ export default function Admin() {
                       {c.home_ground && <span>• {c.home_ground}</span>}
                       {c.coach && <span>• Coach: {c.coach}</span>}
                     </div>
+                    {/* Sport enrollment badges */}
+                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                      {enrolled.has('afl') && (
+                        <Badge className="rounded-full text-[9px] font-bold px-2 py-0.5 gap-1 bg-blue-500/15 text-blue-400 border-0">
+                          AFL
+                          <button onClick={(e) => { e.stopPropagation(); handleRemoveFromSport(c.id, 'afl'); }} className="ml-0.5 hover:text-destructive transition-colors" title="Remove from AFL">
+                            <Trash2 className="h-2.5 w-2.5" />
+                          </button>
+                        </Badge>
+                      )}
+                      {enrolled.has('cricket') && (
+                        <Badge className="rounded-full text-[9px] font-bold px-2 py-0.5 gap-1 bg-green-500/15 text-green-400 border-0">
+                          Cricket
+                          <button onClick={(e) => { e.stopPropagation(); handleRemoveFromSport(c.id, 'cricket'); }} className="ml-0.5 hover:text-destructive transition-colors" title="Remove from Cricket">
+                            <Trash2 className="h-2.5 w-2.5" />
+                          </button>
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    {aflSport && !clubSportMap[c.id]?.has('afl') && (
+                    {aflSport && !enrolled.has('afl') && (
                       <Button variant="outline" size="sm" className="rounded-full text-[10px] font-bold h-7 px-2.5 gap-1" onClick={() => handleAddToSport(c.id, 'afl')}>
                         <Plus className="h-3 w-3" /> AFL
                       </Button>
                     )}
-                    {crickSport && !clubSportMap[c.id]?.has('cricket') && (
+                    {crickSport && !enrolled.has('cricket') && (
                       <Button variant="outline" size="sm" className="rounded-full text-[10px] font-bold h-7 px-2.5 gap-1" onClick={() => handleAddToSport(c.id, 'cricket')}>
                         <Plus className="h-3 w-3" /> Cricket
                       </Button>
@@ -887,7 +919,8 @@ export default function Admin() {
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-destructive" onClick={() => handleDeleteClub(c.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
                 </div>
-              );
+                );
+              };
 
               return (
                 <div className="space-y-4">
