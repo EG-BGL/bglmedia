@@ -13,7 +13,7 @@ export default function Index() {
   const { data: allResults } = useAllResults();
   const { data: news } = useNews(3);
   const { data: playerOfRound } = usePlayerOfTheRound(season?.id);
-  const { data: coachOfWeek } = useCoachOfTheWeek(season?.id);
+  const { data: coachOfWeek } = useCoachOfTheWeek(aflSeason?.id ?? season?.id);
 
   const aflSeason = allCurrentSeasons?.find((s: any) => s.competitions?.sports?.slug === 'afl');
   const cricketSeason = allCurrentSeasons?.find((s: any) => s.competitions?.sports?.slug === 'cricket');
