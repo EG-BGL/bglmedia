@@ -24,14 +24,14 @@ export default function ClubLogo({ club, size = 'md', className = '' }: ClubLogo
         src={club.logo_url}
         alt={club.short_name ?? 'Club'}
         loading="lazy"
-        className={`${sizeClass} rounded-full object-contain bg-card ${className}`}
+        className={`${sizeClass} object-contain ${className}`}
       />
     );
   }
 
   return (
     <div
-      className={`${sizeClass} rounded-full flex items-center justify-center font-black shrink-0 ${className}`}
+      className={`${sizeClass} rounded-lg flex items-center justify-center font-black shrink-0 ${className}`}
       style={{
         backgroundColor: club.primary_color ?? '#1a365d',
         color: club.secondary_color ?? '#d69e2e',
