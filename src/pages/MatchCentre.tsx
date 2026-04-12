@@ -1,11 +1,12 @@
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { useParams, Link } from 'react-router-dom';
-import { useFixture } from '@/hooks/useData';
+import { useFixture, useLadder } from '@/hooks/useData';
 import { useCricketMatchResults } from '@/hooks/useCricketData';
 import ClubLogo from '@/components/ClubLogo';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Sparkles, Loader2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import MatchHero from '@/components/match/MatchHero';
 import SummaryTab from '@/components/match/SummaryTab';
 import PlayersTab from '@/components/match/PlayersTab';
