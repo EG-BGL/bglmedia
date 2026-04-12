@@ -198,6 +198,28 @@ export default function MatchCentre() {
           ))}
         </div>
 
+        {/* AI Prediction */}
+        <div className="match-card p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary/20 to-accent/10 flex items-center justify-center">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+            </div>
+            <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+              {result ? 'AI Match Analysis' : 'AI Prediction'}
+            </h3>
+          </div>
+          {predictionLoading ? (
+            <div className="flex items-center gap-2 py-2">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <span className="text-xs text-muted-foreground">Generating {result ? 'analysis' : 'prediction'}...</span>
+            </div>
+          ) : prediction ? (
+            <p className="text-sm leading-relaxed">{prediction}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">Prediction unavailable.</p>
+          )}
+        </div>
+
         {/* Tab Content */}
         {isCricket ? (
           <>
