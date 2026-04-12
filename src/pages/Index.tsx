@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trophy, ChevronRight, MapPin, Newspaper, TrendingUp, ArrowRight, Star, Award, Clock, CheckCircle, Sparkles, Loader2 } from 'lucide-react';
 import { useClubs, useLadder, useCurrentSeason, useNews, usePlayerOfTheRound, useAllCurrentSeasons, useAllResults, useCoachOfTheWeek, useCurrentRoundFixtures } from '@/hooks/useData';
 import ClubLogo from '@/components/ClubLogo';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import bglLogo from '@/assets/bgl-logo.jpeg';
 import aiNewsBg from '@/assets/ai-news-bg.jpg';
 import { useSport } from '@/hooks/useSport';
