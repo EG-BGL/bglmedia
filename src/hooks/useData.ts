@@ -91,7 +91,7 @@ export function useCoachOfTheWeek(seasonId?: string) {
         .from('results')
         .select(`
           *,
-          fixtures!inner(
+          fixtures:results_fixture_id_fkey!inner(
             *,
             home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)),
             away_team:teams!fixtures_away_team_id_fkey(*, clubs(*))
