@@ -124,9 +124,22 @@ export default function PlayersTab({ fixture, result, homeClub, awayClub }: Play
     <div className="space-y-3">
       {hasStats && (
         <div className="match-card overflow-hidden">
-          <div className="px-4 py-3 border-b border-border/30 flex items-center justify-between">
+          <div className="px-4 py-3 border-b border-border/30 flex items-center justify-between flex-wrap gap-2">
             <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Player Stats</h3>
             <div className="flex gap-1">
+              <button
+                onClick={() => setTeamFilter('all')}
+                className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full transition-colors ${teamFilter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+              >All</button>
+              <button
+                onClick={() => setTeamFilter('home')}
+                className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full transition-colors ${teamFilter === 'home' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+              >{homeClub?.short_name ?? 'Home'}</button>
+              <button
+                onClick={() => setTeamFilter('away')}
+                className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full transition-colors ${teamFilter === 'away' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+              >{awayClub?.short_name ?? 'Away'}</button>
+              <span className="w-px bg-border/50 mx-0.5" />
               <button
                 onClick={() => setFilter('all')}
                 className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full transition-colors ${filter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
