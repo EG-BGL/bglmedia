@@ -154,7 +154,46 @@ export default function ClubProfile() {
           </TabsContent>
 
           <TabsContent value="squad">
-            {players && players.length > 0 ? (
+            {seasonStats && seasonStats.length > 0 ? (
+              <div className="bg-card rounded-xl border border-border/60 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border/60 bg-muted/30">
+                        <th className="text-left py-2.5 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-8">#</th>
+                        <th className="text-left py-2.5 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Player</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">GP</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">G</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">B</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">D</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">K</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">HB</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">M</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">T</th>
+                        <th className="text-center py-2.5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">AF</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {seasonStats.map((s: any) => (
+                        <tr key={s.player?.id} className="border-b border-border/30 last:border-0">
+                          <td className="py-2 px-2 font-black text-xs text-muted-foreground">{s.player?.jersey_number ?? '-'}</td>
+                          <td className="py-2 px-2 font-semibold text-xs whitespace-nowrap">{s.player?.first_name} {s.player?.last_name}</td>
+                          <td className="py-2 px-1.5 text-center text-xs text-muted-foreground">{s.games}</td>
+                          <td className="py-2 px-1.5 text-center text-xs font-bold">{s.goals}</td>
+                          <td className="py-2 px-1.5 text-center text-xs text-muted-foreground">{s.behinds}</td>
+                          <td className="py-2 px-1.5 text-center text-xs font-bold">{s.disposals}</td>
+                          <td className="py-2 px-1.5 text-center text-xs text-muted-foreground">{s.kicks}</td>
+                          <td className="py-2 px-1.5 text-center text-xs text-muted-foreground">{s.handballs}</td>
+                          <td className="py-2 px-1.5 text-center text-xs text-muted-foreground">{s.marks}</td>
+                          <td className="py-2 px-1.5 text-center text-xs text-muted-foreground">{s.tackles}</td>
+                          <td className="py-2 px-1.5 text-center text-xs font-bold">{s.afl_fantasy}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : players && players.length > 0 ? (
               <div className="bg-card rounded-xl border border-border/60 overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
