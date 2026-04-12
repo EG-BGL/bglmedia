@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import ClubLogo from '@/components/ClubLogo';
 import { Trophy, Info, Zap, Target, Hand, Shield, ArrowUpCircle } from 'lucide-react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMatchPlayerStats } from '@/hooks/useData';
 
 interface SummaryTabProps {
@@ -22,6 +22,7 @@ interface LeaderStat {
   value: number;
   club: any;
   suffix: string;
+  photoUrl: string | null;
 }
 
 function getClubForTeam(teamId: string, fixture: any, homeClub: any, awayClub: any) {
@@ -108,6 +109,7 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
           value: (top as any)[def.key],
           club: getClubForTeam((top as any).team_id, fixture, homeClub, awayClub),
           suffix: def.suffix,
+          photoUrl: player?.photo_url ?? null,
         });
       }
     }
@@ -198,6 +200,9 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
                       <span className="text-[9px] font-bold uppercase tracking-wider">{leader.label}</span>
                     </div>
                     <Avatar className="h-9 w-9">
+                      {leader.photoUrl && (
+                        <AvatarImage src={leader.photoUrl} alt={leader.playerName} className="object-cover" />
+                      )}
                       <AvatarFallback
                         className="text-[10px] font-black"
                         style={{
