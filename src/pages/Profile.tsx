@@ -15,42 +15,110 @@ import {
 } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
-// Hardcoded showcase coach data
-const coach = {
-  name: "Kyle Ettridge",
-  team: "Rebellion",
-  avatar: "https://via.placeholder.com/100",
-  premierships: 3,
-  winRate: 68,
-  games: 120,
-  dynasty: true,
-  dynastyStart: 3,
-  dynastyEnd: 6,
-  trophies: [{ season: 3 }, { season: 5 }, { season: 6 }],
-  seasons: [
-    { year: 1 }, { year: 2 }, { year: 3, premier: true },
-    { year: 4 }, { year: 5, premier: true }, { year: 6, premier: true },
-  ],
-  finalsWin: 65,
-  gfRecord: "3-1",
-  closeGames: 70,
-  avgFor: 85,
-  style: "Attacking",
-  defence: 7,
-  adaptability: "High",
-  efficiency: 64,
-  form: ["W", "W", "L", "W", "W"],
-  streak: "3 Wins",
-  achievements: [
-    { icon: "🏆", label: "3x Premiership" },
-    { icon: "🔥", label: "Dynasty Coach" },
-    { icon: "🔁", label: "Back-to-Back" },
-  ],
-  history: [
-    { season: 3, result: "🏆 Premiers" },
-    { season: 4, result: "Prelim Final" },
-    { season: 5, result: "🏆 Premiers" },
-  ],
+// Hardcoded multi-sport showcase coach data
+type SportKey = 'afl' | 'cricket';
+
+interface SportProfile {
+  sport: SportKey;
+  icon: string;
+  label: string;
+  team: string;
+  premierships: number;
+  premLabel: string;
+  winRate: number;
+  games: number;
+  dynasty: boolean;
+  finalsWin: number;
+  gfRecord: string;
+  closeGames: number;
+  avgFor: number;
+  avgForLabel: string;
+  style: string;
+  defence: number;
+  adaptability: string;
+  efficiency: number;
+  form: string[];
+  streak: string;
+  seasons: { year: number; premier?: boolean }[];
+  achievements: { icon: string; label: string }[];
+  history: { season: number; result: string }[];
+}
+
+const coachName = "Kyle Ettridge";
+const coachAvatar = "https://via.placeholder.com/100";
+
+const sportProfiles: Record<SportKey, SportProfile> = {
+  afl: {
+    sport: 'afl',
+    icon: '🏈',
+    label: 'AFL',
+    team: "Rebellion",
+    premierships: 3,
+    premLabel: 'Flags',
+    winRate: 68,
+    games: 120,
+    dynasty: true,
+    finalsWin: 65,
+    gfRecord: "3-1",
+    closeGames: 70,
+    avgFor: 85,
+    avgForLabel: 'Avg Score',
+    style: "Attacking",
+    defence: 7,
+    adaptability: "High",
+    efficiency: 64,
+    form: ["W", "W", "L", "W", "W"],
+    streak: "3 Wins",
+    seasons: [
+      { year: 1 }, { year: 2 }, { year: 3, premier: true },
+      { year: 4 }, { year: 5, premier: true }, { year: 6, premier: true },
+    ],
+    achievements: [
+      { icon: "🏆", label: "3x Premiership" },
+      { icon: "🔥", label: "Dynasty Coach" },
+      { icon: "🔁", label: "Back-to-Back" },
+    ],
+    history: [
+      { season: 3, result: "🏆 Premiers" },
+      { season: 4, result: "Prelim Final" },
+      { season: 5, result: "🏆 Premiers" },
+    ],
+  },
+  cricket: {
+    sport: 'cricket',
+    icon: '🏏',
+    label: 'Cricket',
+    team: "Rebellion CC",
+    premierships: 1,
+    premLabel: 'Titles',
+    winRate: 58,
+    games: 42,
+    dynasty: false,
+    finalsWin: 50,
+    gfRecord: "1-2",
+    closeGames: 55,
+    avgFor: 165,
+    avgForLabel: 'Avg Runs',
+    style: "Balanced",
+    defence: 6,
+    adaptability: "Medium",
+    efficiency: 52,
+    form: ["W", "L", "W", "W", "L"],
+    streak: "1 Loss",
+    seasons: [
+      { year: 3 }, { year: 4, premier: true }, { year: 5 }, { year: 6 },
+    ],
+    achievements: [
+      { icon: "🏆", label: "1x Premiership" },
+      { icon: "💯", label: "300+ Team Score" },
+      { icon: "🎯", label: "Best NRR" },
+    ],
+    history: [
+      { season: 3, result: "Semi Final" },
+      { season: 4, result: "🏆 Premiers" },
+      { season: 5, result: "Prelim Final" },
+    ],
+  },
 };
 
 interface SeasonStats {
@@ -84,7 +152,9 @@ export default function Profile() {
   const [allTimeStats, setAllTimeStats] = useState({ totalSeasons: 0, totalMatches: 0, wins: 0, losses: 0, draws: 0, winRate: '0' });
   const [recentResults, setRecentResults] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [activeSport, setActiveSport] = useState<SportKey>('afl');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const sp = sportProfiles[activeSport];
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
@@ -293,16 +363,31 @@ export default function Profile() {
           </div>
         </div>
 
+        {/* ═══ Sport Switcher ═══ */}
+        <div className="flex gap-1 p-0.5 rounded-full bg-muted/60 w-fit">
+          {(['afl', 'cricket'] as SportKey[]).map((s) => (
+            <button
+              key={s}
+              onClick={() => setActiveSport(s)}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-bold transition-all ${
+                activeSport === s ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+              }`}
+            >
+              {sportProfiles[s].icon} {sportProfiles[s].label}
+            </button>
+          ))}
+        </div>
+
         {/* ═══ Coach Showcase Card ═══ */}
         <div className="match-card overflow-hidden">
           <div className="relative px-4 pt-4 pb-3 bg-gradient-to-br from-primary/10 via-transparent to-accent/5">
             <div className="flex items-center gap-3">
-              <img src={coach.avatar} alt={coach.name} className="h-14 w-14 rounded-2xl object-cover ring-2 ring-primary/20" />
+              <img src={coachAvatar} alt={coachName} className="h-14 w-14 rounded-2xl object-cover ring-2 ring-primary/20" />
               <div className="flex-1 min-w-0">
-                <h2 className="text-base font-black tracking-tight truncate">{coach.name}</h2>
+                <h2 className="text-base font-black tracking-tight truncate">{coachName}</h2>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-xs font-bold text-muted-foreground">{coach.team}</span>
-                  {coach.dynasty && (
+                  <span className="text-xs font-bold text-muted-foreground">{sp.team}</span>
+                  {sp.dynasty && (
                     <Badge className="rounded-full text-[8px] font-black px-1.5 py-0 bg-amber-500/15 text-amber-600 border-amber-500/30">
                       <Flame className="h-2.5 w-2.5 mr-0.5" />Dynasty
                     </Badge>
@@ -310,24 +395,26 @@ export default function Profile() {
                 </div>
               </div>
               <div className="text-center shrink-0">
-                <div className="text-2xl font-black text-primary tabular-nums">{coach.premierships}</div>
-                <div className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">Flags</div>
+                <div className="text-2xl font-black text-primary tabular-nums">{sp.premierships}</div>
+                <div className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">{sp.premLabel}</div>
               </div>
             </div>
           </div>
           <div className="grid grid-cols-4 divide-x divide-border border-t border-border/50 px-1 py-2.5">
-            <QuickStat value={coach.games} label="Games" />
-            <QuickStat value={`${coach.winRate}%`} label="Win Rate" className="text-emerald-600" />
-            <QuickStat value={coach.gfRecord} label="GF Record" />
-            <QuickStat value={`${coach.finalsWin}%`} label="Finals %" />
+            <QuickStat value={sp.games} label={activeSport === 'cricket' ? 'Matches' : 'Games'} />
+            <QuickStat value={`${sp.winRate}%`} label="Win Rate" className="text-emerald-600" />
+            <QuickStat value={sp.gfRecord} label="GF Record" />
+            <QuickStat value={`${sp.finalsWin}%`} label="Finals %" />
           </div>
         </div>
 
         {/* Trophy Timeline */}
         <div className="match-card p-3.5">
-          <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-2.5">Season Timeline</div>
+          <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-2.5">
+            {sp.icon} Season Timeline
+          </div>
           <div className="flex items-center gap-1">
-            {coach.seasons.map((s) => (
+            {sp.seasons.map((s) => (
               <div key={s.year} className="flex-1 flex flex-col items-center gap-1">
                 <div className={`h-8 w-full rounded-md flex items-center justify-center text-xs font-black transition-all ${
                   s.premier ? 'bg-amber-500/20 text-amber-600 ring-1 ring-amber-500/40' : 'bg-muted/60 text-muted-foreground'
@@ -342,7 +429,7 @@ export default function Profile() {
 
         {/* Achievements */}
         <div className="flex gap-1.5">
-          {coach.achievements.map((a, i) => (
+          {sp.achievements.map((a, i) => (
             <div key={i} className="match-card flex-1 p-2.5 text-center">
               <div className="text-lg">{a.icon}</div>
               <div className="text-[9px] font-bold text-muted-foreground mt-0.5 leading-tight">{a.label}</div>
@@ -355,28 +442,28 @@ export default function Profile() {
           <div className="match-card p-3.5 space-y-2.5">
             <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Style Profile</div>
             <div className="space-y-2">
-              <StyleRow icon={<Swords className="h-3 w-3" />} label="Style" value={coach.style} />
-              <StyleRow icon={<Shield className="h-3 w-3" />} label="Defence" value={`${coach.defence}/10`} />
-              <StyleRow icon={<Zap className="h-3 w-3" />} label="Adapt." value={coach.adaptability} />
-              <StyleRow icon={<Target className="h-3 w-3" />} label="Efficiency" value={`${coach.efficiency}%`} />
+              <StyleRow icon={<Swords className="h-3 w-3" />} label="Style" value={sp.style} />
+              <StyleRow icon={<Shield className="h-3 w-3" />} label="Defence" value={`${sp.defence}/10`} />
+              <StyleRow icon={<Zap className="h-3 w-3" />} label="Adapt." value={sp.adaptability} />
+              <StyleRow icon={<Target className="h-3 w-3" />} label="Efficiency" value={`${sp.efficiency}%`} />
             </div>
           </div>
           <div className="match-card p-3.5 space-y-2.5">
             <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Current Form</div>
             <div className="flex items-center gap-1 justify-center">
-              {coach.form.map((f, i) => (
+              {sp.form.map((f, i) => (
                 <span key={i} className={`h-7 w-7 rounded-md flex items-center justify-center text-[10px] font-black ${
                   f === 'W' ? 'bg-emerald-500/15 text-emerald-600' : 'bg-red-500/15 text-red-500'
                 }`}>{f}</span>
               ))}
             </div>
             <div className="text-center">
-              <div className="text-sm font-black text-foreground">{coach.streak}</div>
+              <div className="text-sm font-black text-foreground">{sp.streak}</div>
               <div className="text-[8px] text-muted-foreground font-bold uppercase">Current Streak</div>
             </div>
             <div className="space-y-1.5 pt-1 border-t border-border/40">
-              <MiniStat label="Close Games" value={`${coach.closeGames}%`} />
-              <MiniStat label="Avg Score For" value={`${coach.avgFor}`} />
+              <MiniStat label="Close Games" value={`${sp.closeGames}%`} />
+              <MiniStat label={sp.avgForLabel} value={`${sp.avgFor}`} />
             </div>
           </div>
         </div>
@@ -385,7 +472,7 @@ export default function Profile() {
         <div className="match-card p-3.5">
           <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Finals History</div>
           <div className="space-y-1.5">
-            {coach.history.map((h, i) => (
+            {sp.history.map((h, i) => (
               <div key={i} className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/30">
                 <span className="text-[10px] font-bold text-muted-foreground">Season {h.season}</span>
                 <span className={`text-xs font-black ${h.result.includes('🏆') ? 'text-amber-600' : 'text-foreground'}`}>{h.result}</span>
