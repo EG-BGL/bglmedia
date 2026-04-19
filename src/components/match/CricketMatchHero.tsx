@@ -69,8 +69,14 @@ export default function CricketMatchHero({
             </div>
           )}
         </div>
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col items-center gap-2 flex-1">
+        <div className="flex items-center justify-between relative">
+          {homeClub?.logo_url && (
+            <img src={homeClub.logo_url} alt="" aria-hidden className="absolute left-0 top-1/2 -translate-y-1/2 h-32 w-32 md:h-40 md:w-40 object-contain opacity-[0.06] pointer-events-none select-none" />
+          )}
+          {awayClub?.logo_url && (
+            <img src={awayClub.logo_url} alt="" aria-hidden className="absolute right-0 top-1/2 -translate-y-1/2 h-32 w-32 md:h-40 md:w-40 object-contain opacity-[0.06] pointer-events-none select-none" />
+          )}
+          <div className="flex flex-col items-center gap-2 flex-1 relative z-10">
             <ClubLogo club={homeClub ?? {}} size="lg" className="!h-14 !w-14 md:!h-16 md:!w-16" />
             <span className={`text-xs font-bold text-center leading-tight ${isCompleted && !homeWon ? 'text-muted-foreground' : ''}`}>
               {homeClub?.short_name}
@@ -78,7 +84,7 @@ export default function CricketMatchHero({
             {isCompleted && homeWon && <Badge variant="secondary" className="text-[9px] rounded-full px-2 py-0 font-black bg-primary/10 text-primary border-0">WIN</Badge>}
           </div>
 
-          <div className="text-center px-2 shrink-0 min-w-[80px]">
+          <div className="text-center px-2 shrink-0 min-w-[80px] relative z-10">
             {hasInnings ? (
               <div className="space-y-1">
                 {homeInnings.map((inn: any, i: number) => (
@@ -114,7 +120,7 @@ export default function CricketMatchHero({
             )}
           </div>
 
-          <div className="flex flex-col items-center gap-2 flex-1">
+          <div className="flex flex-col items-center gap-2 flex-1 relative z-10">
             <ClubLogo club={awayClub ?? {}} size="lg" className="!h-14 !w-14 md:!h-16 md:!w-16" />
             <span className={`text-xs font-bold text-center leading-tight ${isCompleted && !awayWon ? 'text-muted-foreground' : ''}`}>
               {awayClub?.short_name}
