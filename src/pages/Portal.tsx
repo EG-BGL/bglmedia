@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { ClipboardList, Shield, ChevronRight, CircleDot, LayoutDashboard } from 'lucide-react';
+import { ClipboardList, Shield, ChevronRight, CircleDot, LayoutDashboard, Trophy } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 export default function Portal() {
@@ -57,6 +57,14 @@ export default function Portal() {
                 <CircleDot className="h-6 w-6 text-primary" />
               </div>
               <span className="font-bold text-sm">Submit Cricket</span>
+            </Link>
+          )}
+          {(role === 'coach' || role === 'league_admin') && (
+            <Link to="/portal/submit-rugby" className="match-card p-4 flex flex-col items-center gap-2 text-center group">
+              <div className="h-12 w-12 rounded-2xl bg-primary/15 flex items-center justify-center group-hover:bg-primary/25 transition-colors">
+                <Trophy className="h-6 w-6 text-primary" />
+              </div>
+              <span className="font-bold text-sm">Submit Rugby</span>
             </Link>
           )}
           {role === 'league_admin' && (

@@ -16,6 +16,7 @@ import Login from "./pages/Login";
 import Portal from "./pages/Portal";
 import SubmitResult from "./pages/SubmitResult";
 import SubmitCricketResult from "./pages/SubmitCricketResult";
+import SubmitRugbyResult from "./pages/SubmitRugbyResult";
 import Admin from "./pages/Admin";
 import ManageTeams from "./pages/ManageTeams";
 import ManagePlayers from "./pages/ManagePlayers";
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/portal" element={<Portal />} />
             <Route path="/portal/submit" element={<SubmitResult />} />
             <Route path="/portal/submit-cricket" element={<SubmitCricketResult />} />
+            <Route path="/portal/submit-rugby" element={<SubmitRugbyResult />} />
             <Route path="/profile" element={<Profile />} />
             
             <Route path="/admin" element={<Admin />} />
