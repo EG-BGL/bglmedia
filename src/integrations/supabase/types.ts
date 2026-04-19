@@ -1001,6 +1001,183 @@ export type Database = {
           },
         ]
       }
+      rugby_match_results: {
+        Row: {
+          conversions: number | null
+          created_at: string
+          field_goals: number | null
+          fixture_id: string
+          half_time_points: number | null
+          id: string
+          penalty_goals: number | null
+          team_id: string
+          total_points: number | null
+          tries: number | null
+          updated_at: string
+        }
+        Insert: {
+          conversions?: number | null
+          created_at?: string
+          field_goals?: number | null
+          fixture_id: string
+          half_time_points?: number | null
+          id?: string
+          penalty_goals?: number | null
+          team_id: string
+          total_points?: number | null
+          tries?: number | null
+          updated_at?: string
+        }
+        Update: {
+          conversions?: number | null
+          created_at?: string
+          field_goals?: number | null
+          fixture_id?: string
+          half_time_points?: number | null
+          id?: string
+          penalty_goals?: number | null
+          team_id?: string
+          total_points?: number | null
+          tries?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rugby_player_stats: {
+        Row: {
+          conversions: number | null
+          created_at: string
+          errors: number | null
+          field_goals: number | null
+          fixture_id: string
+          id: string
+          kick_metres: number | null
+          line_breaks: number | null
+          minutes_played: number | null
+          missed_tackles: number | null
+          offloads: number | null
+          penalties_conceded: number | null
+          penalty_goals: number | null
+          player_id: string
+          position: string | null
+          run_metres: number | null
+          runs: number | null
+          send_offs: number | null
+          sin_bins: number | null
+          tackle_busts: number | null
+          tackles: number | null
+          team_id: string
+          tries: number | null
+          try_assists: number | null
+          updated_at: string
+        }
+        Insert: {
+          conversions?: number | null
+          created_at?: string
+          errors?: number | null
+          field_goals?: number | null
+          fixture_id: string
+          id?: string
+          kick_metres?: number | null
+          line_breaks?: number | null
+          minutes_played?: number | null
+          missed_tackles?: number | null
+          offloads?: number | null
+          penalties_conceded?: number | null
+          penalty_goals?: number | null
+          player_id: string
+          position?: string | null
+          run_metres?: number | null
+          runs?: number | null
+          send_offs?: number | null
+          sin_bins?: number | null
+          tackle_busts?: number | null
+          tackles?: number | null
+          team_id: string
+          tries?: number | null
+          try_assists?: number | null
+          updated_at?: string
+        }
+        Update: {
+          conversions?: number | null
+          created_at?: string
+          errors?: number | null
+          field_goals?: number | null
+          fixture_id?: string
+          id?: string
+          kick_metres?: number | null
+          line_breaks?: number | null
+          minutes_played?: number | null
+          missed_tackles?: number | null
+          offloads?: number | null
+          penalties_conceded?: number | null
+          penalty_goals?: number | null
+          player_id?: string
+          position?: string | null
+          run_metres?: number | null
+          runs?: number | null
+          send_offs?: number | null
+          sin_bins?: number | null
+          tackle_busts?: number | null
+          tackles?: number | null
+          team_id?: string
+          tries?: number | null
+          try_assists?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rugby_team_stats: {
+        Row: {
+          created_at: string
+          errors: number | null
+          fixture_id: string
+          id: string
+          line_breaks: number | null
+          missed_tackles: number | null
+          penalties_conceded: number | null
+          possession_pct: number | null
+          run_metres: number | null
+          sets_completed: number | null
+          sets_total: number | null
+          tackles: number | null
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          errors?: number | null
+          fixture_id: string
+          id?: string
+          line_breaks?: number | null
+          missed_tackles?: number | null
+          penalties_conceded?: number | null
+          possession_pct?: number | null
+          run_metres?: number | null
+          sets_completed?: number | null
+          sets_total?: number | null
+          tackles?: number | null
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          errors?: number | null
+          fixture_id?: string
+          id?: string
+          line_breaks?: number | null
+          missed_tackles?: number | null
+          penalties_conceded?: number | null
+          possession_pct?: number | null
+          run_metres?: number | null
+          sets_completed?: number | null
+          sets_total?: number | null
+          tackles?: number | null
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       seasons: {
         Row: {
           competition_id: string
@@ -1176,6 +1353,10 @@ export type Database = {
           p_home_behinds: number
           p_home_goals: number
         }
+        Returns: undefined
+      }
+      update_ladder_from_rugby_result: {
+        Args: { p_fixture_id: string }
         Returns: undefined
       }
     }
