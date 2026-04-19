@@ -1,7 +1,6 @@
 import { useSport } from '@/hooks/useSport';
-import { CircleDot } from 'lucide-react';
+import { CircleDot, Trophy } from 'lucide-react';
 
-// Simple AFL icon as inline SVG
 function AflIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -13,32 +12,28 @@ function AflIcon({ className }: { className?: string }) {
   );
 }
 
-function CricketIcon({ className }: { className?: string }) {
-  return <CircleDot className={className} />;
-}
-
 export default function SportSwitcher() {
   const { sports, currentSport, setSport } = useSport();
-
   if (sports.length <= 1) return null;
+
+  const labelFor = (slug: string) => slug === 'afl' ? 'AFL' : slug === 'cricket' ? 'Cricket' : slug === 'rugby-league' ? 'Rugby' : slug;
+  const IconFor = (slug: string) => slug === 'cricket' ? CircleDot : slug === 'rugby-league' ? Trophy : AflIcon;
 
   return (
     <div className="flex items-center bg-muted/60 rounded-full p-0.5 gap-0.5">
       {sports.map((sport) => {
         const active = currentSport?.slug === sport.slug;
-        const Icon = sport.slug === 'cricket' ? CricketIcon : AflIcon;
+        const Icon = IconFor(sport.slug);
         return (
           <button
             key={sport.id}
             onClick={() => setSport(sport.slug)}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all ${
-              active
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+              active ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Icon className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">{sport.slug === 'afl' ? 'AFL' : 'Cricket'}</span>
+            <span className="hidden sm:inline">{labelFor(sport.slug)}</span>
           </button>
         );
       })}

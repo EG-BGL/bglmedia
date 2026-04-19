@@ -222,6 +222,9 @@ export default function Admin() {
     await supabase.from('cricket_match_results').delete().eq('fixture_id', id);
     await supabase.from('cricket_player_stats').delete().eq('fixture_id', id);
     await supabase.from('cricket_team_stats').delete().eq('fixture_id', id);
+    await supabase.from('rugby_match_results').delete().eq('fixture_id', id);
+    await supabase.from('rugby_player_stats').delete().eq('fixture_id', id);
+    await supabase.from('rugby_team_stats').delete().eq('fixture_id', id);
     const { error } = await supabase.from('fixtures').delete().eq('id', id);
     if (error) { toast.error(error.message); return; }
     await supabase.from('audit_logs').insert({ table_name: 'fixtures', record_id: id, action: 'deleted', performed_by: user!.id });

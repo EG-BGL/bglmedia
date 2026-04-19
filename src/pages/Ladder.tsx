@@ -90,18 +90,15 @@ export default function Ladder() {
             <div className="flex items-center bg-secondary/60 rounded-lg p-0.5 gap-0.5">
               {sports.map((sport) => {
                 const active = currentSport?.slug === sport.slug;
+                const label = sport.slug === 'afl' ? 'AFL' : sport.slug === 'cricket' ? 'Cricket' : sport.slug === 'rugby-league' ? 'Rugby' : sport.name;
                 return (
                   <button
                     key={sport.id}
                     onClick={() => setSport(sport.slug)}
                     className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
-                      active
-                        ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
-                        : 'text-muted-foreground hover:text-foreground'
+                      active ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20' : 'text-muted-foreground hover:text-foreground'
                     }`}
-                  >
-                    {sport.slug === 'afl' ? 'AFL' : 'Cricket'}
-                  </button>
+                  >{label}</button>
                 );
               })}
             </div>
