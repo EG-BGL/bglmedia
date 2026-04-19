@@ -53,7 +53,20 @@ export default function MatchHero({ fixture, result, homeClub, awayClub, matchDa
         </Badge>
       </div>
 
-      <div className="px-4 py-6">
+      <div className="px-4 pt-4 pb-6">
+        <div className="text-center mb-4">
+          <div className="text-sm font-black tracking-tight">
+            {homeClub?.name ?? homeClub?.short_name} <span className="text-muted-foreground font-bold mx-1">v</span> {awayClub?.name ?? awayClub?.short_name}
+          </div>
+          {(fixture?.round_number || matchDate) && (
+            <div className="text-[10px] text-muted-foreground font-semibold mt-0.5">
+              {fixture?.round_number ? `Round ${fixture.round_number}` : ''}
+              {fixture?.round_number && matchDate ? ' • ' : ''}
+              {matchDate ? matchDate.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' }) : ''}
+              {matchDate ? ` • ${matchDate.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}` : ''}
+            </div>
+          )}
+        </div>
         <div className="flex items-center justify-between">
           <div className="flex flex-col items-center gap-1.5 flex-1">
             <ClubLogo club={homeClub ?? {}} size="lg" className="!h-14 !w-14 md:!h-16 md:!w-16" />
