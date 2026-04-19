@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { useParams, Link } from 'react-router-dom';
 import { useFixture, useLadder } from '@/hooks/useData';
 import { useCricketMatchResults } from '@/hooks/useCricketData';
+import { useRugbyMatchResults } from '@/hooks/useRugbyData';
 import ClubLogo from '@/components/ClubLogo';
 import { ChevronLeft, Sparkles, Loader2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
@@ -15,14 +16,19 @@ import NewsTab from '@/components/match/NewsTab';
 import CricketMatchHero from '@/components/match/CricketMatchHero';
 import CricketSummaryTab from '@/components/match/CricketSummaryTab';
 import CricketPlayersTab from '@/components/match/CricketPlayersTab';
+import RugbyMatchHero from '@/components/match/RugbyMatchHero';
+import RugbySummaryTab from '@/components/match/RugbySummaryTab';
+import RugbyPlayersTab from '@/components/match/RugbyPlayersTab';
 
 const AFL_TABS = ['Summary', 'Players', 'Teams', 'News'] as const;
 const CRICKET_TABS = ['Summary', 'Scorecard', 'Teams', 'News'] as const;
+const RUGBY_TABS = ['Summary', 'Players', 'Teams', 'News'] as const;
 
 export default function MatchCentre() {
   const { id } = useParams<{ id: string }>();
   const { data: fixture, isLoading } = useFixture(id!);
   const { data: cricketInnings } = useCricketMatchResults(id);
+  const { data: rugbyResults } = useRugbyMatchResults(id);
   const [activeTab, setActiveTab] = useState<string>('Summary');
   const [showStickyScore, setShowStickyScore] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -48,10 +54,11 @@ export default function MatchCentre() {
   const awayTeamId = (fixture as any)?.away_team?.id;
   const matchDate = fixture?.scheduled_at ? new Date(fixture.scheduled_at) : null;
 
-  // Detect cricket match
+  // Detect sport
   const isCricket = !!(fixture?.match_format && ['T20', 'One-Day', 'Multi-Day'].includes(fixture.match_format)) || (cricketInnings && cricketInnings.length > 0);
+  const isRugby = !isCricket && (fixture?.match_format === 'Rugby League' || (rugbyResults && rugbyResults.length > 0));
 
-  const TABS = isCricket ? CRICKET_TABS : AFL_TABS;
+  const TABS = isCricket ? CRICKET_TABS : isRugby ? RUGBY_TABS : AFL_TABS;
 
   // Ladder entries for both teams
   const homeLadder = ladderData?.find((e: any) => e.team_id === homeTeamId);
@@ -153,33 +160,22 @@ export default function MatchCentre() {
         {/* Hero Score */}
         {isCricket ? (
           <CricketMatchHero
-            fixture={fixture}
-            result={result}
-            homeClub={homeClub}
-            awayClub={awayClub}
-            matchDate={matchDate}
-            statusLabel={statusLabel}
-            statusClass={statusClass}
-            isLive={isLive}
-            heroRef={heroRef}
-            inningsData={cricketInnings ?? []}
+            fixture={fixture} result={result} homeClub={homeClub} awayClub={awayClub}
+            matchDate={matchDate} statusLabel={statusLabel} statusClass={statusClass}
+            isLive={isLive} heroRef={heroRef} inningsData={cricketInnings ?? []}
+          />
+        ) : isRugby ? (
+          <RugbyMatchHero
+            fixture={fixture} result={result} homeClub={homeClub} awayClub={awayClub}
+            matchDate={matchDate} statusLabel={statusLabel} statusClass={statusClass}
+            isLive={isLive} heroRef={heroRef} rugbyResults={rugbyResults ?? []}
           />
         ) : (
           <MatchHero
-            fixture={fixture}
-            result={result}
-            homeClub={homeClub}
-            awayClub={awayClub}
-            matchDate={matchDate}
-            homeWon={homeWon}
-            awayWon={awayWon}
-            isDraw={isDraw}
-            statusLabel={statusLabel}
-            statusClass={statusClass}
-            isLive={isLive}
-            heroRef={heroRef}
-            homeLadder={homeLadder}
-            awayLadder={awayLadder}
+            fixture={fixture} result={result} homeClub={homeClub} awayClub={awayClub}
+            matchDate={matchDate} homeWon={homeWon} awayWon={awayWon} isDraw={isDraw}
+            statusLabel={statusLabel} statusClass={statusClass} isLive={isLive}
+            heroRef={heroRef} homeLadder={homeLadder} awayLadder={awayLadder}
           />
         )}
 
@@ -226,54 +222,24 @@ export default function MatchCentre() {
         {/* Tab Content */}
         {isCricket ? (
           <>
-            {activeTab === 'Summary' && (
-              <CricketSummaryTab
-                fixture={fixture}
-                result={result}
-                homeClub={homeClub}
-                awayClub={awayClub}
-                matchDate={matchDate}
-                statusLabel={statusLabel}
-              />
-            )}
-            {activeTab === 'Scorecard' && (
-              <CricketPlayersTab
-                fixture={fixture}
-                result={result}
-                homeClub={homeClub}
-                awayClub={awayClub}
-              />
-            )}
-            {activeTab === 'Teams' && (
-              <TeamsTab fixture={fixture} homeClub={homeClub} awayClub={awayClub} />
-            )}
-            {activeTab === 'News' && (
-              <NewsTab homeClub={homeClub} awayClub={awayClub} />
-            )}
+            {activeTab === 'Summary' && <CricketSummaryTab fixture={fixture} result={result} homeClub={homeClub} awayClub={awayClub} matchDate={matchDate} statusLabel={statusLabel} />}
+            {activeTab === 'Scorecard' && <CricketPlayersTab fixture={fixture} result={result} homeClub={homeClub} awayClub={awayClub} />}
+            {activeTab === 'Teams' && <TeamsTab fixture={fixture} homeClub={homeClub} awayClub={awayClub} />}
+            {activeTab === 'News' && <NewsTab homeClub={homeClub} awayClub={awayClub} />}
+          </>
+        ) : isRugby ? (
+          <>
+            {activeTab === 'Summary' && <RugbySummaryTab fixture={fixture} result={result} homeClub={homeClub} awayClub={awayClub} matchDate={matchDate} statusLabel={statusLabel} />}
+            {activeTab === 'Players' && <RugbyPlayersTab fixture={fixture} result={result} homeClub={homeClub} awayClub={awayClub} />}
+            {activeTab === 'Teams' && <TeamsTab fixture={fixture} homeClub={homeClub} awayClub={awayClub} />}
+            {activeTab === 'News' && <NewsTab homeClub={homeClub} awayClub={awayClub} />}
           </>
         ) : (
           <>
-            {activeTab === 'Summary' && (
-              <SummaryTab
-                fixture={fixture}
-                result={result}
-                homeClub={homeClub}
-                awayClub={awayClub}
-                matchDate={matchDate}
-                homeWon={homeWon}
-                awayWon={awayWon}
-                statusLabel={statusLabel}
-              />
-            )}
-            {activeTab === 'Players' && (
-              <PlayersTab fixture={fixture} result={result} homeClub={homeClub} awayClub={awayClub} />
-            )}
-            {activeTab === 'Teams' && (
-              <TeamsTab fixture={fixture} homeClub={homeClub} awayClub={awayClub} />
-            )}
-            {activeTab === 'News' && (
-              <NewsTab homeClub={homeClub} awayClub={awayClub} />
-            )}
+            {activeTab === 'Summary' && <SummaryTab fixture={fixture} result={result} homeClub={homeClub} awayClub={awayClub} matchDate={matchDate} homeWon={homeWon} awayWon={awayWon} statusLabel={statusLabel} />}
+            {activeTab === 'Players' && <PlayersTab fixture={fixture} result={result} homeClub={homeClub} awayClub={awayClub} />}
+            {activeTab === 'Teams' && <TeamsTab fixture={fixture} homeClub={homeClub} awayClub={awayClub} />}
+            {activeTab === 'News' && <NewsTab homeClub={homeClub} awayClub={awayClub} />}
           </>
         )}
       </div>
