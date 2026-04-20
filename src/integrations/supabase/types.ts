@@ -416,6 +416,38 @@ export type Database = {
           },
         ]
       }
+      fixture_scorers: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          fixture_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          fixture_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          fixture_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixture_scorers_fixture_id_fkey"
+            columns: ["fixture_id"]
+            isOneToOne: false
+            referencedRelation: "fixtures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fixtures: {
         Row: {
           away_team_id: string
@@ -545,6 +577,135 @@ export type Database = {
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_goal_events: {
+        Row: {
+          created_by: string | null
+          fixture_id: string
+          id: string
+          is_goal: boolean
+          player_id: string | null
+          quarter: number
+          scored_at: string
+          team_id: string
+        }
+        Insert: {
+          created_by?: string | null
+          fixture_id: string
+          id?: string
+          is_goal?: boolean
+          player_id?: string | null
+          quarter?: number
+          scored_at?: string
+          team_id: string
+        }
+        Update: {
+          created_by?: string | null
+          fixture_id?: string
+          id?: string
+          is_goal?: boolean
+          player_id?: string | null
+          quarter?: number
+          scored_at?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_goal_events_fixture_id_fkey"
+            columns: ["fixture_id"]
+            isOneToOne: false
+            referencedRelation: "fixtures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_goal_events_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_goal_events_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_match_state: {
+        Row: {
+          away_behinds: number
+          away_goals: number
+          away_q1: string | null
+          away_q2: string | null
+          away_q3: string | null
+          away_q4: string | null
+          created_at: string
+          current_quarter: number
+          fixture_id: string
+          home_behinds: number
+          home_goals: number
+          home_q1: string | null
+          home_q2: string | null
+          home_q3: string | null
+          home_q4: string | null
+          match_status: string
+          quarter_started_at: string | null
+          quarter_status: string
+          updated_at: string
+        }
+        Insert: {
+          away_behinds?: number
+          away_goals?: number
+          away_q1?: string | null
+          away_q2?: string | null
+          away_q3?: string | null
+          away_q4?: string | null
+          created_at?: string
+          current_quarter?: number
+          fixture_id: string
+          home_behinds?: number
+          home_goals?: number
+          home_q1?: string | null
+          home_q2?: string | null
+          home_q3?: string | null
+          home_q4?: string | null
+          match_status?: string
+          quarter_started_at?: string | null
+          quarter_status?: string
+          updated_at?: string
+        }
+        Update: {
+          away_behinds?: number
+          away_goals?: number
+          away_q1?: string | null
+          away_q2?: string | null
+          away_q3?: string | null
+          away_q4?: string | null
+          created_at?: string
+          current_quarter?: number
+          fixture_id?: string
+          home_behinds?: number
+          home_goals?: number
+          home_q1?: string | null
+          home_q2?: string | null
+          home_q3?: string | null
+          home_q4?: string | null
+          match_status?: string
+          quarter_started_at?: string | null
+          quarter_status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_match_state_fixture_id_fkey"
+            columns: ["fixture_id"]
+            isOneToOne: true
+            referencedRelation: "fixtures"
             referencedColumns: ["id"]
           },
         ]
@@ -988,7 +1149,7 @@ export type Database = {
           {
             foreignKeyName: "results_fixture_id_fkey"
             columns: ["fixture_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "fixtures"
             referencedColumns: ["id"]
           },
@@ -1330,6 +1491,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_score_fixture: {
+        Args: { _fixture_id: string; _user_id: string }
+        Returns: boolean
+      }
+      finalise_live_match: {
+        Args: { p_fixture_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
