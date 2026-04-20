@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { ClipboardList, Shield, ChevronRight, CircleDot, LayoutDashboard, Trophy } from 'lucide-react';
+import { ClipboardList, Shield, ChevronRight, CircleDot, LayoutDashboard, Trophy, Radio } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 
 export default function Portal() {
@@ -12,6 +12,7 @@ export default function Portal() {
   const navigate = useNavigate();
   const [assignments, setAssignments] = useState<any[]>([]);
   const [submissions, setSubmissions] = useState<any[]>([]);
+  const [canScore, setCanScore] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
@@ -22,6 +23,12 @@ export default function Portal() {
     if (!user) return;
     supabase.from('coaches_to_teams').select('*, teams(*, clubs(*), seasons(*))').eq('user_id', user.id).then(({ data }) => setAssignments(data ?? []));
     supabase.from('results').select('*, fixtures(*, home_team:teams!fixtures_home_team_id_fkey(*, clubs(*)), away_team:teams!fixtures_away_team_id_fkey(*, clubs(*)))').eq('submitted_by', user.id).order('created_at', { ascending: false }).then(({ data }) => setSubmissions(data ?? []));
+    (async () => {
+      const { data: roles } = await supabase.from('user_roles').select('role').eq('user_id', user.id);
+      const set = new Set((roles ?? []).map((r: any) => r.role));
+      const { data: fs } = await supabase.from('fixture_scorers').select('id').eq('user_id', user.id).limit(1);
+      setCanScore(set.has('league_admin') || set.has('scorer') || (fs ?? []).length > 0);
+    })();
   }, [user]);
 
   if (loading) return <Layout><div className="page-container py-16 text-center text-muted-foreground">Loading...</div></Layout>;
@@ -65,6 +72,14 @@ export default function Portal() {
                 <Trophy className="h-6 w-6 text-primary" />
               </div>
               <span className="font-bold text-sm">Submit Rugby</span>
+            </Link>
+          )}
+          {canScore && (
+            <Link to="/portal/score" className="match-card p-4 flex flex-col items-center gap-2 text-center group">
+              <div className="h-12 w-12 rounded-2xl bg-destructive/15 flex items-center justify-center group-hover:bg-destructive/25 transition-colors">
+                <Radio className="h-6 w-6 text-destructive" />
+              </div>
+              <span className="font-bold text-sm">Live Score</span>
             </Link>
           )}
           {role === 'league_admin' && (

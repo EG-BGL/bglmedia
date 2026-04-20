@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import ClubLogo from '@/components/ClubLogo';
 import { MapPin, Calendar, Clock } from 'lucide-react';
+import { useLiveMatch } from '@/hooks/useLiveMatch';
 
 interface MatchHeroProps {
   fixture: any;
@@ -43,13 +44,19 @@ export default function MatchHero({ fixture, result, homeClub, awayClub, matchDa
   const odds = calcOdds(homeLadder, awayLadder);
   const homeFav = odds.home < odds.away;
   const isCompleted = fixture.status === 'completed' && result;
+  const { state: liveState, events: liveEvents, isLive: isReallyLive } = useLiveMatch(fixture?.id);
+  const showLive = isReallyLive && liveState;
+  const liveHomeScore = (liveState?.home_goals ?? 0) * 6 + (liveState?.home_behinds ?? 0);
+  const liveAwayScore = (liveState?.away_goals ?? 0) * 6 + (liveState?.away_behinds ?? 0);
+  const liveStatusLabel = showLive ? `LIVE • Q${liveState?.current_quarter ?? 1}` : statusLabel;
+  const liveStatusClass = showLive ? 'bg-destructive text-destructive-foreground' : statusClass;
 
   return (
     <div ref={heroRef} className="match-card overflow-hidden">
       <div className="flex items-center justify-center py-2 border-b border-border/30">
-        <Badge className={`rounded-full text-[10px] font-black tracking-widest px-3 py-0.5 border-0 ${statusClass}`}>
-          {isLive && <span className="h-1.5 w-1.5 rounded-full bg-current mr-1.5 animate-pulse inline-block" />}
-          {statusLabel}
+        <Badge className={`rounded-full text-[10px] font-black tracking-widest px-3 py-0.5 border-0 ${liveStatusClass}`}>
+          {(isLive || showLive) && <span className="h-1.5 w-1.5 rounded-full bg-current mr-1.5 animate-pulse inline-block" />}
+          {liveStatusLabel}
         </Badge>
       </div>
 
@@ -84,7 +91,16 @@ export default function MatchHero({ fixture, result, homeClub, awayClub, matchDa
           </div>
 
           <div className="text-center px-2 shrink-0 relative z-10">
-            {result ? (
+            {showLive ? (
+              <>
+                <div className="text-4xl md:text-5xl font-black tabular-nums tracking-tighter leading-none text-foreground">
+                  {liveHomeScore}<span className="text-muted-foreground/20 mx-1.5">–</span>{liveAwayScore}
+                </div>
+                <div className="text-[11px] text-muted-foreground mt-1.5 tabular-nums font-semibold">
+                  {liveState?.home_goals}.{liveState?.home_behinds} – {liveState?.away_goals}.{liveState?.away_behinds}
+                </div>
+              </>
+            ) : result ? (
               <>
                 <div className="text-4xl md:text-5xl font-black tabular-nums tracking-tighter leading-none text-foreground">
                   {result.home_score}<span className="text-muted-foreground/20 mx-1.5">–</span>{result.away_score}
