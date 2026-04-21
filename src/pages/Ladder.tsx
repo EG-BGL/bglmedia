@@ -20,11 +20,15 @@ export default function Ladder() {
   }, [allSeasons, currentSport]);
 
   useEffect(() => {
-    const current = seasons.find((s: any) => s.is_current);
-    if (current) setSelectedSeasonId(current.id);
-    else if (seasons.length > 0) setSelectedSeasonId(seasons[0].id);
-    else setSelectedSeasonId('');
-  }, [seasons]);
+    // Reset season when sport changes if current selection isn't valid for this sport
+    const stillValid = seasons.some((s: any) => s.id === selectedSeasonId);
+    if (!stillValid) {
+      const current = seasons.find((s: any) => s.is_current);
+      if (current) setSelectedSeasonId(current.id);
+      else if (seasons.length > 0) setSelectedSeasonId(seasons[0].id);
+      else setSelectedSeasonId('');
+    }
+  }, [seasons, selectedSeasonId]);
 
   const isCricket = currentSport?.slug === 'cricket';
   const selectedSeason = seasons.find((s: any) => s.id === selectedSeasonId);
