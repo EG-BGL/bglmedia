@@ -460,36 +460,6 @@ export default function Profile() {
           </section>
         )}
 
-        {/* Recent Submissions */}
-        <section className="space-y-2">
-          <h2 className="section-label flex items-center gap-1.5"><Trophy className="h-3.5 w-3.5" />Recent Submissions</h2>
-          {recentResults.length === 0 ? (
-            <p className="text-xs text-muted-foreground py-6 text-center match-card">No submissions yet.</p>
-          ) : (
-            <div className="space-y-1.5">
-              {recentResults.map((r: any) => (
-                <Link key={r.id} to={`/match/${r.fixture_id}`} className="match-card p-3 flex items-center gap-3 group">
-                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                    <ClubLogo club={r.fixtures?.home_team?.clubs ?? {}} size="sm" className="!h-5 !w-5" />
-                    <span className={`text-xs font-bold truncate ${r.home_score > r.away_score ? '' : 'text-muted-foreground'}`}>
-                      {r.fixtures?.home_team?.clubs?.short_name}
-                    </span>
-                  </div>
-                  <span className="text-xs font-black tabular-nums shrink-0">{r.home_score} – {r.away_score}</span>
-                  <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
-                    <span className={`text-xs font-bold truncate ${r.away_score > r.home_score ? '' : 'text-muted-foreground'}`}>
-                      {r.fixtures?.away_team?.clubs?.short_name}
-                    </span>
-                    <ClubLogo club={r.fixtures?.away_team?.clubs ?? {}} size="sm" className="!h-5 !w-5" />
-                  </div>
-                  <Badge variant={r.status === 'approved' ? 'default' : r.status === 'rejected' ? 'destructive' : 'secondary'}
-                    className="rounded-full text-[8px] capitalize shrink-0 px-1.5 py-0">{r.status}</Badge>
-                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0 group-hover:text-foreground transition-colors" />
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
       </div>
     </Layout>
   );
