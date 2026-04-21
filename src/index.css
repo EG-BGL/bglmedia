@@ -4,57 +4,65 @@
 
 @layer base {
   :root {
-    --background: 222 30% 8%;
-    --foreground: 210 20% 93%;
+    /* Deeper, near-black backdrop for max contrast */
+    --background: 222 40% 5%;
+    --foreground: 210 25% 96%;
 
-    --card: 222 25% 11%;
-    --card-foreground: 210 20% 93%;
+    --card: 222 30% 9%;
+    --card-foreground: 210 25% 96%;
 
-    --popover: 222 25% 11%;
-    --popover-foreground: 210 20% 93%;
+    --popover: 222 30% 9%;
+    --popover-foreground: 210 25% 96%;
 
-    --primary: 200 65% 50%;
-    --primary-foreground: 222 30% 8%;
+    /* Sharper steel-blue primary */
+    --primary: 200 90% 55%;
+    --primary-foreground: 222 40% 5%;
 
-    --secondary: 222 20% 16%;
-    --secondary-foreground: 210 20% 90%;
+    --secondary: 222 25% 14%;
+    --secondary-foreground: 210 25% 95%;
 
-    --muted: 222 20% 14%;
-    --muted-foreground: 215 15% 55%;
+    --muted: 222 22% 12%;
+    --muted-foreground: 215 18% 62%;
 
-    --accent: 153 60% 45%;
-    --accent-foreground: 222 30% 8%;
+    --accent: 153 70% 48%;
+    --accent-foreground: 222 40% 5%;
 
-    --destructive: 0 72% 55%;
+    /* New broadcast highlight (electric yellow/amber for tickers, LIVE chips) */
+    --highlight: 45 100% 55%;
+    --highlight-foreground: 222 40% 5%;
+
+    --destructive: 0 84% 58%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 222 15% 18%;
-    --input: 222 15% 18%;
-    --ring: 200 65% 50%;
+    /* Sharper, slightly brighter borders for definition */
+    --border: 222 18% 20%;
+    --input: 222 18% 20%;
+    --ring: 200 90% 55%;
 
-    --radius: 0.75rem;
+    /* Tighter radius for editorial feel */
+    --radius: 0.5rem;
 
-    --sidebar-background: 222 35% 6%;
+    --sidebar-background: 222 40% 4%;
     --sidebar-foreground: 220 14% 96%;
-    --sidebar-primary: 200 65% 50%;
-    --sidebar-primary-foreground: 222 35% 6%;
-    --sidebar-accent: 222 25% 18%;
+    --sidebar-primary: 200 90% 55%;
+    --sidebar-primary-foreground: 222 40% 4%;
+    --sidebar-accent: 222 25% 16%;
     --sidebar-accent-foreground: 220 14% 96%;
-    --sidebar-border: 222 20% 16%;
-    --sidebar-ring: 200 65% 50%;
+    --sidebar-border: 222 22% 14%;
+    --sidebar-ring: 200 90% 55%;
 
-    --sport-dark: 222 35% 6%;
-    --sport-accent: 153 60% 45%;
-    --sport-surface: 222 20% 12%;
-    --sport-win: 153 60% 45%;
-    --sport-loss: 0 60% 55%;
-    --sport-draw: 45 70% 55%;
+    --sport-dark: 222 40% 4%;
+    --sport-accent: 153 70% 48%;
+    --sport-surface: 222 25% 11%;
+    --sport-win: 153 70% 48%;
+    --sport-loss: 0 70% 58%;
+    --sport-draw: 45 90% 58%;
 
-    --chart-1: 200 70% 50%;
-    --chart-2: 153 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --chart-1: 200 90% 55%;
+    --chart-2: 153 70% 48%;
+    --chart-3: 30 90% 58%;
+    --chart-4: 280 70% 65%;
+    --chart-5: 340 80% 60%;
   }
 }
 
@@ -66,6 +74,11 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-tap-highlight-color: transparent;
+    font-feature-settings: "ss01", "cv11", "tnum";
+  }
+  h1, h2, h3, h4 {
+    font-feature-settings: "ss01", "cv11";
+    letter-spacing: -0.01em;
   }
 }
 
@@ -77,39 +90,129 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  .font-display {
+    font-family: 'Oswald', 'Inter', system-ui, sans-serif;
+    letter-spacing: 0.01em;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
 }
 
 @layer components {
+  /* ===== Broadcast surfaces ===== */
   .sport-gradient {
-    background: linear-gradient(135deg, hsl(222 35% 10%) 0%, hsl(200 50% 18%) 100%);
+    background:
+      radial-gradient(ellipse at top left, hsl(200 70% 18% / 0.5), transparent 60%),
+      radial-gradient(ellipse at bottom right, hsl(153 60% 18% / 0.35), transparent 60%),
+      linear-gradient(135deg, hsl(222 40% 6%) 0%, hsl(222 35% 9%) 100%);
   }
   .sport-glass {
     background: hsl(var(--sport-dark) / 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border-bottom: 1px solid hsl(var(--border) / 0.6);
   }
   .score-strip {
-    background: hsl(222 35% 6%);
+    background: linear-gradient(180deg, hsl(222 40% 4%), hsl(222 40% 6%));
+    border-bottom: 1px solid hsl(var(--border));
   }
+
+  /* ===== Broadcast typography ===== */
   .stat-number {
     @apply font-black tabular-nums tracking-tight;
+    font-feature-settings: "tnum", "ss01";
+  }
+  .headline {
+    @apply font-display font-bold uppercase tracking-wide text-foreground;
   }
   .section-label {
-    @apply text-[11px] font-bold uppercase tracking-widest text-muted-foreground;
+    @apply text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground;
   }
+  .eyebrow {
+    @apply inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em];
+  }
+
+  /* ===== Cards: sharper edges + side accent ===== */
   .match-card {
-    @apply bg-card rounded-xl border border-border/50 transition-all duration-200 active:scale-[0.98];
+    @apply bg-card rounded-md border border-border/60 transition-all duration-200 active:scale-[0.99];
+    box-shadow: 0 1px 0 hsl(var(--border) / 0.4) inset, 0 8px 24px -12px hsl(0 0% 0% / 0.5);
   }
   .match-card:hover {
-    @apply shadow-lg shadow-black/20 border-border;
+    @apply border-border;
+    box-shadow: 0 1px 0 hsl(var(--primary) / 0.3) inset, 0 12px 32px -12px hsl(0 0% 0% / 0.6);
   }
+  .match-card-accent {
+    position: relative;
+    overflow: hidden;
+  }
+  .match-card-accent::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, hsl(var(--primary)), hsl(var(--accent)));
+  }
+
   .page-section {
     @apply py-5 md:py-8;
   }
   .page-container {
     @apply container mx-auto px-4;
   }
+
+  /* ===== Glow / accent helpers ===== */
   .glow-primary {
-    box-shadow: 0 0 20px -5px hsl(200 65% 50% / 0.3);
+    box-shadow: 0 0 24px -6px hsl(var(--primary) / 0.45);
+  }
+  .glow-highlight {
+    box-shadow: 0 0 24px -6px hsl(var(--highlight) / 0.5);
+  }
+
+  /* ===== LIVE chip: pulsing red dot, broadcast style ===== */
+  .live-chip {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-destructive text-destructive-foreground text-[10px] font-black uppercase tracking-widest;
+    box-shadow: 0 0 12px -2px hsl(var(--destructive) / 0.6);
+  }
+  .live-chip::before {
+    content: "";
+    @apply h-1.5 w-1.5 rounded-full bg-destructive-foreground;
+    animation: pulse-glow 1.4s ease-in-out infinite;
+  }
+
+  /* ===== Diagonal stripe accent (broadcast tape) ===== */
+  .stripe-accent {
+    background-image: repeating-linear-gradient(
+      135deg,
+      hsl(var(--primary) / 0.12) 0,
+      hsl(var(--primary) / 0.12) 6px,
+      transparent 6px,
+      transparent 12px
+    );
+  }
+  .stripe-highlight {
+    background-image: repeating-linear-gradient(
+      135deg,
+      hsl(var(--highlight) / 0.15) 0,
+      hsl(var(--highlight) / 0.15) 6px,
+      transparent 6px,
+      transparent 12px
+    );
+  }
+
+  /* ===== Section header bar (ESPN-style) ===== */
+  .section-header {
+    @apply flex items-center gap-2 pb-2 mb-3 border-b-2 border-primary/70;
+  }
+  .section-header h2,
+  .section-header h3 {
+    @apply font-display font-bold uppercase tracking-wider text-foreground;
+  }
+
+  /* ===== Tabular data table ===== */
+  .data-row {
+    @apply border-b border-border/40 transition-colors hover:bg-muted/30;
   }
 }
