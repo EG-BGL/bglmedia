@@ -24,6 +24,7 @@ import Admin from "./pages/Admin";
 import ManageTeams from "./pages/ManageTeams";
 import ManagePlayers from "./pages/ManagePlayers";
 import Profile from "./pages/Profile";
+import TeamOfTheRound from "./pages/TeamOfTheRound";
 
 import NotFound from "./pages/NotFound";
 
