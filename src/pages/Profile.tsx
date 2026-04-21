@@ -14,6 +14,7 @@ import {
   Pencil, Camera, Trophy, ClipboardList, CircleDot, Flame, Target, Swords, Zap,
 } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
+import { getBadge, TONE_CLASSES } from '@/lib/badges';
 
 // Hardcoded multi-sport showcase coach data
 type SportKey = 'afl' | 'cricket';
@@ -162,6 +163,7 @@ export default function Profile() {
   const [seasonStats, setSeasonStats] = useState<SeasonStats[]>([]);
   const [allTimeStats, setAllTimeStats] = useState({ totalSeasons: 0, totalMatches: 0, wins: 0, losses: 0, draws: 0, winRate: '0' });
   const [recentResults, setRecentResults] = useState<any[]>([]);
+  const [achievements, setAchievements] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [activeSport, setActiveSport] = useState<SportKey>('afl');
   const fileInputRef = useRef<HTMLInputElement>(null);
