@@ -11,6 +11,7 @@ const navItems = [
   { label: 'Fixtures & Results', path: '/fixtures' },
   { label: 'Ladder', path: '/ladder' },
   { label: 'Stats', path: '/stats' },
+  { label: 'Team of the Round', path: '/team-of-the-round' },
 ];
 
 export default function Header() {
