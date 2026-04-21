@@ -428,11 +428,6 @@ export default function Profile() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-bold text-muted-foreground">{sp.team}</span>
-                {sp.dynasty && (
-                  <Badge className="rounded-full text-[8px] font-black px-1.5 py-0 bg-amber-500/15 text-amber-600 border-amber-500/30">
-                    <Flame className="h-2.5 w-2.5 mr-0.5" />Dynasty
-                  </Badge>
-                )}
               </div>
               <div className="text-center shrink-0">
                 <div className="text-2xl font-black text-primary tabular-nums">{sp.premierships}</div>
