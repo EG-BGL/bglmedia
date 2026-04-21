@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Fixtures from "./pages/Fixtures";
 import Results from "./pages/Results";
 import Ladder from "./pages/Ladder";
+import Stats from "./pages/Stats";
 import Clubs from "./pages/Clubs";
 import ClubProfile from "./pages/ClubProfile";
 import MatchCentre from "./pages/MatchCentre";
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/fixtures" element={<Fixtures />} />
             <Route path="/results" element={<Results />} />
             <Route path="/ladder" element={<Ladder />} />
+            <Route path="/stats" element={<Stats />} />
             <Route path="/clubs" element={<Clubs />} />
             <Route path="/clubs/:id" element={<ClubProfile />} />
             <Route path="/match/:id" element={<MatchCentre />} />

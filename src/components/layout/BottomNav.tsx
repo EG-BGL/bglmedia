@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Trophy, Users, User, ClipboardList } from 'lucide-react';
+import { Home, Calendar, Trophy, BarChart3, User, ClipboardList } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 const tabs = [
@@ -7,7 +7,7 @@ const tabs = [
   { label: 'Fixtures', path: '/fixtures', icon: Calendar },
   { label: 'Submit', path: '/portal/submit', icon: ClipboardList, authOnly: true },
   { label: 'Ladder', path: '/ladder', icon: Trophy },
-  
+  { label: 'Stats', path: '/stats', icon: BarChart3 },
   { label: 'Profile', path: '/profile', icon: User },
 ];
 
