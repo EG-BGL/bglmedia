@@ -130,6 +130,18 @@ export default function Fixtures() {
               })}
             </div>
           )}
+          <Select value={activeSeasonId ?? ''} onValueChange={(v) => setSelectedSeasonId(v)}>
+            <SelectTrigger className="w-[170px] h-8 rounded-lg text-xs font-semibold border-border/40 bg-secondary/40">
+              <SelectValue placeholder="Season" />
+            </SelectTrigger>
+            <SelectContent>
+              {sportSeasons.map((s: any) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}{s.is_current ? ' · Current' : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={selectedRound} onValueChange={setSelectedRound}>
             <SelectTrigger className="w-[130px] h-8 rounded-lg text-xs font-semibold border-border/40 bg-secondary/40">
               <SelectValue placeholder="Round" />
