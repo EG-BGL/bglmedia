@@ -465,15 +465,6 @@ export default function Profile() {
   );
 }
 
-// (Recent Submissions section removed — kept private)
-function _unused() { return null; }
-
-
-      </div>
-    </Layout>
-  );
-}
-
 /* ── Sub-components ── */
 
 function QuickStat({ value, label, className = '' }: { value: string | number; label: string; className?: string }) {
