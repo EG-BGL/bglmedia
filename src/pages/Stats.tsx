@@ -30,11 +30,13 @@ export default function Stats() {
   }, [allSeasons, currentSport]);
 
   useEffect(() => {
+    const stillValid = seasons.some((s: any) => s.id === selectedSeasonId);
+    if (stillValid) return;
     const current = seasons.find((s: any) => s.is_current);
     if (current) setSelectedSeasonId(current.id);
     else if (seasons.length > 0) setSelectedSeasonId(seasons[0].id);
     else setSelectedSeasonId('');
-  }, [seasons]);
+  }, [seasons, selectedSeasonId]);
 
   // Pull all fixtures + stats for season
   const { data: seasonData, isLoading } = useQuery({
