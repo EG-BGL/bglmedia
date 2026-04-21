@@ -2,8 +2,8 @@ import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MapPin, Calendar } from 'lucide-react';
-import { useFixtures, useResults, useCurrentSeason } from '@/hooks/useData';
-import { useState } from 'react';
+import { useFixtures, useResults, useCurrentSeason, useSeasons } from '@/hooks/useData';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ClubLogo from '@/components/ClubLogo';
 import { useSport } from '@/hooks/useSport';
@@ -65,10 +65,30 @@ function getCricketResultText(innings: any[], homeTeamId: string, awayTeamId: st
 export default function Fixtures() {
   const { sports, currentSport, setSport } = useSport();
   const isCricket = currentSport?.slug === 'cricket';
-  const { data: season } = useCurrentSeason(currentSport?.id);
-  const { data: fixtures, isLoading } = useFixtures(season?.id);
-  const { data: results } = useResults(season?.id);
-  const { data: cricketInningsMap } = useCricketInningsForSeason(season?.id, isCricket);
+  const { data: currentSeason } = useCurrentSeason(currentSport?.id);
+  const { data: allSeasons } = useSeasons();
+
+  const sportSeasons = useMemo(
+    () => (allSeasons ?? []).filter((s: any) => s.competitions?.sport_id === currentSport?.id),
+    [allSeasons, currentSport?.id],
+  );
+
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string | undefined>(undefined);
+
+  // Reset season selection when sport changes
+  useEffect(() => {
+    setSelectedSeasonId(undefined);
+  }, [currentSport?.id]);
+
+  // Default to current season when sport changes / data loads
+  useEffect(() => {
+    if (currentSeason?.id) setSelectedSeasonId(currentSeason.id);
+  }, [currentSeason?.id]);
+
+  const activeSeasonId = selectedSeasonId ?? currentSeason?.id;
+  const { data: fixtures, isLoading } = useFixtures(activeSeasonId);
+  const { data: results } = useResults(activeSeasonId);
+  const { data: cricketInningsMap } = useCricketInningsForSeason(activeSeasonId, isCricket);
 
   const fixtureIdsWithResults = new Set(results?.map((r: any) => r.fixture_id ?? r.fixtures?.id) ?? []);
   const resultsByFixture = new Map((results ?? []).map((r: any) => [r.fixture_id ?? r.fixtures?.id, r]));
@@ -115,6 +135,18 @@ export default function Fixtures() {
               })}
             </div>
           )}
+          <Select value={activeSeasonId ?? ''} onValueChange={(v) => setSelectedSeasonId(v)}>
+            <SelectTrigger className="w-[170px] h-8 rounded-lg text-xs font-semibold border-border/40 bg-secondary/40">
+              <SelectValue placeholder="Season" />
+            </SelectTrigger>
+            <SelectContent>
+              {sportSeasons.map((s: any) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}{s.is_current ? ' · Current' : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={selectedRound} onValueChange={setSelectedRound}>
             <SelectTrigger className="w-[130px] h-8 rounded-lg text-xs font-semibold border-border/40 bg-secondary/40">
               <SelectValue placeholder="Round" />
