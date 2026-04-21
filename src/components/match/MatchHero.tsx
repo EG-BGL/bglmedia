@@ -93,20 +93,20 @@ export default function MatchHero({ fixture, result, homeClub, awayClub, matchDa
           <div className="text-center px-2 shrink-0 relative z-10">
             {showLive ? (
               <>
+                <div className="text-[11px] text-muted-foreground mb-1 tabular-nums font-semibold">
+                  {liveState?.home_goals}.{liveState?.home_behinds} – {liveState?.away_goals}.{liveState?.away_behinds}
+                </div>
                 <div className="text-4xl md:text-5xl font-black tabular-nums tracking-tighter leading-none text-foreground">
                   {liveHomeScore}<span className="text-muted-foreground/20 mx-1.5">–</span>{liveAwayScore}
-                </div>
-                <div className="text-[11px] text-muted-foreground mt-1.5 tabular-nums font-semibold">
-                  {liveState?.home_goals}.{liveState?.home_behinds} – {liveState?.away_goals}.{liveState?.away_behinds}
                 </div>
               </>
             ) : result ? (
               <>
+                <div className="text-[11px] text-muted-foreground mb-1 tabular-nums font-semibold">
+                  {result.home_goals}.{result.home_behinds} – {result.away_goals}.{result.away_behinds}
+                </div>
                 <div className="text-4xl md:text-5xl font-black tabular-nums tracking-tighter leading-none text-foreground">
                   {result.home_score}<span className="text-muted-foreground/20 mx-1.5">–</span>{result.away_score}
-                </div>
-                <div className="text-[11px] text-muted-foreground mt-1.5 tabular-nums font-semibold">
-                  {result.home_goals}.{result.home_behinds} – {result.away_goals}.{result.away_behinds}
                 </div>
               </>
             ) : (
