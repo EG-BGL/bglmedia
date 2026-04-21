@@ -103,62 +103,74 @@ export default function Fixtures() {
     groupedFixtures[f.round_number].push(f);
   });
 
+  const activeSeason = sportSeasons.find((s: any) => s.id === activeSeasonId);
+  const totalFixtures = fixtures?.length ?? 0;
+
   return (
     <Layout>
-      <div className="page-container py-5 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
-            <Calendar className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-xl font-black tracking-tight">Fixtures & Results</h1>
-            <p className="text-[11px] text-muted-foreground font-medium">Find your fixture</p>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {sports.length > 1 && (
-            <div className="flex items-center bg-secondary/60 rounded-lg p-0.5 gap-0.5">
-              {sports.map((sport) => {
-                const active = currentSport?.slug === sport.slug;
-                const label = sport.slug === 'afl' ? 'AFL' : sport.slug === 'cricket' ? 'Cricket' : sport.slug === 'rugby-league' ? 'Rugby' : sport.name;
-                return (
-                  <button
-                    key={sport.id}
-                    onClick={() => setSport(sport.slug)}
-                    className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
-                      active ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20' : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >{label}</button>
-                );
-              })}
+      {/* Sticky broadcast-style toolbar */}
+      <div className="sticky top-0 z-30 bg-background/85 backdrop-blur-md border-b border-border/40">
+        <div className="page-container py-3 space-y-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+                <Calendar className="h-4 w-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-base font-black tracking-tight leading-none">Fixtures &amp; Results</h1>
+                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5 truncate">
+                  {activeSeason?.name ?? '—'}{totalFixtures ? ` · ${totalFixtures} matches` : ''}
+                </p>
+              </div>
             </div>
-          )}
-          <Select value={activeSeasonId ?? ''} onValueChange={(v) => setSelectedSeasonId(v)}>
-            <SelectTrigger className="w-[170px] h-8 rounded-lg text-xs font-semibold border-border/40 bg-secondary/40">
-              <SelectValue placeholder="Season" />
-            </SelectTrigger>
-            <SelectContent>
-              {sportSeasons.map((s: any) => (
-                <SelectItem key={s.id} value={s.id}>
-                  {s.name}{s.is_current ? ' · Current' : ''}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedRound} onValueChange={setSelectedRound}>
-            <SelectTrigger className="w-[130px] h-8 rounded-lg text-xs font-semibold border-border/40 bg-secondary/40">
-              <SelectValue placeholder="Round" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Rounds</SelectItem>
-              {rounds.map(r => (
-                <SelectItem key={r} value={String(r)}>Round {r}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {sports.length > 1 && (
+              <div className="flex items-center bg-secondary/60 rounded-lg p-0.5 gap-0.5 shrink-0">
+                {sports.map((sport) => {
+                  const active = currentSport?.slug === sport.slug;
+                  const label = sport.slug === 'afl' ? 'AFL' : sport.slug === 'cricket' ? 'CRK' : sport.slug === 'rugby-league' ? 'RL' : sport.name;
+                  return (
+                    <button
+                      key={sport.id}
+                      onClick={() => setSport(sport.slug)}
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-black tracking-wider transition-all ${
+                        active ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20' : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >{label}</button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Select value={activeSeasonId ?? ''} onValueChange={(v) => setSelectedSeasonId(v)}>
+              <SelectTrigger className="flex-1 h-8 rounded-lg text-xs font-semibold border-border/40 bg-secondary/40">
+                <SelectValue placeholder="Season" />
+              </SelectTrigger>
+              <SelectContent>
+                {sportSeasons.map((s: any) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}{s.is_current ? ' · Current' : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={selectedRound} onValueChange={setSelectedRound}>
+              <SelectTrigger className="w-[120px] h-8 rounded-lg text-xs font-semibold border-border/40 bg-secondary/40">
+                <SelectValue placeholder="Round" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Rounds</SelectItem>
+                {rounds.map(r => (
+                  <SelectItem key={r} value={String(r)}>Round {r}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+      </div>
+
+      <div className="page-container py-3 space-y-4">
 
         {/* Content */}
         {isLoading ? (
