@@ -113,21 +113,16 @@ export default function TeamOfTheRound() {
         .filter(s => slot.positions.includes(s.players?.position ?? ''))
         .sort((a, b) => (b.afl_fantasy ?? 0) - (a.afl_fantasy ?? 0))
         .slice(0, slot.count);
-      // Top up with any remaining if not enough at that position
-      if (eligible.length < slot.count) {
-        const fillers = pool
-          .filter(s => !used.has(s.player_id) && !eligible.find(e => e.player_id === s.player_id))
-          .sort((a, b) => (b.afl_fantasy ?? 0) - (a.afl_fantasy ?? 0))
-          .slice(0, slot.count - eligible.length);
-        eligible.push(...fillers);
-      }
+      // Strict: only play position-eligible players in their position. No fillers.
       eligible.forEach(p => used.add(p.player_id));
       result.push({ row: slot.row, players: eligible });
     }
 
-    // Interchange: top 4 remaining
+    // Interchange: top 4 remaining position-eligible players (any of the on-field positions)
+    const benchPositions = new Set(FORMATION.flatMap(f => f.positions));
     const bench = pool
       .filter(s => !used.has(s.player_id))
+      .filter(s => benchPositions.has(s.players?.position ?? ''))
       .sort((a, b) => (b.afl_fantasy ?? 0) - (a.afl_fantasy ?? 0))
       .slice(0, 4);
     bench.forEach(p => used.add(p.player_id));
