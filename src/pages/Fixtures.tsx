@@ -75,6 +75,11 @@ export default function Fixtures() {
 
   const [selectedSeasonId, setSelectedSeasonId] = useState<string | undefined>(undefined);
 
+  // Reset season selection when sport changes
+  useEffect(() => {
+    setSelectedSeasonId(undefined);
+  }, [currentSport?.id]);
+
   // Default to current season when sport changes / data loads
   useEffect(() => {
     if (currentSeason?.id) setSelectedSeasonId(currentSeason.id);
