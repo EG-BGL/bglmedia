@@ -86,8 +86,10 @@ export default function Fixtures() {
   }, [currentSeason?.id]);
 
   const activeSeasonId = selectedSeasonId ?? currentSeason?.id;
-  const { data: fixtures, isLoading } = useFixtures(activeSeasonId);
-  const { data: results } = useResults(activeSeasonId);
+  // Only fetch when we have a season for the current sport — prevents cross-sport leakage
+  const hasValidSeason = !!activeSeasonId && sportSeasons.some((s: any) => s.id === activeSeasonId);
+  const { data: fixtures, isLoading } = useFixtures(hasValidSeason ? activeSeasonId : 'none');
+  const { data: results } = useResults(hasValidSeason ? activeSeasonId : 'none');
   const { data: cricketInningsMap } = useCricketInningsForSeason(activeSeasonId, isCricket);
 
   const fixtureIdsWithResults = new Set(results?.map((r: any) => r.fixture_id ?? r.fixtures?.id) ?? []);
