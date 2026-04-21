@@ -53,6 +53,13 @@ export default function MatchHero({ fixture, result, homeClub, awayClub, matchDa
 
   return (
     <div ref={heroRef} className="match-card overflow-hidden">
+      <div className="flex items-center justify-center py-2 border-b border-border/30">
+        <Badge className={`rounded-full text-[10px] font-black tracking-widest px-3 py-0.5 border-0 ${liveStatusClass}`}>
+          {(isLive || showLive) && <span className="h-1.5 w-1.5 rounded-full bg-current mr-1.5 animate-pulse inline-block" />}
+          {liveStatusLabel}
+        </Badge>
+      </div>
+
       <div className="px-4 pt-4 pb-6">
         <div className="text-center mb-4">
           <div className="text-sm font-black tracking-tight">
@@ -83,17 +90,13 @@ export default function MatchHero({ fixture, result, homeClub, awayClub, matchDa
             {homeWon && <Badge variant="secondary" className="text-[9px] rounded-full px-2 py-0 font-black bg-primary/10 text-primary border-0">WIN</Badge>}
           </div>
 
-          <div className="text-center px-2 shrink-0 relative z-10 flex flex-col items-center gap-1.5">
-            <Badge className={`rounded-full text-[10px] font-black tracking-widest px-3 py-0.5 border-0 ${liveStatusClass}`}>
-              {(isLive || showLive) && <span className="h-1.5 w-1.5 rounded-full bg-current mr-1.5 animate-pulse inline-block" />}
-              {liveStatusLabel}
-            </Badge>
+          <div className="text-center px-2 shrink-0 relative z-10">
             {showLive ? (
               <>
                 <div className="text-4xl md:text-5xl font-black tabular-nums tracking-tighter leading-none text-foreground">
                   {liveHomeScore}<span className="text-muted-foreground/20 mx-1.5">–</span>{liveAwayScore}
                 </div>
-                <div className="text-[11px] text-muted-foreground mt-0.5 tabular-nums font-semibold">
+                <div className="text-[11px] text-muted-foreground mt-1.5 tabular-nums font-semibold">
                   {liveState?.home_goals}.{liveState?.home_behinds} – {liveState?.away_goals}.{liveState?.away_behinds}
                 </div>
               </>
@@ -102,7 +105,7 @@ export default function MatchHero({ fixture, result, homeClub, awayClub, matchDa
                 <div className="text-4xl md:text-5xl font-black tabular-nums tracking-tighter leading-none text-foreground">
                   {result.home_score}<span className="text-muted-foreground/20 mx-1.5">–</span>{result.away_score}
                 </div>
-                <div className="text-[11px] text-muted-foreground mt-0.5 tabular-nums font-semibold">
+                <div className="text-[11px] text-muted-foreground mt-1.5 tabular-nums font-semibold">
                   {result.home_goals}.{result.home_behinds} – {result.away_goals}.{result.away_behinds}
                 </div>
               </>
