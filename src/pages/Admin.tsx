@@ -11,8 +11,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Check, X, Shield, Plus, Pencil, Trash2, Upload, Image, Calendar, Newspaper, FileText, Users, Clock, AlertTriangle, CircleDot, Trophy, UserCheck, Ban, UserX, Search } from 'lucide-react';
+import { Check, X, Shield, Plus, Pencil, Trash2, Upload, Image, Calendar, Newspaper, FileText, Users, Clock, AlertTriangle, CircleDot, Trophy, UserCheck, Ban, UserX, Search, Award } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
+import AchievementsAdmin from '@/components/admin/AchievementsAdmin';
 
 interface ClubForm {
   id?: string; name: string; short_name: string; primary_color: string; secondary_color: string;
@@ -395,6 +396,7 @@ export default function Admin() {
               <TabsTrigger value="pending" className="rounded-full text-[10px] font-bold px-3"><Clock className="h-3 w-3 mr-1" />Pending</TabsTrigger>
               <TabsTrigger value="news" className="rounded-full text-[10px] font-bold px-3"><Newspaper className="h-3 w-3 mr-1" />News</TabsTrigger>
               <TabsTrigger value="members" className="rounded-full text-[10px] font-bold px-3"><Shield className="h-3 w-3 mr-1" />Members</TabsTrigger>
+              <TabsTrigger value="achievements" className="rounded-full text-[10px] font-bold px-3"><Award className="h-3 w-3 mr-1" />Achievements</TabsTrigger>
               <TabsTrigger value="audit" className="rounded-full text-[10px] font-bold px-3"><FileText className="h-3 w-3 mr-1" />Audit</TabsTrigger>
             </TabsList>
           </div>
@@ -1355,6 +1357,10 @@ export default function Admin() {
             <div className="text-[10px] text-muted-foreground">
               <strong>Note:</strong> Banning prevents a member from accessing the site. Removing deletes their profile and role assignments permanently.
             </div>
+          </TabsContent>
+
+          <TabsContent value="achievements" className="mt-4">
+            <AchievementsAdmin user={user} />
           </TabsContent>
 
           <TabsContent value="audit" className="mt-4">

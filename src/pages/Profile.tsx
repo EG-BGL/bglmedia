@@ -14,6 +14,7 @@ import {
   Pencil, Camera, Trophy, ClipboardList, CircleDot, Flame, Target, Swords, Zap,
 } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
+import { getBadge, TONE_CLASSES } from '@/lib/badges';
 
 // Hardcoded multi-sport showcase coach data
 type SportKey = 'afl' | 'cricket';
@@ -162,6 +163,7 @@ export default function Profile() {
   const [seasonStats, setSeasonStats] = useState<SeasonStats[]>([]);
   const [allTimeStats, setAllTimeStats] = useState({ totalSeasons: 0, totalMatches: 0, wins: 0, losses: 0, draws: 0, winRate: '0' });
   const [recentResults, setRecentResults] = useState<any[]>([]);
+  const [achievements, setAchievements] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [activeSport, setActiveSport] = useState<SportKey>('afl');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -263,6 +265,14 @@ export default function Profile() {
       seasons:seasons!fixtures_season_id_fkey(*, competitions:competitions!seasons_competition_id_fkey(*, sports:sports!competitions_sport_id_fkey(*))))
     `).eq('submitted_by', user.id).order('created_at', { ascending: false }).limit(5);
     setRecentResults(resultsData ?? []);
+
+    const { data: achData } = await supabase
+      .from('coach_achievements')
+      .select('*, seasons(name, year, competitions(name)), sports(name, slug)')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    setAchievements(achData ?? []);
+
     setLoadingData(false);
   }
 
@@ -424,6 +434,29 @@ export default function Profile() {
             {seasonStats.map((ss, i) => (
               <SeasonCard key={i} ss={ss} getOrdinal={getOrdinal} />
             ))}
+          </section>
+        )}
+
+        {/* Achievements */}
+        {achievements.length > 0 && (
+          <section className="space-y-2">
+            <h2 className="section-label flex items-center gap-1.5"><Trophy className="h-3.5 w-3.5" />Achievements</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {achievements.map((a: any) => {
+                const b = getBadge(a.badge_type);
+                return (
+                  <div key={a.id} className={`match-card p-3 flex flex-col items-center text-center gap-1.5 border ${TONE_CLASSES[b.tone]}`}>
+                    <div className="text-2xl leading-none">{b.icon}</div>
+                    <div className="text-[11px] font-black leading-tight">{b.label}</div>
+                    <div className="text-[9px] text-muted-foreground font-medium leading-tight">
+                      {a.sports?.name && <span>{a.sports.name}</span>}
+                      {a.seasons && <span> • {a.seasons.name}</span>}
+                    </div>
+                    {a.notes && <div className="text-[9px] italic text-muted-foreground line-clamp-2">{a.notes}</div>}
+                  </div>
+                );
+              })}
+            </div>
           </section>
         )}
 

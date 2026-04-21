@@ -98,6 +98,57 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_achievements: {
+        Row: {
+          awarded_by: string | null
+          badge_type: string
+          created_at: string
+          id: string
+          notes: string | null
+          season_id: string | null
+          sport_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          awarded_by?: string | null
+          badge_type: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          season_id?: string | null
+          sport_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          awarded_by?: string | null
+          badge_type?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          season_id?: string | null
+          sport_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_achievements_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_achievements_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coaches_to_teams: {
         Row: {
           created_at: string
