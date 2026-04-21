@@ -47,7 +47,8 @@ export default function MatchCentre() {
     return () => observer.disconnect();
   }, [fixture]);
 
-  const result = (fixture as any)?.results?.[0];
+  const rawResults = (fixture as any)?.results;
+  const result = Array.isArray(rawResults) ? rawResults[0] : rawResults;
   const homeClub = (fixture as any)?.home_team?.clubs;
   const awayClub = (fixture as any)?.away_team?.clubs;
   const homeTeamId = (fixture as any)?.home_team?.id;
