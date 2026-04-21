@@ -304,30 +304,74 @@ function PlayersView({ aggregates, lastRoundHighs }: { aggregates: any[]; lastRo
     <div className="space-y-4">
       {/* Last Round Highs */}
       {lastRoundHighs && (
-        <section className="match-card overflow-hidden">
-          <div className="px-4 py-2.5 border-b border-border/30 flex items-center justify-between">
+        <section>
+          <div className="flex items-center justify-between mb-2 px-1">
             <h2 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Last Round Highs</h2>
             <span className="text-[10px] font-bold uppercase text-primary">Round {lastRoundHighs.round}</span>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border/30">
+          <div
+            className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 -mx-4 px-4"
+            style={{ scrollbarWidth: 'none' }}
+          >
             {PLAYER_LEADER_CATS.map(cat => {
               const top = lastRoundHighs[cat.key];
               const Icon = cat.icon;
+              const player = top?.players;
+              const club = player?.teams?.clubs;
+              const initials = player ? `${player.first_name?.[0] ?? ''}${player.last_name?.[0] ?? ''}`.toUpperCase() : '?';
+              const primary = club?.primary_color ?? 'hsl(var(--primary))';
               return (
-                <div key={cat.key} className="bg-card p-3 flex flex-col gap-1.5">
-                  <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                    <Icon className="h-3 w-3 text-primary" /> {cat.label}
-                  </div>
-                  {top ? (
-                    <>
-                      <div className="text-2xl font-black tabular-nums leading-none">{top[cat.key] ?? 0}</div>
-                      <div className="text-[11px] font-bold truncate">
-                        {top.players?.first_name?.[0]}. {top.players?.last_name}
+                <div
+                  key={cat.key}
+                  className="match-card snap-center shrink-0 w-[78%] max-w-[280px] overflow-hidden relative"
+                >
+                  {/* Gradient backdrop using club color */}
+                  <div
+                    className="absolute inset-0 opacity-25"
+                    style={{ background: `linear-gradient(135deg, ${primary} 0%, transparent 70%)` }}
+                  />
+                  <div className="relative p-4 flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                        <Icon className="h-3 w-3 text-primary" /> {cat.label}
                       </div>
-                    </>
-                  ) : (
-                    <div className="text-xs text-muted-foreground/50">—</div>
-                  )}
+                      {club && <ClubLogo club={club} size="sm" />}
+                    </div>
+
+                    {top ? (
+                      <>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-20 w-20 ring-2 ring-primary/40">
+                            {player?.photo_url && <AvatarImage src={player.photo_url} alt={`${player.first_name} ${player.last_name}`} className="object-cover" />}
+                            <AvatarFallback
+                              className="text-lg font-black"
+                              style={{ backgroundColor: primary, color: club?.secondary_color ?? '#fff' }}
+                            >
+                              {initials}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-4xl font-black tabular-nums leading-none text-primary">
+                              {top[cat.key] ?? 0}
+                            </div>
+                            <div className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-bold mt-1">
+                              {cat.label}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="border-t border-border/30 pt-2">
+                          <div className="text-sm font-bold truncate leading-tight">
+                            {player?.first_name} {player?.last_name}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground truncate">
+                            {club?.short_name ?? '—'}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-xs text-muted-foreground/50 py-8 text-center">No data</div>
+                    )}
+                  </div>
                 </div>
               );
             })}
