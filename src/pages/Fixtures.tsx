@@ -171,7 +171,6 @@ export default function Fixtures() {
       </div>
 
       <div className="page-container py-3 space-y-4">
-        </div>
 
         {/* Content */}
         {isLoading ? (
