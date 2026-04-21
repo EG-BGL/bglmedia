@@ -15,12 +15,12 @@ export default function BottomNav() {
   const location = useLocation();
   const { user, role } = useAuth();
 
-  const profilePath = user ? '/portal' : '/login';
+  const profilePath = user ? '/profile' : '/login';
   const isCoachOrAdmin = role === 'coach' || role === 'league_admin';
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
-    if (path === '/profile') return location.pathname === '/portal' || location.pathname === '/login';
+    if (path === '/profile') return location.pathname === '/profile' || location.pathname === '/login';
     return location.pathname.startsWith(path);
   };
 
