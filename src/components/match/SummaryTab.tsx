@@ -3,6 +3,7 @@ import ClubLogo from '@/components/ClubLogo';
 import { Trophy, Info, Zap, Target, Hand, Shield, ArrowUpCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMatchPlayerStats } from '@/hooks/useData';
+import MomentumPanel from './MomentumPanel';
 
 interface SummaryTabProps {
   fixture: any;
@@ -180,6 +181,9 @@ export default function SummaryTab({ fixture, result, homeClub, awayClub, matchD
           </table>
         </div>
       </div>
+
+      {/* Momentum */}
+      <MomentumPanel fixture={fixture} result={result} homeClub={homeClub} awayClub={awayClub} />
 
       {/* Match Leaders */}
       {(leaders.length > 0 || fallbackGoalLeaders.length > 0) && (
