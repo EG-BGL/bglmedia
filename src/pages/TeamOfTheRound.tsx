@@ -138,23 +138,25 @@ export default function TeamOfTheRound() {
 
   return (
     <Layout>
-      <div className="page-container py-4 space-y-4">
+      <div className="page-container py-4 space-y-5">
         {/* Header */}
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
-              <Trophy className="h-5 w-5" />
+        <div className="flex items-end justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20 ring-1 ring-white/10">
+              <Trophy className="h-5 w-5" strokeWidth={2.5} />
             </div>
             <div>
-              <h1 className="text-xl font-black tracking-tight leading-none">Team of the Round</h1>
-              <p className="text-xs text-muted-foreground mt-0.5">Top 22 by AFL Fantasy</p>
+              <h1 className="text-2xl font-black tracking-tight leading-none">Team of the Round</h1>
+              <p className="text-[11px] uppercase tracking-[0.18em] font-semibold text-muted-foreground mt-1.5">
+                Top 22 · AFL Fantasy
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {sports.length > 1 && (
               <Select value={currentSport?.slug ?? ''} onValueChange={setSport}>
-                <SelectTrigger className="h-8 text-xs w-[110px] rounded-lg"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-9 text-xs font-semibold w-[100px] rounded-lg border-border/60"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {sports.map((s: any) => <SelectItem key={s.id} value={s.slug}>{s.name}</SelectItem>)}
                 </SelectContent>
@@ -162,7 +164,7 @@ export default function TeamOfTheRound() {
             )}
             {seasons.length > 0 && (
               <Select value={selectedSeasonId} onValueChange={setSelectedSeasonId}>
-                <SelectTrigger className="h-8 text-xs w-[140px] rounded-lg"><SelectValue placeholder="Season" /></SelectTrigger>
+                <SelectTrigger className="h-9 text-xs font-semibold w-[130px] rounded-lg border-border/60"><SelectValue placeholder="Season" /></SelectTrigger>
                 <SelectContent>
                   {seasons.map((s: any) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                 </SelectContent>
@@ -170,7 +172,7 @@ export default function TeamOfTheRound() {
             )}
             {data?.rounds?.length ? (
               <Select value={String(selectedRound ?? '')} onValueChange={(v) => setSelectedRound(Number(v))}>
-                <SelectTrigger className="h-8 text-xs w-[110px] rounded-lg"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-9 text-xs font-semibold w-[100px] rounded-lg border-border/60"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {data.rounds.map((r: number) => <SelectItem key={r} value={String(r)}>Round {r}</SelectItem>)}
                 </SelectContent>
@@ -180,16 +182,16 @@ export default function TeamOfTheRound() {
         </div>
 
         {!isAfl ? (
-          <div className="match-card p-8 text-center">
+          <div className="match-card p-10 text-center">
             <Trophy className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">Team of the Round is currently AFL-only.</p>
+            <p className="text-sm font-semibold text-muted-foreground">Team of the Round is currently AFL-only.</p>
           </div>
         ) : isLoading ? (
-          <div className="match-card p-8 text-center text-xs text-muted-foreground">Loading…</div>
+          <div className="match-card p-10 text-center text-xs font-semibold text-muted-foreground">Loading…</div>
         ) : !team ? (
-          <div className="match-card p-8 text-center">
+          <div className="match-card p-10 text-center">
             <Sparkles className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">No completed match stats available yet.</p>
+            <p className="text-sm font-semibold text-muted-foreground">No completed match stats available yet.</p>
             <p className="text-xs text-muted-foreground/70 mt-1">Once player stats are recorded for a round, the team will appear here.</p>
           </div>
         ) : (
@@ -208,38 +210,54 @@ function FieldView({ rows, captainId }: { rows: { row: Slot['row']; players: any
     <div className="space-y-4">
       {/* Field */}
       <div
-        className="relative rounded-2xl overflow-hidden border border-border/40 shadow-xl"
+        className="relative rounded-3xl overflow-hidden border border-white/5 shadow-2xl shadow-black/40"
         style={{
           background:
-            'radial-gradient(ellipse at center, hsl(140 60% 28%) 0%, hsl(140 60% 22%) 60%, hsl(140 60% 16%) 100%)',
+            'radial-gradient(ellipse at 50% 30%, hsl(140 55% 32%) 0%, hsl(142 60% 24%) 45%, hsl(145 65% 14%) 100%)',
         }}
       >
+        {/* Subtle turf stripes */}
+        <div
+          className="absolute inset-0 opacity-[0.08] pointer-events-none"
+          style={{
+            backgroundImage:
+              'repeating-linear-gradient(0deg, transparent 0, transparent 40px, rgba(255,255,255,0.5) 40px, rgba(255,255,255,0.5) 80px)',
+          }}
+        />
+
         {/* Field markings */}
-        <svg className="absolute inset-0 w-full h-full opacity-40" viewBox="0 0 100 140" preserveAspectRatio="none">
-          {/* Boundary oval */}
-          <ellipse cx="50" cy="70" rx="48" ry="68" stroke="white" strokeWidth="0.4" fill="none" />
-          {/* Centre circle + square */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.35]" viewBox="0 0 100 140" preserveAspectRatio="none">
+          <ellipse cx="50" cy="70" rx="48" ry="68" stroke="white" strokeWidth="0.35" fill="none" />
           <circle cx="50" cy="70" r="6" stroke="white" strokeWidth="0.3" fill="none" />
           <circle cx="50" cy="70" r="2" stroke="white" strokeWidth="0.3" fill="none" />
           <rect x="40" y="60" width="20" height="20" stroke="white" strokeWidth="0.3" fill="none" />
-          {/* 50m arcs (approx) */}
           <path d="M 25 18 Q 50 38 75 18" stroke="white" strokeWidth="0.3" fill="none" />
           <path d="M 25 122 Q 50 102 75 122" stroke="white" strokeWidth="0.3" fill="none" />
-          {/* Goal squares */}
           <rect x="44" y="2" width="12" height="6" stroke="white" strokeWidth="0.3" fill="none" />
           <rect x="44" y="132" width="12" height="6" stroke="white" strokeWidth="0.3" fill="none" />
         </svg>
 
-        <div className="relative grid grid-rows-6 gap-1 py-4 px-2 sm:px-6 min-h-[640px]">
+        {/* Top edge highlight */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+        <div className="relative grid grid-rows-6 gap-2 py-6 px-2 sm:px-6 min-h-[680px]">
           {onField.map((r) => (
             <div key={r.row} className="flex flex-col">
-              <div className="text-center text-[9px] font-black uppercase tracking-[0.2em] text-white/50 mb-1">
-                {ROW_LABELS[r.row]}
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="h-px w-6 bg-white/15" />
+                <div className="text-[9px] font-black uppercase tracking-[0.25em] text-white/60">
+                  {ROW_LABELS[r.row]}
+                </div>
+                <div className="h-px w-6 bg-white/15" />
               </div>
               <div className="flex items-center justify-around gap-1 flex-1">
-                {r.players.map((p) => (
-                  <FieldPlayer key={p.player_id} stat={p} isCaptain={p.player_id === captainId} />
-                ))}
+                {r.players.length === 0 ? (
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-white/25">No eligible players</div>
+                ) : (
+                  r.players.map((p) => (
+                    <FieldPlayer key={p.player_id} stat={p} isCaptain={p.player_id === captainId} />
+                  ))
+                )}
               </div>
             </div>
           ))}
@@ -249,8 +267,12 @@ function FieldView({ rows, captainId }: { rows: { row: Slot['row']; players: any
       {/* Interchange */}
       {bench && bench.players.length > 0 && (
         <div className="match-card p-4">
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3">
-            {ROW_LABELS.IC}
+          <div className="flex items-center gap-2 mb-3">
+            <div className="h-1 w-1 rounded-full bg-primary" />
+            <div className="text-[10px] font-black uppercase tracking-[0.25em] text-foreground/70">
+              {ROW_LABELS.IC}
+            </div>
+            <div className="h-px flex-1 bg-border/40" />
           </div>
           <div className="grid grid-cols-4 gap-2">
             {bench.players.map((p) => (
@@ -269,36 +291,40 @@ function FieldPlayer({ stat, isCaptain, compact }: { stat: any; isCaptain?: bool
   const initials = player ? `${player.first_name?.[0] ?? ''}${player.last_name?.[0] ?? ''}`.toUpperCase() : '?';
   const primary = club?.primary_color ?? '#1a365d';
   const secondary = club?.secondary_color ?? '#fff';
-  const size = compact ? 'h-12 w-12' : 'h-14 w-14 sm:h-16 sm:w-16';
+  const size = compact ? 'h-12 w-12' : 'h-14 w-14 sm:h-[60px] sm:w-[60px]';
 
   return (
-    <div className="flex flex-col items-center gap-1 min-w-0 max-w-[80px]">
+    <div className="flex flex-col items-center gap-1.5 min-w-0 max-w-[78px]">
       <div className="relative">
-        <Avatar className={`${size} ring-2 ring-white/50 shadow-lg`}>
+        <div
+          className="absolute -inset-0.5 rounded-full opacity-60 blur-[2px]"
+          style={{ background: `linear-gradient(135deg, ${primary}, ${secondary})` }}
+        />
+        <Avatar className={`${size} relative ring-2 ring-white/90 shadow-xl shadow-black/40`}>
           {player?.photo_url && <AvatarImage src={player.photo_url} alt="" className="object-cover" />}
           <AvatarFallback
-            className="text-xs font-black"
+            className="text-sm font-black"
             style={{ backgroundColor: primary, color: secondary }}
           >
             {initials}
           </AvatarFallback>
         </Avatar>
         {isCaptain && (
-          <div className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black flex items-center justify-center ring-2 ring-white shadow-md">
+          <div className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-gradient-to-br from-amber-300 to-amber-500 text-amber-950 text-[10px] font-black flex items-center justify-center ring-2 ring-white shadow-lg">
             C
           </div>
         )}
         {club?.logo_url && (
-          <div className="absolute -bottom-1 -right-1">
-            <ClubLogo club={club} size="sm" className="!h-5 !w-5 ring-1 ring-white/60 rounded-full bg-white" />
+          <div className="absolute -bottom-0.5 -right-0.5">
+            <ClubLogo club={club} size="sm" className="!h-5 !w-5 ring-1 ring-white rounded-full bg-white shadow-md" />
           </div>
         )}
       </div>
-      <div className="text-center min-w-0 w-full">
-        <div className="text-[10px] font-bold text-white truncate leading-tight drop-shadow">
+      <div className="text-center min-w-0 w-full flex flex-col items-center gap-0.5">
+        <div className="text-[10px] font-bold text-white truncate leading-tight w-full drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
           {player?.last_name ?? '—'}
         </div>
-        <div className="text-[10px] font-black tabular-nums text-primary-foreground bg-primary/90 rounded px-1.5 py-px inline-block mt-0.5">
+        <div className="text-[10px] font-black tabular-nums text-white bg-black/55 backdrop-blur-sm rounded-md px-1.5 py-px ring-1 ring-white/10">
           {stat.afl_fantasy ?? 0}
         </div>
       </div>
