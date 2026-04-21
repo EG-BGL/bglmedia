@@ -65,10 +65,25 @@ function getCricketResultText(innings: any[], homeTeamId: string, awayTeamId: st
 export default function Fixtures() {
   const { sports, currentSport, setSport } = useSport();
   const isCricket = currentSport?.slug === 'cricket';
-  const { data: season } = useCurrentSeason(currentSport?.id);
-  const { data: fixtures, isLoading } = useFixtures(season?.id);
-  const { data: results } = useResults(season?.id);
-  const { data: cricketInningsMap } = useCricketInningsForSeason(season?.id, isCricket);
+  const { data: currentSeason } = useCurrentSeason(currentSport?.id);
+  const { data: allSeasons } = useSeasons();
+
+  const sportSeasons = useMemo(
+    () => (allSeasons ?? []).filter((s: any) => s.competitions?.sport_id === currentSport?.id),
+    [allSeasons, currentSport?.id],
+  );
+
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string | undefined>(undefined);
+
+  // Default to current season when sport changes / data loads
+  useEffect(() => {
+    if (currentSeason?.id) setSelectedSeasonId(currentSeason.id);
+  }, [currentSeason?.id]);
+
+  const activeSeasonId = selectedSeasonId ?? currentSeason?.id;
+  const { data: fixtures, isLoading } = useFixtures(activeSeasonId);
+  const { data: results } = useResults(activeSeasonId);
+  const { data: cricketInningsMap } = useCricketInningsForSeason(activeSeasonId, isCricket);
 
   const fixtureIdsWithResults = new Set(results?.map((r: any) => r.fixture_id ?? r.fixtures?.id) ?? []);
   const resultsByFixture = new Map((results ?? []).map((r: any) => [r.fixture_id ?? r.fixtures?.id, r]));
