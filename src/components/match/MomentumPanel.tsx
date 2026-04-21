@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ClubLogo from '@/components/ClubLogo';
-import { Activity, Flame, TrendingUp } from 'lucide-react';
+import { Activity } from 'lucide-react';
 
 interface MomentumPanelProps {
   fixture: any;
@@ -16,23 +16,23 @@ interface GoalEvent {
   team_id: string;
   player_id: string | null;
   is_goal: boolean;
+  behinds?: number | null;
   quarter: number;
   scored_at: string;
-  players?: { first_name: string; last_name: string } | null;
 }
 
-// Parse "G.B" style quarter strings → points
-function parseQ(q: string | null | undefined): number {
-  if (!q) return 0;
+function parseQ(q: string | null | undefined): { goals: number; behinds: number; pts: number } {
+  if (!q) return { goals: 0, behinds: 0, pts: 0 };
   const m = q.match(/(\d+)\.(\d+)/);
-  if (!m) return 0;
-  return parseInt(m[1]) * 6 + parseInt(m[2]);
+  if (!m) return { goals: 0, behinds: 0, pts: 0 };
+  const g = parseInt(m[1]);
+  const b = parseInt(m[2]);
+  return { goals: g, behinds: b, pts: g * 6 + b };
 }
 
 export default function MomentumPanel({ fixture, result, homeClub, awayClub }: MomentumPanelProps) {
   const [events, setEvents] = useState<GoalEvent[]>([]);
   const homeTeamId = fixture?.home_team?.id ?? fixture?.home_team_id;
-  const awayTeamId = fixture?.away_team?.id ?? fixture?.away_team_id;
 
   useEffect(() => {
     if (!fixture?.id) return;
@@ -40,7 +40,7 @@ export default function MomentumPanel({ fixture, result, homeClub, awayClub }: M
     (async () => {
       const { data } = await supabase
         .from('live_goal_events')
-        .select('*, players(first_name, last_name)')
+        .select('*')
         .eq('fixture_id', fixture.id)
         .order('scored_at', { ascending: true });
       if (active) setEvents((data as any) ?? []);
@@ -48,204 +48,151 @@ export default function MomentumPanel({ fixture, result, homeClub, awayClub }: M
     return () => { active = false; };
   }, [fixture?.id]);
 
-  // ====== Quarter swing data ======
-  const quarterSwing = useMemo(() => {
-    if (!result) return [];
-    const homeQ = [
-      parseQ(result.home_q1), parseQ(result.home_q2), parseQ(result.home_q3), parseQ(result.home_q4),
-    ];
-    const awayQ = [
-      parseQ(result.away_q1), parseQ(result.away_q2), parseQ(result.away_q3), parseQ(result.away_q4),
-    ];
-    // Convert cumulative → per-quarter
-    const homePer = homeQ.map((v, i) => Math.max(0, v - (i > 0 ? homeQ[i - 1] : 0)));
-    const awayPer = awayQ.map((v, i) => Math.max(0, v - (i > 0 ? awayQ[i - 1] : 0)));
-    return [0, 1, 2, 3].map(i => {
-      const total = homePer[i] + awayPer[i];
-      const homePct = total > 0 ? (homePer[i] / total) * 100 : 50;
-      return { q: i + 1, home: homePer[i], away: awayPer[i], homePct, hasData: total > 0 };
-    });
-  }, [result]);
+  // Build worm points: cumulative (home - away) point differential over time.
+  // Prefer live event timeline when available; fall back to quarter-end snapshots from result.
+  const worm = useMemo(() => {
+    const pts: { x: number; diff: number; label: string }[] = [{ x: 0, diff: 0, label: 'Start' }];
 
-  const hasQuarterData = quarterSwing.some(q => q.hasData);
+    if (events.length > 0) {
+      let home = 0;
+      let away = 0;
+      events.forEach((e, i) => {
+        const add = (e.is_goal ? 6 : 1);
+        if (e.team_id === homeTeamId) home += add; else away += add;
+        pts.push({ x: i + 1, diff: home - away, label: `Q${e.quarter}` });
+      });
+      return pts;
+    }
 
-  // ====== Goal timeline + scoring runs ======
-  const goalEvents = useMemo(() => events.filter(e => e.is_goal), [events]);
+    if (result) {
+      const homeQ = [parseQ(result.home_q1).pts, parseQ(result.home_q2).pts, parseQ(result.home_q3).pts, parseQ(result.home_q4).pts];
+      const awayQ = [parseQ(result.away_q1).pts, parseQ(result.away_q2).pts, parseQ(result.away_q3).pts, parseQ(result.away_q4).pts];
+      homeQ.forEach((h, i) => {
+        if (h > 0 || awayQ[i] > 0) pts.push({ x: i + 1, diff: h - awayQ[i], label: `Q${i + 1}` });
+      });
+      return pts;
+    }
+    return pts;
+  }, [events, result, homeTeamId]);
 
-  const runs = useMemo(() => {
-    // Detect runs of N consecutive goals by same team (N >= 3)
-    const out: { team_id: string; count: number; endIdx: number }[] = [];
-    let cur = { team_id: '', count: 0 };
-    goalEvents.forEach((e, idx) => {
-      if (e.team_id === cur.team_id) {
-        cur.count++;
-      } else {
-        if (cur.count >= 3) out.push({ ...cur, endIdx: idx - 1 });
-        cur = { team_id: e.team_id, count: 1 };
-      }
-      if (idx === goalEvents.length - 1 && cur.count >= 3) {
-        out.push({ ...cur, endIdx: idx });
-      }
-    });
-    return out;
-  }, [goalEvents]);
+  const hasData = worm.length > 1;
+  if (!hasData) return null;
 
-  // ====== Live momentum bar (last 5 goals) ======
-  const liveMomentum = useMemo(() => {
-    const recent = goalEvents.slice(-5);
-    if (!recent.length) return { homePct: 50, awayPct: 50, recent: 0 };
-    const homeCount = recent.filter(e => e.team_id === homeTeamId).length;
-    return {
-      homePct: (homeCount / recent.length) * 100,
-      awayPct: ((recent.length - homeCount) / recent.length) * 100,
-      recent: recent.length,
-    };
-  }, [goalEvents, homeTeamId]);
+  // Chart geometry
+  const W = 600;
+  const H = 140;
+  const padX = 24;
+  const padY = 14;
+  const maxAbs = Math.max(6, ...worm.map(p => Math.abs(p.diff)));
+  const xStep = (W - padX * 2) / Math.max(1, worm.length - 1);
+  const yMid = H / 2;
+  const yScale = (H / 2 - padY) / maxAbs;
 
-  const hasTimeline = goalEvents.length > 0;
+  const points = worm.map((p, i) => ({
+    x: padX + i * xStep,
+    y: yMid - p.diff * yScale,
+    diff: p.diff,
+    label: p.label,
+  }));
 
-  if (!hasQuarterData && !hasTimeline) return null;
+  // Smooth path via Catmull-Rom-ish approximation (simple bezier)
+  const pathD = points.reduce((acc, pt, i, arr) => {
+    if (i === 0) return `M ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`;
+    const prev = arr[i - 1];
+    const cx = (prev.x + pt.x) / 2;
+    return `${acc} Q ${cx.toFixed(1)} ${prev.y.toFixed(1)} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`;
+  }, '');
+
+  const lastDiff = points[points.length - 1].diff;
+  const leader = lastDiff === 0 ? null : (lastDiff > 0 ? 'home' : 'away');
+  const homeColor = homeClub?.primary_color ?? 'hsl(var(--primary))';
+  const awayColor = awayClub?.primary_color ?? 'hsl(var(--accent))';
 
   return (
     <div className="match-card overflow-hidden">
-      <div className="px-4 py-2.5 border-b border-border/30 flex items-center gap-1.5">
-        <Activity className="h-3.5 w-3.5 text-primary" />
-        <h3 className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Momentum</h3>
+      <div className="px-4 py-2.5 border-b border-border/30 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <Activity className="h-3.5 w-3.5 text-primary" />
+          <h3 className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Scoring Worm</h3>
+        </div>
+        <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-wider">
+          <span className="flex items-center gap-1" style={{ color: homeColor }}>
+            <span className="h-1.5 w-3 rounded-sm" style={{ backgroundColor: homeColor }} />
+            {homeClub?.short_name ?? 'Home'}
+          </span>
+          <span className="flex items-center gap-1" style={{ color: awayColor }}>
+            <span className="h-1.5 w-3 rounded-sm" style={{ backgroundColor: awayColor }} />
+            {awayClub?.short_name ?? 'Away'}
+          </span>
+        </div>
       </div>
 
-      <div className="px-4 py-3 space-y-4">
-        {/* Live momentum bar */}
-        {hasTimeline && (
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-1">
-                <TrendingUp className="h-3 w-3 text-muted-foreground" />
-                <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
-                  Recent momentum (last {liveMomentum.recent} goals)
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <ClubLogo club={homeClub ?? {}} size="sm" className="!h-4 !w-4 shrink-0" />
-              <div className="flex-1 h-2 rounded-full overflow-hidden bg-muted/30 flex">
-                <div
-                  className="transition-all duration-500"
-                  style={{
-                    width: `${liveMomentum.homePct}%`,
-                    backgroundColor: homeClub?.primary_color ?? 'hsl(var(--primary))',
-                  }}
-                />
-                <div
-                  className="transition-all duration-500"
-                  style={{
-                    width: `${liveMomentum.awayPct}%`,
-                    backgroundColor: awayClub?.primary_color ?? 'hsl(var(--accent))',
-                  }}
-                />
-              </div>
-              <ClubLogo club={awayClub ?? {}} size="sm" className="!h-4 !w-4 shrink-0" />
-            </div>
-            <div className="flex justify-between mt-1 text-[9px] tabular-nums text-muted-foreground font-semibold">
-              <span>{Math.round(liveMomentum.homePct)}%</span>
-              <span>{Math.round(liveMomentum.awayPct)}%</span>
-            </div>
-          </div>
-        )}
+      <div className="px-3 py-3">
+        <div className="relative">
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="worm-home" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={homeColor} stopOpacity="0.35" />
+                <stop offset="100%" stopColor={homeColor} stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id="worm-away" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="0%" stopColor={awayColor} stopOpacity="0.35" />
+                <stop offset="100%" stopColor={awayColor} stopOpacity="0" />
+              </linearGradient>
+            </defs>
 
-        {/* Quarter swing chart */}
-        {hasQuarterData && (
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
-                Quarter swing (points scored)
-              </span>
-            </div>
-            <div className="space-y-1.5">
-              {quarterSwing.map(q => (
-                <div key={q.q} className="flex items-center gap-2">
-                  <span className="text-[10px] font-black text-muted-foreground w-5 tabular-nums">Q{q.q}</span>
-                  <span className="text-[10px] font-bold tabular-nums text-foreground w-6 text-right">{q.home}</span>
-                  <div className="flex-1 h-2 rounded-full overflow-hidden bg-muted/30 flex">
-                    <div
-                      className="transition-all"
-                      style={{
-                        width: `${q.homePct}%`,
-                        backgroundColor: homeClub?.primary_color ?? 'hsl(var(--primary))',
-                      }}
-                    />
-                    <div
-                      className="transition-all"
-                      style={{
-                        width: `${100 - q.homePct}%`,
-                        backgroundColor: awayClub?.primary_color ?? 'hsl(var(--accent))',
-                      }}
-                    />
-                  </div>
-                  <span className="text-[10px] font-bold tabular-nums text-foreground w-6">{q.away}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+            {/* Home zone (above midline) */}
+            <rect x="0" y="0" width={W} height={yMid} fill="url(#worm-home)" />
+            {/* Away zone (below midline) */}
+            <rect x="0" y={yMid} width={W} height={H - yMid} fill="url(#worm-away)" />
 
-        {/* Goal timeline */}
-        {hasTimeline && (
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
-                Goal timeline
-              </span>
-              {runs.length > 0 && (
-                <div className="flex items-center gap-1 text-[9px] font-black text-primary">
-                  <Flame className="h-3 w-3" />
-                  <span>{runs.length} scoring run{runs.length > 1 ? 's' : ''}</span>
-                </div>
-              )}
-            </div>
-            <div className="max-h-48 overflow-y-auto space-y-1 pr-1">
-              {goalEvents.slice().reverse().map((e, idxFromEnd) => {
-                const trueIdx = goalEvents.length - 1 - idxFromEnd;
-                const isHome = e.team_id === homeTeamId;
-                const club = isHome ? homeClub : awayClub;
-                const inRun = runs.find(r => trueIdx <= r.endIdx && trueIdx > r.endIdx - r.count);
-                const playerName = e.players
-                  ? `${e.players.first_name?.[0] ?? ''}. ${e.players.last_name}`
-                  : 'Unknown';
-                return (
-                  <div
-                    key={e.id}
-                    className={`flex items-center gap-2 py-1.5 px-2 rounded-md ${
-                      inRun ? 'bg-primary/5 border border-primary/20' : 'bg-muted/20'
-                    }`}
-                  >
-                    <span className="text-[9px] font-black text-muted-foreground tabular-nums w-6">
-                      Q{e.quarter}
-                    </span>
-                    <ClubLogo club={club ?? {}} size="sm" className="!h-4 !w-4 shrink-0" />
-                    <span className="text-[10px] font-bold text-foreground flex-1 truncate">
-                      {playerName}
-                    </span>
-                    {inRun && trueIdx === inRun.endIdx && (
-                      <span className="flex items-center gap-0.5 text-[9px] font-black text-primary">
-                        <Flame className="h-2.5 w-2.5" />
-                        {inRun.count} in a row
-                      </span>
-                    )}
-                    <span
-                      className="text-[10px] font-black tabular-nums px-1.5 py-0.5 rounded"
-                      style={{
-                        backgroundColor: `${club?.primary_color ?? '#1a365d'}20`,
-                        color: club?.primary_color ?? 'hsl(var(--primary))',
-                      }}
-                    >
-                      GOAL
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+            {/* Midline */}
+            <line x1="0" y1={yMid} x2={W} y2={yMid} stroke="hsl(var(--border))" strokeWidth="1" strokeDasharray="3 3" />
+
+            {/* Quarter dividers if we have 4+ points */}
+            {points.length >= 4 && [1, 2, 3].map(i => {
+              const x = padX + (i * (W - padX * 2)) / Math.max(1, points.length - 1) * (points.length - 1) / 4;
+              return <line key={i} x1={x} y1={padY} x2={x} y2={H - padY} stroke="hsl(var(--border))" strokeWidth="0.5" strokeDasharray="2 4" opacity="0.4" />;
+            })}
+
+            {/* Worm path */}
+            <path d={pathD} fill="none" stroke="hsl(var(--foreground))" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+            {/* End point marker */}
+            {points.length > 0 && (() => {
+              const last = points[points.length - 1];
+              const color = leader === 'home' ? homeColor : leader === 'away' ? awayColor : 'hsl(var(--muted-foreground))';
+              return (
+                <>
+                  <circle cx={last.x} cy={last.y} r="5" fill={color} stroke="hsl(var(--background))" strokeWidth="2" />
+                </>
+              );
+            })()}
+          </svg>
+
+          {/* Side labels */}
+          <div className="absolute top-1 left-1 text-[8px] font-black uppercase tracking-wider" style={{ color: homeColor }}>
+            ▲ {homeClub?.short_name ?? 'Home'}
           </div>
-        )}
+          <div className="absolute bottom-1 left-1 text-[8px] font-black uppercase tracking-wider" style={{ color: awayColor }}>
+            ▼ {awayClub?.short_name ?? 'Away'}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between mt-2 text-[10px] font-bold">
+          <span className="text-muted-foreground">
+            {events.length > 0 ? `${events.length} scoring events` : 'Quarter snapshots'}
+          </span>
+          <span
+            className="tabular-nums px-2 py-0.5 rounded font-black"
+            style={{
+              color: leader ? (leader === 'home' ? homeColor : awayColor) : 'hsl(var(--muted-foreground))',
+              backgroundColor: leader ? `${leader === 'home' ? homeColor : awayColor}1A` : 'hsl(var(--muted) / 0.3)',
+            }}
+          >
+            {lastDiff === 0 ? 'SCORES LEVEL' : `${leader === 'home' ? homeClub?.short_name ?? 'Home' : awayClub?.short_name ?? 'Away'} +${Math.abs(lastDiff)}`}
+          </span>
+        </div>
       </div>
     </div>
   );
