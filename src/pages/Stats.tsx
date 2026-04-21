@@ -6,6 +6,7 @@ import { useSport } from '@/hooks/useSport';
 import { useSeasons } from '@/hooks/useData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ClubLogo from '@/components/ClubLogo';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BarChart3, Flame, Target, Hand, Sparkles, Users2, TrendingUp } from 'lucide-react';
 
 type StatKey = 'goals' | 'disposals' | 'marks' | 'afl_fantasy';
