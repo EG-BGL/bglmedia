@@ -369,7 +369,7 @@ function PlayersView({ aggregates, lastRoundHighs }: { aggregates: any[]; lastRo
                 <span className={`text-[11px] font-black w-5 text-center ${i < 3 ? 'text-primary' : 'text-muted-foreground'}`}>
                   {i + 1}
                 </span>
-                <ClubLogo logoUrl={club?.logo_url} name={club?.name ?? ''} size="xs" />
+                <ClubLogo club={club ?? {}} size="sm" />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-bold truncate leading-tight">
                     {row.player?.first_name} {row.player?.last_name}
@@ -454,7 +454,7 @@ function TeamsView({ aggregates }: { aggregates: any[] }) {
                     style={{ backgroundColor: i % 2 === 0 ? 'hsl(var(--muted) / 0.2)' : 'hsl(var(--card))' }}
                   >
                     <div className="flex items-center gap-2">
-                      <ClubLogo logoUrl={club?.logo_url} name={club?.name ?? ''} size="xs" />
+                      <ClubLogo club={club ?? {}} size="sm" />
                       <div className="min-w-0">
                         <div className="font-bold text-[11px] truncate leading-tight">{club?.short_name}</div>
                         <div className="text-[9px] text-muted-foreground">{row.games} {row.games === 1 ? 'g' : 'gp'}</div>

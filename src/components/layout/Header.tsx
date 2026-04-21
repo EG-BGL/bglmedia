@@ -10,7 +10,7 @@ const navItems = [
   { label: 'Home', path: '/' },
   { label: 'Fixtures & Results', path: '/fixtures' },
   { label: 'Ladder', path: '/ladder' },
-  
+  { label: 'Stats', path: '/stats' },
 ];
 
 export default function Header() {
